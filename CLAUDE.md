@@ -86,8 +86,17 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   needed). The panel marks them Decided vs Saved. The pin card leads with
   the part number and spells out what it means (PART NO. MEANS).
   S09-W and S09-W-N give the same part number (the "-N" is not an order
-  code). Not done: FCW-45 / FCW-20 wall packs and LC-FL-170 / LC-FL-40
-  floods have no order logic in this repo yet.
+  code).
+- Wall packs (Dino, 2026-10-20): FCW2 FCW-45-NV-740-CT -> LC-WP-40W-H-40K
+  (the 40W substitution, as on Kroger, which ran darker than the design
+  there), FCW3 FCW-20-NV-740-CT -> LC-WP-40W-L-40K (40W low-output tier;
+  no 20W exists). parts.js checks LC-WP numbers against lc-skb.js WP_OPTS
+  (LC-WP-{watt}W-{H|L}-{CCT}K[-{acc}]; CRI is not in the LC code).
+- Floods FL3 LC-FL-170-HV-50 / FL4 LC-FL-40-NV-50: no flood order logic in
+  lc-skb.js. Dino will give the LC numbers; until then they show the
+  design label. Typed in the panel, they are accepted as "not checked".
+- Every checked number carries parts.means, the one line the pin card and
+  job sheet print under PART NO. MEANS.
 - Installation guide PDF per product (Dino, 2026-10-20: "installation guide
   here as pdf ... what is relevant for the product"): an Optimus head
   installs the way its BRACKET mounts, so the guide is picked from the
@@ -199,7 +208,7 @@ never by writing its container.
   `local-dev-setup-key`.
 - `npm test` = tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 135 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 136 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

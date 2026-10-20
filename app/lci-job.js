@@ -80,9 +80,7 @@
 
   /* The UL-listed part number is what the installer checks on the box; the
      design's own label stays underneath for reference. */
-  function partMeaning(x) {
-    return [x.watts + 'W', x.volt, x.cct, x.cri, x.optic, x.bracket + ' bracket', x.color, x.sensor].join(' · ');
-  }
+  function partMeaning(x) { return x.means || ''; }
 
   function partLine(b) {
     if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>';

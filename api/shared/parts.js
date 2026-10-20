@@ -11,7 +11,10 @@
    Optimus order logic, kept in step with lc-catalog/lc-skb.js OPTIMUS_OPTS
    and buildSku (11 segments):
      LC-SLOT-{watt}W-{volt}-L5-{sensor}-{cct}-{cri}-{dist}-{bracket}-{color}
-   A part number that looks like an Optimus one must be a valid one: the
+   Prime Wallpack order logic, kept in step with lc-skb.js WP_OPTS and its
+   buildSku (CRI is not in the LC code; the accessory is left off for none):
+     LC-WP-{watt}W-{H|L}-{cct}K[-{accessory}]
+   A part number that looks like one of these must be a valid one: the
    catalog rule is that a plausible-looking guessed part number is worse
    than none. Other families are accepted as LC part numbers and shown as
    "not checked against an order logic here". */
@@ -38,6 +41,18 @@ const LABELS = {
   color: { BK: "Black", BR: "Bronze", WH: "White", CS: "Custom color" }
 };
 
+const WALLPACK = {
+  watt: ["28", "40", "60", "80", "100", "120"],
+  effect: ["H", "L"],
+  cct: ["35K", "40K", "50K", "57K", "65K"],
+  acc: ["MS", "EM", "EMS", "PT", "PM"]
+};
+const WP_LABELS = {
+  effect: { H: "Standard output", L: "Low output" },
+  cct: { "35K": "3500K", "40K": "4000K", "50K": "5000K", "57K": "5700K", "65K": "6500K" },
+  acc: { "": "No accessory", MS: "Microwave sensor", EM: "Emergency pack", EMS: "Emergency pack + sensor", PT: "Photocell", PM: "Photocell + microwave sensor" }
+};
+
 const RE_GENERIC = /^LC-[A-Z0-9]+(-[A-Z0-9.]+){1,15}$/;
 
 /* -> { ok, pn, family, checked, error?, parts? } */
@@ -54,9 +69,25 @@ function check(raw) {
     for (const [k, v] of Object.entries(seg)) {
       if (!OPTIMUS[k].includes(v)) return { ok: false, pn, error: "\"" + v + "\" is not a valid " + k + " code (" + OPTIMUS[k].join(", ") + ")." };
     }
-    return { ok: true, pn, family: "Optimus", checked: true, short: "Optimus " + seg.watt + "W \u00b7 " + dist, codes: seg, parts: {
-      watts: Number(seg.watt), volt: LABELS.volt[volt], sensor: LABELS.sensor[sensor], cct: LABELS.cct[cct], cri: LABELS.cri[cri],
-      optic: LABELS.dist[dist], bracket: LABELS.bracket[bracket], color: LABELS.color[color] } };
+    const parts = { watts: Number(seg.watt), volt: LABELS.volt[volt], sensor: LABELS.sensor[sensor], cct: LABELS.cct[cct], cri: LABELS.cri[cri],
+      optic: LABELS.dist[dist], bracket: LABELS.bracket[bracket], color: LABELS.color[color] };
+    parts.means = [parts.watts + "W", parts.volt, parts.cct, parts.cri, parts.optic, parts.bracket + " bracket", parts.color, parts.sensor].join(" \u00b7 ");
+    return { ok: true, pn, family: "Optimus", checked: true, short: "Optimus " + seg.watt + "W \u00b7 " + dist, codes: seg, parts };
+  }
+  if (/^LC-WP\b/.test(pn)) {
+    const s = pn.split("-");
+    if (s.length !== 5 && s.length !== 6) return { ok: false, pn, error: "A Prime Wallpack part number reads LC-WP-{watt}W-{H|L}-{CCT}K, with an accessory code at the end if it has one." };
+    const [, , w, effect, cct, acc = ""] = s;
+    if (!/W$/.test(w)) return { ok: false, pn, error: "Watt segment must end in W, e.g. 40W." };
+    const seg = { watt: w.replace(/W$/, ""), effect, cct };
+    for (const [k, v] of Object.entries(seg)) {
+      if (!WALLPACK[k].includes(v)) return { ok: false, pn, error: "\"" + v + "\" is not a valid Prime Wallpack " + k + " code (" + WALLPACK[k].join(", ") + ")." };
+    }
+    if (acc && !WALLPACK.acc.includes(acc)) return { ok: false, pn, error: "\"" + acc + "\" is not a valid Prime Wallpack accessory code (" + WALLPACK.acc.join(", ") + ")." };
+    const parts = { watts: Number(seg.watt), output: WP_LABELS.effect[effect], cct: WP_LABELS.cct[cct], accessory: WP_LABELS.acc[acc] };
+    parts.means = [parts.watts + "W", parts.output, parts.cct, parts.accessory].join(" \u00b7 ");
+    return { ok: true, pn, family: "Prime Wallpack", checked: true, codes: Object.assign(seg, { acc }), parts,
+      short: "Prime Wallpack " + seg.watt + "W" + (effect === "L" ? " \u00b7 Low output" : "") };
   }
   if (!RE_GENERIC.test(pn)) return { ok: false, pn, error: "An LED Connection part number starts LC- and uses letters, digits and dashes." };
   return { ok: true, pn, family: "", checked: false };
@@ -74,7 +105,11 @@ const DECIDED = {
   "LC-SLOT-145-HV-L5-50-TY03": "LC-SLOT-145W-HV-L5-XX-50-70-T3-U-BK",
   "LC-SLOT-L-L3-HV-50-70-TY5SW": "LC-SLOT-230W-HV-L5-XX-50-70-T5S-SS-BK",
   "LC-SLOT-XL-XL1-HV-50-70-TY5SW": "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK",
-  "LC-SLOT-XL-XL2-HV-30-70-TY5S": "LC-SLOT-420W-HV-L5-XX-30-70-T5S-SS-BK"
+  "LC-SLOT-XL-XL2-HV-30-70-TY5S": "LC-SLOT-420W-HV-L5-XX-30-70-T5S-SS-BK",
+  /* Wall packs (Dino, same day): FCW-45 (45W) -> the 40W Prime Wallpack, as
+     on Kroger; FCW-20 (20W) -> the 40W low-output tier. 4000K, no accessory. */
+  "FCW-45-NV-740-CT": "LC-WP-40W-H-40K",
+  "FCW-20-NV-740-CT": "LC-WP-40W-L-40K"
 };
 
-module.exports = { check, DECIDED, OPTIMUS, LABELS };
+module.exports = { check, DECIDED, OPTIMUS, LABELS, WALLPACK };
