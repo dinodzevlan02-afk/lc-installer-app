@@ -1,4 +1,5 @@
-/* LC Installer App - jobs: one installation of one customer-portal project.
+/* LC Installer App - jobs: one installation of one site, a customer-portal
+   project or a site uploaded into this app (sites/, api/sites).
 
    Storage (installer-app container, docs/storage.md):
      jobs/{id}.json                    the job: which portal project, who installs it, submitted?
@@ -23,7 +24,7 @@ const SCHEMA = 1;
 const RE_PROJECT = /^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$/;
 function normJob(id) {
   const s = String(id == null ? "" : id).trim();
-  if (!RE_PROJECT.test(s)) throw new ApiError(400, "Job id must be the portal project id (2-64 characters: letters, digits, and . _ -).");
+  if (!RE_PROJECT.test(s)) throw new ApiError(400, "Job id must be the project id (2-64 characters: letters, digits, and . _ -).");
   return s;
 }
 
@@ -50,7 +51,7 @@ async function requireJob(user, id) {
 
 async function requireSite(id) {
   const s = await SITE.site(id);
-  if (!s) throw new ApiError(404, "The customer portal has no site for project \"" + id + "\".");
+  if (!s) throw new ApiError(404, "No site for project \"" + id + "\" in this app or the customer portal.");
   return s;
 }
 

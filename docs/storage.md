@@ -16,7 +16,9 @@ installer-app/
   users/{username}.json             one login
   invites/{sha256(token)}.json      one live invite / reset link
   audit/{yyyy-mm}/{stamp}.json      one event, append-only
-  jobs/{projectId}.json             one job = one customer-portal project
+  sites/{id}.json                   a site kept in this app only: name, address, customer, counts, source
+  sites/{id}/site.json              its audit rows, solutions and exclusions (format "lc-site")
+  jobs/{projectId}.json             one job = one site (customer-portal project or sites/{id})
   jobs/{projectId}/material.json    the material check and its sign-off
   jobs/{projectId}/parts.json       design label -> UL-listed LC part number (LC admins)
   jobs/{projectId}/claims/{ref}.json    one material claim (ref MC-yymmdd-XXXX)
@@ -28,9 +30,32 @@ Every job record (job, material, claim, pin) carries `"v": 1`, the shape it
 was written in. Change a shape: bump SCHEMA in api/shared/jobs.js and make
 the readers handle both, so old records are migrated on purpose.
 
-The site itself (pins, products, quantities) is NOT stored here: it is read
-from the customer portal's container (projects/{id}.json, site.json,
-portal.json) with a read-only SAS, every time, so the two never disagree.
+A site (pins, products, quantities) comes from one of two places:
+
+- **sites/{id}** in this container, when LED Connection uploaded a site file
+  here (PUT /api/sites/{id}, home page UPLOAD SITE FILE). Kroger 345 is the
+  first: Dino wanted it in the installer app only, not in the customer
+  portal. The file is built by tools/sites/build-site.js; the API keeps only
+  the solution fields an installer may see and drops signed photo links.
+  This one wins over a portal project with the same id.
+- otherwise the customer portal's container (projects/{id}.json, site.json,
+  portal.json), read with a read-only SAS every time, so the two never
+  disagree.
+
+## sites/{id}.json
+
+```json
+{ "v": 1, "id": "KR-00345-NV", "name": "Kroger 345 · El Dorado Village",
+  "address": "...", "customer": "Kroger", "kind": "exterior", "installDate": "",
+  "fixtures": 87, "rows": 113,                      // heads to install, audit rows
+  "source": { "audit": "...", "design": "...", "mapping": "...", "built": "2026-10-20", "builder": "tools/sites/build-site.js" },
+  "uploaded": "...", "uploadedBy": "dino" }
+```
+
+`sites/{id}/site.json` is `{ "format": "lc-site", "version": 1, "site": { "datasets": [{ id, label,
+data: [audit rows], solutions: { rowIndex: { fam, lc_sku, tag, watt, mh, tilt, ... } },
+excluded: { rowIndex: true } }] } }`, the portal's shape. A re-upload replaces both
+files; saved work stays because pin ids come from the dataset id and the audit row id.
 
 ## users/{username}.json
 

@@ -34,3 +34,4 @@ dev/.portal/
 
 # Guide design previews (rebuilt with build_guides.py --preview)
 tools/guides/preview/
+tools/sites/out/

@@ -13,8 +13,9 @@
 <link rel="stylesheet" href="lci.css">
 <!-- The signed-in front page. Gated on /api/me: no session goes to
      index.html?next=./home.html. Installers: MY JOBS, only the jobs that
-     name them. LED Connection admins: PROJECTS, the portal projects that have
-     a job here, plus an ADD picker for the rest; a job is started and
+     name them. LED Connection admins: PROJECTS, the projects that have a job
+     here, plus an ADD picker for the rest (customer portal projects and sites
+     uploaded into this app with UPLOAD SITE FILE); a job is started and
      installers are assigned there. The server
      enforces both; this page only chooses what to draw. LOGINS shows for LC admins only, and the server refuses
      everyone else whatever this page draws. Every value from the server is
@@ -52,9 +53,13 @@
   .addrow { margin: 4px 0 14px; }
   .addrow[hidden] { display: none; }
   #btnShowAdd { margin: 0 0 12px; }
+  #btnShowAdd[hidden] { display: none; }
   .addrow label { margin-top: 0; }
   .addline { display: flex; gap: 10px; flex-wrap: wrap; }
   .addline select { flex: 1; min-width: 240px; width: auto; }
+  .upline { margin-top: 10px; align-items: center; }
+  .upline .small-text { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: 1; min-width: 200px; }
+  .src { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--cyan); text-transform: uppercase; }
   .mini { height: 6px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden; margin-top: 6px; width: 140px; }
   .mini i { display: block; height: 100%; background: var(--green); }
   .pick label { display: inline-flex; gap: 8px; align-items: center; margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
@@ -86,10 +91,15 @@
     <div class="sub">» Projects with an install job · LED Connection only «</div>
     <button type="button" class="small" id="btnShowAdd" hidden>+ Add another project</button>
     <div class="addrow" id="addRow">
-      <label for="addProject">Add a project from the customer portal</label>
+      <label for="addProject">Add a project: from the customer portal, or a site uploaded here</label>
       <div class="addline">
         <select id="addProject"><option value="">Choose a project…</option></select>
         <button type="button" class="primary" id="btnAddProject">Start job</button>
+      </div>
+      <div class="addline upline">
+        <button type="button" class="small" id="btnUpload">Upload site file</button>
+        <input type="file" id="siteFile" accept=".json,application/json" hidden>
+        <span class="small-text">A site kept in this app only (not in the customer portal), built with tools/sites from the audit export and the approved design.</span>
       </div>
     </div>
     <div class="table-wrap">
@@ -278,16 +288,18 @@
       var act = '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' +
         '<button type="button" class="small" data-assign="' + x.i + '">Installers</button>';
       return '<tr><td><b>' + esc(p.name) + '</b><div class="small-text">' + esc(p.address || p.id) + '</div>' +
-          (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') + '</td>' +
+          (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') +
+          (p.source === 'installer' ? '<div class="src">Installer app site</div>' : '') + '</td>' +
         '<td>' + esc(p.customer || '-') + '</td>' +
         '<td>' + (p.heads == null ? '-' : p.heads) + '</td>' +
         '<td>' + jobCell + '</td><td style="white-space:nowrap">' + act + '</td></tr>';
-    }).join('') || '<tr><td colspan="5" class="placeholder">No projects yet. Add one from the customer portal above.</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="placeholder">No projects yet. Add one above.</td></tr>';
     /* Only projects with a site can take a job. */
     var free = PROJECTS.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return !x.p.job && x.p.hasSite; });
-    $('addProject').innerHTML = '<option value="">' + (free.length ? 'Choose a project…' : 'Every portal project with a site is already here') + '</option>' +
+    $('addProject').innerHTML = '<option value="">' + (free.length ? 'Choose a project…' : 'Every project with a site is already here') + '</option>' +
       free.map(function (x) {
-        return '<option value="' + x.i + '">' + esc(x.p.name) + (x.p.customer ? ' · ' + esc(x.p.customer) : '') + (x.p.heads != null ? ' · ' + x.p.heads + ' fixtures' : '') + '</option>';
+        return '<option value="' + x.i + '">' + esc(x.p.name) + (x.p.customer ? ' · ' + esc(x.p.customer) : '') + (x.p.heads != null ? ' · ' + x.p.heads + ' fixtures' : '') +
+          (x.p.source === 'installer' ? ' · uploaded here' : '') + '</option>';
       }).join('');
     $('btnAddProject').disabled = !free.length;
     /* With a project in, the picker folds away so the page shows only the
@@ -316,6 +328,29 @@
     if (v === '') { say('Choose a project first.'); return; }
     say('');
     openAssign(+v);
+  });
+  /* A site kept in this app only (Kroger 345 first): the file names its own
+     project id; replacing one keeps every saved pin, because pins are keyed
+     by the audit row id, not by the upload. */
+  $('btnUpload').addEventListener('click', function () { $('siteFile').value = ''; $('siteFile').click(); });
+  $('siteFile').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    if (!f) return;
+    f.text().then(function (t) {
+      var j;
+      try { j = JSON.parse(t); } catch (e) { throw new Error('That file is not a site file (not JSON).'); }
+      var id = j && j.project && j.project.id;
+      if (!id || j.format !== 'lc-site') throw new Error('That file is not a site file (format "lc-site" with a project id).');
+      var known = PROJECTS.filter(function (p) { return p.id === id; })[0];
+      if (known && known.source === 'installer' &&
+          !confirm('Replace the site of ' + (known.name || id) + '? Saved counts, claims and installed pins stay.')) return null;
+      say('Uploading ' + (j.project.name || id) + '…', true);
+      return LCI.api('PUT', 'sites/' + encodeURIComponent(id), j).then(function (r) {
+        say((r.replaced ? 'Site replaced: ' : 'Site added: ') + r.site.name + ' · ' + r.site.fixtures + ' fixtures. Start its job from the list.', true);
+        addOpen = true;
+        return loadProjects();
+      });
+    }).catch(function (err) { say(err.message); });
   });
   function loadProjects() {
     return LCI.api('GET', 'projects').then(function (r) { PROJECTS = r.projects; renderProjects(); },
