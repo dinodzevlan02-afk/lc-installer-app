@@ -80,7 +80,11 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   (SS), wall heads S09-W / S09-W-N and S10 yoke (U), TY5SW -> T5S, TY4W ->
   T4 (the wide optics have no order code), black, no sensor, S10 CRI 70.
   Wattage from the schedule's own watts (S1 75, 145, L3 230, XL1 300, XL2
-  420, all within 2.2%). These are SUGGESTIONS in parts.js until saved.
+  420, all within 2.2%). These are DECIDED in parts.js and APPLY on any
+  job with that design label until a different number is saved (Dino, on
+  the 2741 pin card: "I need you to upload the codes here"; no save click
+  needed). The panel marks them Decided vs Saved. The pin card leads with
+  the part number and spells out what it means (PART NO. MEANS).
   S09-W and S09-W-N give the same part number (the "-N" is not an order
   code). Not done: FCW-45 / FCW-20 wall packs and LC-FL-170 / LC-FL-40
   floods have no order logic in this repo yet.
@@ -195,7 +199,7 @@ never by writing its container.
   `local-dev-setup-key`.
 - `npm test` = tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 134 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 135 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

@@ -41,6 +41,6 @@ test("every A-05 suggestion is a valid order-logic part number", () => {
     "LC-SLOT-XL-XL1-HV-50-70-TY5SW": "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK",
     "LC-SLOT-XL-XL2-HV-30-70-TY5S": "LC-SLOT-420W-HV-L5-XX-30-70-T5S-SS-BK"
   };
-  assert.deepEqual(PARTS.SUGGESTED, want);
-  for (const pn of Object.values(PARTS.SUGGESTED)) assert.equal(PARTS.check(pn).ok, true, pn);
+  assert.deepEqual(PARTS.DECIDED, want);
+  for (const pn of Object.values(PARTS.DECIDED)) assert.equal(PARTS.check(pn).ok, true, pn);
 });
