@@ -57,6 +57,19 @@ be installed; a submitted job is locked; only jobs that name the installer
 are visible (404 otherwise). Claim emails are NOT sent yet: the office sees
 claims on the job page. Next: mail like the portal's (Cassie + Dino).
 
+## Who sees what (Dino, 2026-10-20)
+
+- LED Connection admins: ALL PROJECTS on the home page = every project in
+  the customer portal (GET /api/projects, LC only), with START JOB /
+  INSTALLERS / OPEN. A job is started on a project from there; INSTALLERS
+  changes who installs it at any time (LC only; installer logins only;
+  whoever is unticked loses it at once, their saved work stays; the audit
+  records added / removed). Walmart 2741
+  is brought in that way (its data stays in the portal and is read live).
+- Installers: MY JOBS only, the jobs whose `installers` name them; any
+  other job answers 404 and the project list 403.
+- "Has a site" = projects/{id}/site.json exists in the portal's listing.
+
 ## Reading the customer portal (2026-10-20)
 
 - api/shared/site.js reads projects/{id}.json, site.json, portal.json from
@@ -134,7 +147,7 @@ never by writing its container.
   `local-dev-setup-key`.
 - `npm test` = tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/api.test.js, 100 checks through the real HTTP API on a throwaway
+  internal fields) + tests/api.test.js, 119 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

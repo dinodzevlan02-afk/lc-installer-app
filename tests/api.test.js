@@ -131,6 +131,17 @@ async function main() {
   check((await inst("GET", "jobs/TEST-SITE-01")).status === 404, "an installer not on the job cannot see it");
   check((await inst("GET", "jobs")).body.jobs.length === 0, "an installer's list leaves out jobs that are not theirs");
   check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["mike.crew"] })).status === 200, "LC admin assigns the installer");
+
+  console.log("all customer-portal projects: LED Connection only");
+  check((await inst("GET", "projects")).status === 403, "an installer cannot list the portal's projects");
+  check((await anon("GET", "projects")).status === 401, "the project list needs a session");
+  const pl = await lc("GET", "projects");
+  const p1 = pl.body.projects.find(p => p.id === "TEST-SITE-01"), p2 = pl.body.projects.find(p => p.id === "TEST-SITE-02");
+  check(pl.status === 200 && p1 && p2, "LC admin sees every portal project, with or without a job");
+  check(p1.job && p1.job.installers[0] === "mike.crew" && p2.job === null, "each project says whether it has a job and who is on it");
+  check(p1.customer === "Test Customer" && p1.hasSite === true && p2.hasSite === false, "customer name shown; whether a project has a site comes from its site file");
+  check(!/9999|8888|INTERNAL CUSTOMER NOTE|netsuite|uploadedBy/.test(JSON.stringify(pl.body)), "no NetSuite number or internal notes in the list");
+  check((await lc("POST", "jobs", { projectId: "TEST-SITE-02", installers: [] })).status === 404, "no job on a project whose site was never uploaded");
   const jv = await inst("GET", "jobs/TEST-SITE-01");
   check(jv.status === 200, "the assigned installer opens the job");
   const text = JSON.stringify(jv.body);
@@ -182,6 +193,26 @@ async function main() {
   const lst = await lc("GET", "jobs");
   check(lst.body.jobs[0].heads === 8 && lst.body.jobs[0].pinsSaved === 8 && lst.body.jobs[0].materialApproved, "LC admin's list shows progress");
   check((await lc("PATCH", "jobs/TEST-SITE-01", { reopenMaterial: true })).status === 200, "LC admin can reopen the material check");
+
+  console.log("changing the installer on a job: LED Connection only");
+  check((await lc("POST", "users", { username: "anna.crew", name: "Anna Crew", password: PW })).status === 201, "a second installer login");
+  const anna = browser();
+  await anna("POST", "login", { username: "anna.crew", password: PW });
+  await anna("POST", "password", { current: PW, next: PW + "-a" });
+  check((await anna("GET", "jobs/TEST-SITE-01")).status === 404, "before: the second installer cannot see the job");
+  check((await inst("PATCH", "jobs/TEST-SITE-01", { installers: ["mike.crew", "anna.crew"] })).status === 403, "an installer cannot change who is on a job");
+  check((await anna("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] })).status === 403, "an installer not on the job cannot add themselves (refused before the job is even read)");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["dino"] })).status === 400, "an LC admin login cannot be named as the installer");
+  const sw = await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] });
+  check(sw.status === 200 && JSON.stringify(sw.body.job.installers) === '["anna.crew"]', "LC admin replaces the installer");
+  check((await inst("GET", "jobs/TEST-SITE-01")).status === 404, "the replaced installer loses the job at once");
+  check((await inst("GET", "jobs")).body.jobs.length === 0, "and it leaves their list");
+  const aj = await anna("GET", "jobs/TEST-SITE-01");
+  check(aj.status === 200 && Object.values(aj.body.pins).some(p => p.by === "mike.crew"), "the new installer sees the job, with the earlier installer's saved work");
+  const auditTxt = (function walk(d, out) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); e.isDirectory() ? walk(f, out) : out.push(fs.readFileSync(f, "utf8")); } return out; })(path.join(store, "audit"), []).join("\n");
+  check(/"removed": \[\s*"mike.crew"\s*\]/.test(auditTxt) && /"added": \[\s*"anna.crew"\s*\]/.test(auditTxt), "the audit records who was removed and who was added");
+  check((await lc("PATCH", "users/anna.crew", { disabled: true })).status === 200 && (await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] })).status === 200, "a switched-off installer already on the job can stay listed");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew", "temp.crew"] })).status === 200, "another installer can be added alongside");
 
   console.log("last admin");
   const add2 = await lc("POST", "users", { username: "office2", role: "lc-admin", password: PW });

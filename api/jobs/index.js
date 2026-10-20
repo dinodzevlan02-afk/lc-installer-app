@@ -12,12 +12,17 @@ const P = require("../shared/app");
 const J = require("../shared/jobs");
 const { A, ApiError } = P;
 
-async function cleanInstallers(list) {
+/* Installer logins only: an LC admin already sees every job, so naming one
+   here would mean nothing. A switched-off login may stay on a job (it is
+   already locked out), but cannot be newly added. */
+async function cleanInstallers(list, current) {
   if (!Array.isArray(list)) throw new ApiError(400, "installers must be a list of usernames.");
   const out = [];
   for (const u of [...new Set(list.map(P.normUser))]) {
     const rec = await P.store().get(P.paths.user(u));
     if (!rec) throw new ApiError(400, "No login \"" + u + "\".");
+    if (rec.data.role !== "installer") throw new ApiError(400, "\"" + u + "\" is not an installer login.");
+    if (rec.data.disabled && !(current || []).includes(u)) throw new ApiError(400, "\"" + u + "\" is switched off.");
     out.push(u);
   }
   return out;
@@ -84,7 +89,15 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     if (!id) throw new ApiError(400, "Which job?");
     const { job, etag } = await J.requireJob(user, id);
     const logged = {};
-    if (body.installers !== undefined) { job.installers = await cleanInstallers(body.installers); logged.installers = job.installers; }
+    /* Changing who installs: whoever is taken off loses the job on their
+       next request (404); their saved counts, claims and pins stay, with
+       their name on them. The audit keeps who was added and removed. */
+    if (body.installers !== undefined) {
+      const before = job.installers || [];
+      job.installers = await cleanInstallers(body.installers, before);
+      logged.added = job.installers.filter(u => !before.includes(u));
+      logged.removed = before.filter(u => !job.installers.includes(u));
+    }
     if (body.reopenMaterial) {
       const mat = await P.store().get(J.paths.material(id));
       if (mat && mat.data.approved) {
