@@ -11,5 +11,7 @@ storage container, cookie and secrets.
 
 Local (Node 20+, no install):
 
-    node dev/server.js   # http://localhost:4310, setup key local-dev-setup-key
-    node dev/smoke.js    # API security checks
+    npm run dev   # http://localhost:4310, setup key local-dev-setup-key
+    npm test      # unit tests + API security checks (CI runs this before every deploy)
+
+The website is app/ (the only folder Azure publishes); the API is api/.
