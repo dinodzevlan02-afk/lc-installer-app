@@ -18,6 +18,7 @@ installer-app/
   audit/{yyyy-mm}/{stamp}.json      one event, append-only
   jobs/{projectId}.json             one job = one customer-portal project
   jobs/{projectId}/material.json    the material check and its sign-off
+  jobs/{projectId}/parts.json       design label -> UL-listed LC part number (LC admins)
   jobs/{projectId}/claims/{ref}.json    one material claim (ref MC-yymmdd-XXXX)
   jobs/{projectId}/pins/{pinId}.json    one installed head
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
@@ -85,6 +86,13 @@ never stored; a newer link retires the older one.
   "history": [{ "approved": {...}, "reopenedAt": "...", "reopenedBy": "dino" }] }
 ```
 `expected` is always the site's own count at sign-off, never the page's.
+
+## jobs/{projectId}/parts.json
+
+```json
+{ "v": 1, "byLabel": { "LC-SLOT-XL-XL1-HV-50-70-TY5SW": { "pn": "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK", "at": "...", "by": "dino", "byName": "..." } } }
+```
+An Optimus `pn` always passes the order logic (api/shared/parts.js).
 
 ## jobs/{projectId}/claims/{ref}.json
 

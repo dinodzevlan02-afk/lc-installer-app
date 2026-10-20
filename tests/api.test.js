@@ -154,6 +154,27 @@ async function main() {
   check(moved && Math.abs(moved.lng - (-115.0300 + 0.0008)) < 1e-9, "a position corrected in the portal wins over the audit's");
   check(JSON.stringify(jv.body.site.tags) === JSON.stringify([{ tag: "S07", count: 4 }, { tag: "S08", count: 2 }, { tag: "W1", count: 2 }]), "design tags (not the audit's) with their head counts");
   check(jv.body.contact.phone === "702.847.7680", "the company phone is on the job");
+
+  console.log("UL-listed part numbers: LED Connection sets them, everyone sees them");
+  const optLabel = "LC-SLOT-XL-XL1-HV-50-70-TY5SW";
+  check(jv.body.parts === undefined && jv.body.site.bom.every(b => b.partNo === null), "an installer gets no part-number table and no suggestions");
+  const lj = await lc("GET", "jobs/TEST-SITE-01");
+  const row = lj.body.parts.find(r => r.label === optLabel);
+  check(row && row.saved === null && row.suggested === "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK", "LC admin sees the order-logic suggestion for the design label");
+  check(lj.body.site.bom.every(b => b.partNo === null), "a suggestion is not applied until saved");
+  check((await inst("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { [optLabel]: "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK" } })).status === 403, "an installer cannot set part numbers");
+  check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { [optLabel]: "LC-SLOT-300W-HV-L5-XX-50-70-T5SW-SS-BK" } })).status === 400, "a part number outside the order logic is refused");
+  check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { "LC-NOT-ON-SITE": "LC-WP-40W-H-40K" } })).status === 400, "a design label that is not on the site is refused");
+  check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { [optLabel]: "lc-slot-300w-hv-l5-xx-50-70-t5s-ss-bk", "LC-WP-40W-50K": "LC-WP-40W-H-50K" } })).status === 200, "LC admin saves part numbers");
+  const ij = await inst("GET", "jobs/TEST-SITE-01");
+  const ob = ij.body.site.bom.find(b => b.sku === optLabel);
+  check(ob.partNo && ob.partNo.pn === "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK" && ob.partNo.parts.bracket === "Straight square arm", "the installer sees the part number on the material line, explained");
+  check(ij.body.site.pins.filter(p => p.partNo === "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK").length === 6, "and on every pin of that product");
+  check(ob.name === "Optimus 300W \u00b7 T5S" && ob.designName && ij.body.site.pins.find(p => p.partNo).productName === "Optimus 300W \u00b7 T5S", "the product name follows the saved part number, not the design label");
+  check(ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo.checked === false, "a non-Optimus part number is shown as not checked against an order logic");
+  check(!/AOK|SECRET VENDOR/.test(JSON.stringify(ij.body)), "no supplier name or code reaches the installer");
+  check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { "LC-WP-40W-50K": "" } })).status === 200 &&
+        (await inst("GET", "jobs/TEST-SITE-01")).body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo === null, "an empty value removes a part number");
   check(bom[0].catalog && /fixtures\/7\/spec-sheet\/Optimus-Spec\.pdf$/.test(bom[0].specSheetUrl) && bom[0].catalog.docs[0].label === "Installation instructions", "spec sheet and manuals come from the catalog by product id");
   check(bom[1].specSheetUrl === "https://example.com/wp.pdf", "the design's own spec sheet link wins");
   const pinA = jv.body.site.pins.find(p => p.tag === "S07"), pinOff = jv.body.site.pins.find(p => p.off);

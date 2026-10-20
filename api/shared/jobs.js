@@ -3,6 +3,7 @@
    Storage (installer-app container, docs/storage.md):
      jobs/{id}.json                    the job: which portal project, who installs it, submitted?
      jobs/{id}/material.json           the material check: counts, then the installer's sign-off
+     jobs/{id}/parts.json              design label -> UL-listed LC part number (LC admins)
      jobs/{id}/claims/{ref}.json       a material claim (short, damaged, wrong)
      jobs/{id}/pins/{pinId}.json       one installed head: who, when, note, photos
      jobs/{id}/photos/{16 hex}.jpg     photos for claims and pins
@@ -29,6 +30,7 @@ function normJob(id) {
 const paths = {
   job: id => "jobs/" + id + ".json",
   material: id => "jobs/" + id + "/material.json",
+  parts: id => "jobs/" + id + "/parts.json",
   claims: id => "jobs/" + id + "/claims/",
   claim: (id, ref) => "jobs/" + id + "/claims/" + ref + ".json",
   pins: id => "jobs/" + id + "/pins/",

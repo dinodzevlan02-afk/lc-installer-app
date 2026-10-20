@@ -10,6 +10,7 @@
                               reopenMaterial lets the installer count again. */
 const P = require("../shared/app");
 const J = require("../shared/jobs");
+const PARTS = require("../shared/parts");
 const { A, ApiError } = P;
 
 /* Installer logins only: an LC admin already sees every job, so naming one
@@ -51,7 +52,7 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
 
   if (method === "GET") {
     const { job } = await J.requireJob(user, id);
-    const site = await J.requireSite(id);
+    let site = await J.requireSite(id);
     const [mat, pinNames, claimNames] = await Promise.all([
       P.store().get(J.paths.material(id)),
       P.store().list(J.paths.pins(id)),
@@ -61,8 +62,34 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     (await Promise.all(pinNames.map(n => P.store().get(n)))).forEach(r => { if (r) pins[r.data.pinId] = r.data; });
     const claims = (await Promise.all(claimNames.map(n => P.store().get(n)))).filter(Boolean).map(r => r.data)
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    /* UL-listed part numbers saved for this job, on each material line and
+       pin. The cached site is shared, so it is copied, never written to. */
+    const partsRec = await P.store().get(J.paths.parts(id));
+    const saved = (partsRec && partsRec.data.byLabel) || {};
+    const pnOf = sku => saved[sku] && saved[sku].pn;
+    const describe = pn => { const c = PARTS.check(pn); return c.ok ? { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null } : null; };
+    /* Once a checked part number is saved, the product's name follows it
+       ("Optimus 300W · T5S"), so name, box and part number agree; the
+       design label's own name ("Optimus XL1 · TY5SW") stays on the label. */
+    const bom = site.bom.map(b => {
+      const pn = pnOf(b.sku) ? describe(pnOf(b.sku)) : null;
+      return Object.assign({}, b, { partNo: pn }, pn && pn.short ? { name: pn.short, designName: b.name } : {});
+    });
+    const nameOf = Object.fromEntries(bom.map(b => [b.key, b.name]));
+    site = Object.assign({}, site, {
+      bom,
+      pins: site.pins.map(p => p.product && pnOf(p.product.sku)
+        ? Object.assign({}, p, { partNo: pnOf(p.product.sku), productName: nameOf[p.productKey] || p.productName }) : p)
+    });
+    /* LED Connection also gets the table to edit, with suggestions for
+       labels that have no part number yet. Installers never see suggestions. */
+    const parts = !A.isLc(user) ? undefined : site.bom.map(b => ({
+      label: b.sku, name: b.name, tags: b.tags, qty: b.qty,
+      saved: saved[b.sku] || null,
+      suggested: !saved[b.sku] && PARTS.SUGGESTED[b.sku] ? PARTS.SUGGESTED[b.sku] : null
+    }));
     return send(200, {
-      job: J.publicJob(job, user), site,
+      job: J.publicJob(job, user), site, parts,
       material: mat ? mat.data : { lines: {}, approved: null },
       materialEtag: mat ? mat.etag : null,
       pins, claims, contact: J.contact()
