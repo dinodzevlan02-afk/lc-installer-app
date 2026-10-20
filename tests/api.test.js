@@ -194,6 +194,26 @@ async function main() {
   check(lst.body.jobs[0].heads === 8 && lst.body.jobs[0].pinsSaved === 8 && lst.body.jobs[0].materialApproved, "LC admin's list shows progress");
   check((await lc("PATCH", "jobs/TEST-SITE-01", { reopenMaterial: true })).status === 200, "LC admin can reopen the material check");
 
+  console.log("changing the installer on a job: LED Connection only");
+  check((await lc("POST", "users", { username: "anna.crew", name: "Anna Crew", password: PW })).status === 201, "a second installer login");
+  const anna = browser();
+  await anna("POST", "login", { username: "anna.crew", password: PW });
+  await anna("POST", "password", { current: PW, next: PW + "-a" });
+  check((await anna("GET", "jobs/TEST-SITE-01")).status === 404, "before: the second installer cannot see the job");
+  check((await inst("PATCH", "jobs/TEST-SITE-01", { installers: ["mike.crew", "anna.crew"] })).status === 403, "an installer cannot change who is on a job");
+  check((await anna("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] })).status === 403, "an installer not on the job cannot add themselves (refused before the job is even read)");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["dino"] })).status === 400, "an LC admin login cannot be named as the installer");
+  const sw = await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] });
+  check(sw.status === 200 && JSON.stringify(sw.body.job.installers) === '["anna.crew"]', "LC admin replaces the installer");
+  check((await inst("GET", "jobs/TEST-SITE-01")).status === 404, "the replaced installer loses the job at once");
+  check((await inst("GET", "jobs")).body.jobs.length === 0, "and it leaves their list");
+  const aj = await anna("GET", "jobs/TEST-SITE-01");
+  check(aj.status === 200 && Object.values(aj.body.pins).some(p => p.by === "mike.crew"), "the new installer sees the job, with the earlier installer's saved work");
+  const auditTxt = (function walk(d, out) { for (const e of fs.readdirSync(d, { withFileTypes: true })) { const f = path.join(d, e.name); e.isDirectory() ? walk(f, out) : out.push(fs.readFileSync(f, "utf8")); } return out; })(path.join(store, "audit"), []).join("\n");
+  check(/"removed": \[\s*"mike.crew"\s*\]/.test(auditTxt) && /"added": \[\s*"anna.crew"\s*\]/.test(auditTxt), "the audit records who was removed and who was added");
+  check((await lc("PATCH", "users/anna.crew", { disabled: true })).status === 200 && (await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] })).status === 200, "a switched-off installer already on the job can stay listed");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew", "temp.crew"] })).status === 200, "another installer can be added alongside");
+
   console.log("last admin");
   const add2 = await lc("POST", "users", { username: "office2", role: "lc-admin", password: PW });
   check(add2.status === 201, "second LC admin created");
