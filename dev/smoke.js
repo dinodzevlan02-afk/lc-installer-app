@@ -117,6 +117,71 @@ async function main() {
   for (let i = 0; i < 5; i++) await anon("POST", "login", { username: "temp.crew", password: "wrong-wrong-" + i });
   check((await anon("POST", "login", { username: "temp.crew", password: PW + "-3" })).status === 429, "five wrong passwords lock the login, even with the right one");
 
+  console.log("jobs: read-only portal site, material check, claims, pins, submit");
+  const JPEG = "data:image/jpeg;base64," + Buffer.concat([Buffer.from([0xff, 0xd8, 0xff, 0xe0]), Buffer.alloc(200, 7)]).toString("base64");
+  check((await inst("GET", "jobs")).status === 401, "a switched-off-then-on installer must sign in again");
+  await inst("POST", "login", { username: "mike.crew", password: PW });
+  check((await inst("POST", "jobs", { projectId: "TEST-SITE-01", installers: ["mike.crew"] })).status === 403, "an installer cannot open a job");
+  check((await lc("POST", "jobs", { projectId: "NO-SUCH-SITE", installers: [] })).status === 404, "a job needs a site in the customer portal");
+  check((await lc("POST", "jobs", { projectId: "TEST-SITE-01", installers: ["nobody.here"] })).status === 400, "unknown installer refused");
+  const jc = await lc("POST", "jobs", { projectId: "TEST-SITE-01", installers: [] });
+  check(jc.status === 201 && jc.body.job.name === "Synthetic test site", "LC admin opens a job on a portal project");
+  check((await lc("POST", "jobs", { projectId: "TEST-SITE-01" })).status === 409, "one job per project");
+  check((await inst("GET", "jobs/TEST-SITE-01")).status === 404, "an installer not on the job cannot see it");
+  check((await inst("GET", "jobs")).body.jobs.length === 0, "an installer's list leaves out jobs that are not theirs");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["mike.crew"] })).status === 200, "LC admin assigns the installer");
+  const jv = await inst("GET", "jobs/TEST-SITE-01");
+  check(jv.status === 200, "the assigned installer opens the job");
+  const text = JSON.stringify(jv.body);
+  check(!/costPrice|sellPrice|margin|SECRET VENDOR|VN-SECRET|vn_sku|skbSnapshot|designNote|INTERNAL AUDIT NOTE|9999/.test(text), "no pricing, supplier, notes or NetSuite number reaches the installer");
+  check(!("installers" in jv.body.job), "the installer is not shown who else is on the job");
+  const bom = jv.body.site.bom;
+  check(bom.length === 2 && bom[0].qty === 6 && bom[0].name === "Optimus XL1 230W \u00b7 TY5SW" && bom[1].qty === 2, "material list: one line per product, one count per head, excluded head left out");
+  check(jv.body.site.pins.length === 9 && jv.body.site.pins.filter(p => p.off).length === 1, "every head is a pin, the excluded one marked off");
+  const moved = jv.body.site.pins.find(p => p.fid === "T-007");
+  check(moved && Math.abs(moved.lng - (-115.0300 + 0.0008)) < 1e-9, "a position corrected in the portal wins over the audit's");
+  check(JSON.stringify(jv.body.site.tags) === JSON.stringify([{ tag: "S07", count: 6 }, { tag: "W1", count: 2 }]), "tags with their head counts");
+  check(jv.body.contact.phone === "702.847.7680", "the company phone is on the job");
+  check(bom[0].catalog && /fixtures\/7\/spec-sheet\/Optimus-Spec\.pdf$/.test(bom[0].specSheetUrl) && bom[0].catalog.docs[0].label === "Installation instructions", "spec sheet and manuals come from the catalog by product id");
+  check(bom[1].specSheetUrl === "https://example.com/wp.pdf", "the design's own spec sheet link wins");
+  const pinA = jv.body.site.pins.find(p => p.tag === "S07"), pinOff = jv.body.site.pins.find(p => p.off);
+
+  const ph = await inst("PUT", "jobs/TEST-SITE-01/photos", { dataUrl: JPEG });
+  check(ph.status === 201 && /^[a-f0-9]{16}\.jpg$/.test(ph.body.name), "installer uploads a photo");
+  check((await inst("PUT", "jobs/TEST-SITE-01/photos", { dataUrl: "data:image/jpeg;base64,AAAA" })).status === 400, "a non-JPEG is refused");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name] })).status === 409, "no pin saved before the material is signed off");
+
+  const k1 = bom[0].key, k2 = bom[1].key;
+  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { "made-up": { received: 1 } } })).status === 400, "an unknown product line is refused");
+  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 2, damaged: 3 } } })).status === 400, "damaged cannot exceed received");
+  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 5, damaged: 1 } } })).status === 200, "counts saved as they go");
+  check((await inst("POST", "jobs/TEST-SITE-01/approve", { confirm: true })).status === 400, "cannot sign off with a line not counted");
+  check((await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } } })).status === 400, "sign-off needs the confirm box");
+  const ap = await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true });
+  check(ap.status === 200 && ap.body.material.approved.short === 1 && ap.body.material.approved.damaged === 1, "installer signs off; one short and one damaged recorded against the site's own quantities");
+  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 6 } } })).status === 409, "signed-off counts are locked");
+
+  check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }] })).status === 400, "a damage claim needs a photo");
+  const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }], note: "Lens cracked", photos: [ph.body.name] });
+  check(cl.status === 201 && /^MC-\d{6}-[0-9A-F]{4}$/.test(cl.body.claim.ref) && cl.body.claim.lines[0].expected === 6, "claim filed with a reference and the expected quantity from the site");
+  check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "shortage", photos: ["0000000000000000.jpg"], note: "x" })).status === 400, "a photo that was never uploaded is refused");
+
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [] })).status === 400, "a pin is not saved as installed without a photo");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinOff.id, { photos: [ph.body.name] })).status === 404, "an excluded head cannot be installed");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "ok", serial: "SN1" })).status === 200, "installer saves a pin with its photo");
+  check((await inst("POST", "jobs/TEST-SITE-01/submit")).status === 400, "cannot submit with heads left");
+  for (const p of jv.body.site.pins) if (!p.off && p.id !== pinA.id) await inst("PUT", "jobs/TEST-SITE-01/pins/" + p.id, { photos: [ph.body.name] });
+  const js = await inst("GET", "jobs/TEST-SITE-01");
+  check(Object.values(js.body.pins).filter(p => p.installed).length === 8 && js.body.claims.length === 1, "the job shows every saved pin and the claim");
+  check((await inst("GET", "jobs/TEST-SITE-01/photos/" + ph.body.name)).status === 200, "the installer can see the job's photos");
+  check((await anon("GET", "jobs/TEST-SITE-01/photos/" + ph.body.name)).status === 401, "photos need a session");
+  const sb = await inst("POST", "jobs/TEST-SITE-01/submit");
+  check(sb.status === 200 && sb.body.job.submitted.heads === 8, "job submitted with every head installed");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name] })).status === 409, "a submitted job is locked");
+  const lst = await lc("GET", "jobs");
+  check(lst.body.jobs[0].heads === 8 && lst.body.jobs[0].pinsSaved === 8 && lst.body.jobs[0].materialApproved, "LC admin's list shows progress");
+  check((await lc("PATCH", "jobs/TEST-SITE-01", { reopenMaterial: true })).status === 200, "LC admin can reopen the material check");
+
   console.log("last admin");
   const add2 = await lc("POST", "users", { username: "office2", role: "lc-admin", password: PW });
   check(add2.status === 201, "second LC admin created");
@@ -140,7 +205,7 @@ async function main() {
 }
 
 const srv = spawn(process.execPath, [path.join(__dirname, "server.js")], {
-  env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store }), stdio: ["ignore", "pipe", "inherit"]
+  env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store, INSTALLER_PORTAL_LOCAL_STORE: path.join(__dirname, "fixtures", "portal"), INSTALLER_CATALOG_FILE: path.join(__dirname, "fixtures", "catalog-data.json") }), stdio: ["ignore", "pipe", "inherit"]
 });
 let started = false;
 srv.stdout.on("data", d => {

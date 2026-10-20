@@ -1,0 +1,245 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LED Connection - Installer App</title>
+<meta name="theme-color" content="#0a0e1a">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="lci.css">
+<!-- One job, tablet first (2026-10-20, Dino). Two steps:
+       1 MATERIAL  count what arrived against the design's quantities, report
+                   a problem (claim with photos), sign the quantities off.
+       2 INSTALL   satellite map with every head of the design; filter by
+                   tag; tap a pin, read its spec sheet / manual, take a
+                   photo, save it installed; submit when every head is done.
+     The install step stays locked until the material is signed off; the
+     server enforces the same. Logic in lci-job.js. -->
+<style>
+  html, body { height: 100%; }
+  body { display: flex; flex-direction: column; overflow: hidden; }
+  .nav { position: relative; top: 0; flex: none; padding: 10px 16px; }
+  .nav-logo-img { height: 32px; }
+  .job-title { line-height: 1.15; min-width: 0; }
+  .job-title .n { font-family: var(--display); font-weight: 800; font-size: 14px; letter-spacing: .08em; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .job-title .a { font-family: var(--mono); font-size: 10px; color: var(--text-3); white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+  .steps { display: flex; gap: 6px; flex: none; padding: 8px 16px; border-bottom: 1px solid var(--border); background: rgba(7,10,20,.6); }
+  .step { flex: 1; display: flex; align-items: center; gap: 10px; justify-content: center; min-height: 48px; border-radius: 10px;
+          border: 1px solid var(--border); background: rgba(255,255,255,.02); color: var(--text-2); font-family: var(--mono); font-size: 12px;
+          font-weight: 800; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+  .step .num { width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; border: 1px solid currentColor; font-size: 11px; }
+  .step.on { color: var(--text-1); border-color: var(--orange); background: var(--orange-soft); }
+  .step.done .num { background: var(--green); border-color: var(--green); color: #07130b; }
+  .step:disabled { opacity: .45; cursor: not-allowed; }
+
+  main { flex: 1; min-height: 0; position: relative; }
+  .view { position: absolute; inset: 0; }
+  .view[hidden] { display: none; }
+
+  /* ── Material ───────────────────────────────────────────────────── */
+  #vMaterial { overflow-y: auto; padding: 16px 16px 150px; }
+  .wrap { max-width: 1100px; margin: 0 auto; }
+  .lead { color: var(--text-2); margin: 0 0 14px; font-size: 15px; }
+  .signed { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(34,197,94,.4); background: rgba(34,197,94,.07); margin-bottom: 14px; font-size: 14px; }
+  .signed.warn { border-color: rgba(245,158,11,.45); background: rgba(245,158,11,.07); }
+  .line { display: grid; grid-template-columns: minmax(0, 1fr) auto; gap: 12px 18px; padding: 16px; margin-bottom: 12px; border: 1px solid var(--border);
+          border-radius: 12px; background: var(--panel); }
+  .line .pname { font-family: var(--display); font-weight: 800; font-size: 16px; letter-spacing: .04em; }
+  .line .psku { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-top: 3px; word-break: break-all; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 8px; }
+  .chip { font-family: var(--mono); font-size: 11px; font-weight: 700; padding: 3px 8px; border-radius: 6px; border: 1px solid var(--border); color: var(--text-2); }
+  .chip.tag { color: var(--cyan); border-color: rgba(34,211,238,.35); }
+  .docs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; }
+  .counts { display: flex; gap: 14px; align-items: flex-end; flex-wrap: wrap; justify-content: flex-end; }
+  .cbox { text-align: center; }
+  .cbox .cl { font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); margin-bottom: 6px; }
+  .cbox .expected { font-family: var(--display); font-size: 30px; font-weight: 900; min-width: 64px; line-height: 44px; }
+  .stepper { display: flex; align-items: center; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .stepper button { width: 48px; height: 48px; border: 0; border-radius: 0; justify-content: center; font-size: 22px; padding: 0; background: rgba(255,255,255,.04); }
+  .stepper input { width: 72px; height: 48px; text-align: center; border: 0; border-radius: 0; font-size: 20px; font-weight: 800; padding: 0; background: transparent; }
+  .stepper input:focus { box-shadow: none; }
+  .state { grid-column: 1 / -1; display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+  .st { font-family: var(--mono); font-size: 11px; font-weight: 800; letter-spacing: .1em; padding: 5px 10px; border-radius: 6px; text-transform: uppercase; }
+  .st.todo { color: var(--text-3); border: 1px dashed var(--border); }
+  .st.ok { color: #86efac; border: 1px solid rgba(134,239,172,.4); background: rgba(34,197,94,.08); }
+  .st.short, .st.dmg { color: #fca5a5; border: 1px solid rgba(252,165,165,.45); background: rgba(248,113,113,.08); }
+  .st.over { color: var(--amber); border: 1px solid rgba(245,158,11,.45); }
+  .claims h3 { font-family: var(--display); font-size: 13px; letter-spacing: .14em; margin: 26px 0 10px; text-transform: uppercase; }
+  .claim { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--panel); font-size: 14px; }
+  .claim .ref { font-family: var(--mono); color: var(--orange); font-weight: 800; }
+
+  .bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 900; border-top: 1px solid var(--border-2);
+         background: linear-gradient(180deg, rgba(13,19,34,.97), rgba(8,11,21,.99)); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
+  .bar .row { max-width: 1100px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+  .bar .sum { flex: 1; min-width: 200px; font-family: var(--mono); font-size: 12px; color: var(--text-2); }
+  .bar button { min-height: 48px; padding: 0 18px; }
+  .contact { max-width: 1100px; margin: 8px auto 0; display: flex; gap: 8px 18px; flex-wrap: wrap; align-items: center;
+             font-family: var(--mono); font-size: 12px; color: var(--text-3); }
+  .contact a { color: var(--cyan); text-decoration: none; font-weight: 700; }
+  .contact b { color: var(--text-2); }
+
+  /* ── Install (map) ──────────────────────────────────────────────── */
+  #vInstall:not([hidden]) { display: flex; }
+  #map { flex: 1; min-width: 0; background: #10141f; }
+  .side { width: 380px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: rgba(8,11,21,.97); min-height: 0; }
+  .prog { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); }
+  .prog .big { font-family: var(--display); font-weight: 900; font-size: 22px; }
+  .prog .big small { font-size: 12px; color: var(--text-3); font-family: var(--mono); font-weight: 600; letter-spacing: .08em; }
+  .pbar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.07); margin-top: 8px; overflow: hidden; }
+  .pbar i { display: block; height: 100%; background: var(--green); width: 0; transition: width .3s; }
+  .filters { padding: 10px 16px; border-bottom: 1px solid var(--border); display: flex; flex-wrap: wrap; gap: 6px; max-height: 30vh; overflow-y: auto; }
+  .flt { min-height: 40px; padding: 0 12px; font-size: 12px; }
+  .flt.on { color: #0a0e1a; background: var(--cyan); border-color: var(--cyan); }
+  .flt .c { opacity: .7; font-weight: 600; }
+  .card { flex: 1; overflow-y: auto; padding: 14px 16px 20px; }
+  .card .empty { color: var(--text-3); font-size: 14px; }
+  .card h2 { margin: 0; font-family: var(--display); font-size: 28px; font-weight: 900; letter-spacing: .06em; }
+  .card .sub { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-top: 4px; }
+  .kv { display: grid; grid-template-columns: auto 1fr; gap: 6px 12px; margin: 12px 0; font-size: 14px; }
+  .kv dt { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); padding-top: 3px; }
+  .kv dd { margin: 0; }
+  .shots { display: flex; flex-wrap: wrap; gap: 8px; margin: 8px 0; }
+  .shots img { width: 96px; height: 96px; object-fit: cover; border-radius: 8px; border: 1px solid var(--border); }
+  .bigbtn { width: 100%; justify-content: center; min-height: 52px; font-size: 13px; margin-top: 10px; }
+  .installed { padding: 10px 12px; border-radius: 8px; background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.35); font-size: 13px; margin: 10px 0; }
+  .pole { display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px; }
+  .pole button { min-height: 40px; }
+  .pole button.cur { border-color: var(--orange); color: var(--text-1); }
+  .pole button.done { color: #86efac; }
+  .lbl { background: rgba(10,14,26,.88); color: #fff; font: 700 11px/1 'JetBrains Mono', monospace; padding: 3px 5px; border-radius: 4px;
+         border: 1px solid rgba(255,255,255,.25); white-space: nowrap; transform: translate(-50%, -150%); display: inline-block; }
+  .leaflet-div-icon.lbl-wrap { background: none; border: 0; }
+
+  /* Portrait tablet / phone: the panel becomes a sheet under the map. */
+  @media (max-width: 899px), (orientation: portrait) {
+    #vInstall:not([hidden]) { flex-direction: column; }
+    #map { flex: 1 1 55%; }
+    .side { width: auto; flex: 1 1 45%; border-left: 0; border-top: 1px solid var(--border-2); }
+    .filters { max-height: 18vh; }
+  }
+
+  /* ── Dialogs ────────────────────────────────────────────────────── */
+  .ov { position: fixed; inset: 0; z-index: 2000; background: rgba(3,5,10,.72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .ov[hidden] { display: none; }
+  .dlg { width: min(100%, 640px); max-height: 92vh; overflow-y: auto; padding: 22px; border-radius: 14px; border: 1px solid var(--border-2);
+         background: linear-gradient(180deg, rgba(13,19,34,.99), rgba(8,11,21,.99)); }
+  .dlg h3 { margin: 0 0 6px; font-family: var(--display); letter-spacing: .1em; text-transform: uppercase; }
+  .kinds { display: flex; flex-wrap: wrap; gap: 8px; margin: 10px 0; }
+  .kinds button { min-height: 44px; }
+  .kinds button.on { background: var(--orange); border-color: var(--orange); color: #0a0e1a; }
+  .cl-line { display: grid; grid-template-columns: auto 1fr auto auto; gap: 10px; align-items: center; padding: 8px 0; border-bottom: 1px solid var(--border); font-size: 14px; }
+  .cl-line input[type=number] { width: 80px; }
+  .cl-line input[type=checkbox], .confirm input { width: 22px; height: 22px; min-height: 0; }
+  .confirm { display: flex; gap: 10px; align-items: center; margin: 14px 0; font-size: 15px; text-transform: none; letter-spacing: 0; color: var(--text-1); font-family: var(--sans); }
+  table.sum { width: 100%; border-collapse: collapse; font-size: 14px; margin-top: 8px; }
+  table.sum td, table.sum th { padding: 7px 6px; border-bottom: 1px solid var(--border); text-align: right; }
+  table.sum td:first-child, table.sum th:first-child { text-align: left; }
+  table.sum th { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-3); }
+  .dlg .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
+  .dlg .actions button { min-height: 48px; }
+  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 3000; padding: 12px 18px; border-radius: 10px;
+           font-family: var(--mono); font-size: 13px; background: #0d1322; border: 1px solid var(--border-2); max-width: 90vw; }
+  .toast.err { border-color: rgba(248,113,113,.6); color: #fecaca; }
+  .hidden-file { display: none; }
+  .loading { padding: 40px; text-align: center; color: var(--text-2); }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <a href="./home.html" class="btn small" aria-label="All jobs">&larr; Jobs</a>
+  <img class="nav-logo-img" src="lc-logo.png" alt="LED Connection" width="720" height="494">
+  <div class="job-title"><div class="n" id="jobName">Loading…</div><div class="a" id="jobAddr"></div></div>
+  <div class="nav-right"><span class="who" id="who"></span></div>
+</nav>
+<div class="steps">
+  <button class="step on" id="stMaterial" type="button"><span class="num">1</span>Material check</button>
+  <button class="step" id="stInstall" type="button" disabled><span class="num">2</span>Install</button>
+</div>
+
+<main>
+  <div class="loading" id="vLoading">Loading the job…</div>
+
+  <section class="view" id="vMaterial" hidden>
+    <div class="wrap">
+      <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged, then sign off the quantities to start the install.</p>
+      <div id="matSigned"></div>
+      <div id="lines"></div>
+      <div class="claims" id="claims"></div>
+    </div>
+    <div class="bar">
+      <div class="row">
+        <div class="sum" id="matSum"></div>
+        <button type="button" class="danger" id="btnClaim">Report a problem</button>
+        <button type="button" class="primary" id="btnApprove">Sign off quantities</button>
+      </div>
+      <div class="contact" id="contact"></div>
+    </div>
+  </section>
+
+  <section class="view" id="vInstall" hidden>
+    <div id="map"></div>
+    <aside class="side">
+      <div class="prog">
+        <div class="big" id="progBig">0 / 0 <small>INSTALLED</small></div>
+        <div class="pbar"><i id="progBar"></i></div>
+        <button type="button" class="primary bigbtn" id="btnSubmit" disabled>Submit job</button>
+      </div>
+      <div class="filters" id="filters"></div>
+      <div class="card" id="card"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
+    </aside>
+  </section>
+</main>
+
+<!-- Report a problem (material claim) -->
+<div class="ov" id="ovClaim" hidden>
+  <div class="dlg" role="dialog" aria-labelledby="clTitle">
+    <h3 id="clTitle">Report a material problem</h3>
+    <p class="muted" style="margin:0">LED Connection gets the claim with your photos. Call if the install is held up.</p>
+    <div class="kinds" id="clKinds">
+      <button type="button" data-k="shortage">Short shipped</button>
+      <button type="button" data-k="damaged">Damaged</button>
+      <button type="button" data-k="wrong">Wrong product</button>
+      <button type="button" data-k="other">Other</button>
+    </div>
+    <div id="clLines"></div>
+    <label for="clNote">What happened</label>
+    <textarea id="clNote" rows="3" maxlength="2000"></textarea>
+    <label>Photos (up to 6)</label>
+    <div class="shots" id="clShots"></div>
+    <button type="button" id="clPhotoBtn">Take / add photo</button>
+    <input type="file" accept="image/*" capture="environment" class="hidden-file" id="clPhoto" multiple>
+    <div class="actions">
+      <button type="button" id="clCancel">Cancel</button>
+      <button type="button" class="primary" id="clSend">Send claim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Sign off quantities -->
+<div class="ov" id="ovApprove" hidden>
+  <div class="dlg" role="dialog" aria-labelledby="apTitle">
+    <h3 id="apTitle">Sign off quantities</h3>
+    <div id="apBody"></div>
+    <label class="confirm"><input type="checkbox" id="apConfirm"> I counted the material delivered for this job and the numbers above are what I received.</label>
+    <div class="actions">
+      <button type="button" id="apCancel">Back</button>
+      <button type="button" class="primary" id="apSend">Sign off and start install</button>
+    </div>
+  </div>
+</div>
+
+<input type="file" accept="image/*" capture="environment" class="hidden-file" id="pinPhoto">
+<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="lci.js"></script>
+<script src="lci-job.js"></script>
+</body>
+</html>

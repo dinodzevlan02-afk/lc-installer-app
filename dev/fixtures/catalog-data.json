@@ -1,0 +1,11 @@
+{
+  "meta": { "note": "SYNTHETIC test catalog: two products shaped like catalog-data.json. Not the real catalog." },
+  "products": [
+    { "id": 7, "fam": "Optimus", "model": "SLOT", "cat": "Area Light", "app": "Exterior", "vendor": "SECRET VENDOR", "vn_sku": "VN-SECRET",
+      "mounts": ["Slip Fitter (Round)", "Trunnion"], "volts": ["200-480VAC"], "ulMultiListed": true, "dlcQualified": true,
+      "imgs": [{ "filename": "optimus.png", "v": 2 }], "pubFile": { "filename": "Optimus-Spec.pdf", "v": 2 },
+      "pdfDocs": [{ "filename": "Optimus-Install.pdf", "label": "Installation instructions", "kind": "install", "v": 2 }] },
+    { "id": 12, "fam": "Prime Wallpack", "model": "WP", "cat": "Wall Pack", "app": "Exterior", "vendor": "SECRET VENDOR",
+      "mounts": ["Wall"], "volts": ["120-277VAC"], "pubFile": { "filename": "Prime-Spec.pdf", "v": 2 }, "pdfDocs": [] }
+  ]
+}

@@ -113,5 +113,11 @@
   }
   betaBanner();
 
+  /* Installable as a standalone tablet app (sw.js). Not on localhost, where
+     a cached page would hide the edit just made. */
+  if ('serviceWorker' in navigator && !/^(localhost|127\.0\.0\.1)$/.test(location.hostname)) {
+    navigator.serviceWorker.register('./sw.js').catch(function () {});
+  }
+
   window.LCI = { api: api, me: me, cached: cached, forget: forget, signOut: signOut, ROLE_LABEL: ROLE_LABEL, esc: esc, tempPassword: tempPassword, circuit: circuit };
 })();

@@ -1,0 +1,11 @@
+{
+ "id": "TEST-SITE-01",
+ "name": "Synthetic test site",
+ "address": "Not a real site",
+ "customerId": "test",
+ "installDate": "2026-10-20",
+ "netsuite": "9999",
+ "site": {
+  "kind": "exterior"
+ }
+}

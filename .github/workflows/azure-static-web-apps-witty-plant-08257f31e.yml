@@ -10,7 +10,20 @@ on:
       - main
 
 jobs:
+  smoke_test_job:
+    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    runs-on: ubuntu-latest
+    name: API smoke test
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Security and job checks through the real API (dev/smoke.js)
+        run: node dev/smoke.js
+
   build_and_deploy_job:
+    needs: smoke_test_job
     if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
@@ -29,8 +42,9 @@ jobs:
           ###### Repository/Build Configurations - These values can be configured to match your app requirements. ######
           # For more information regarding Static Web App workflow configurations, please visit: https://aka.ms/swaworkflowconfig
           app_location: "/" # App source code path
-          api_location: "api" # Api source code path - optional
-          output_location: "." # Built app content directory - optional
+          api_location: "api" # Azure Functions: sign-in, logins, jobs
+          output_location: "" # Built app content directory - optional
+          skip_app_build: true # Plain HTML, nothing to build
           ###### End of Repository/Build Configurations ######
 
   close_pull_request_job:

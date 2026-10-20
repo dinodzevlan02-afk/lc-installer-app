@@ -25,6 +25,12 @@ const PORT = Number(process.env.PORT || 4310);
 process.env.INSTALLER_LOCAL_STORE = process.env.INSTALLER_LOCAL_STORE || path.join(__dirname, ".data");
 process.env.INSTALLER_JWT_SECRET = process.env.INSTALLER_JWT_SECRET || crypto.randomBytes(32).toString("hex");
 process.env.INSTALLER_SETUP_KEY = process.env.INSTALLER_SETUP_KEY || "local-dev-setup-key";
+/* The customer portal's container, read-only. A real site copied from the
+   portal (Walmart 2741: projects/{id}.json + projects/{id}/site.json and
+   portal.json) goes in dev/.portal, which git ignores; otherwise the
+   synthetic test site in dev/fixtures/portal. */
+process.env.INSTALLER_PORTAL_LOCAL_STORE = process.env.INSTALLER_PORTAL_LOCAL_STORE ||
+  (fs.existsSync(path.join(__dirname, ".portal")) ? path.join(__dirname, ".portal") : path.join(__dirname, "fixtures", "portal"));
 
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -112,6 +118,7 @@ function onRequest(req, res) {
 http.createServer(onRequest).listen(PORT, "127.0.0.1", () => {
   console.log("LC Installer App dev server: http://localhost:" + PORT);
   console.log("Storage: " + process.env.INSTALLER_LOCAL_STORE + "  (local folder, not stled03)");
+  console.log("Portal (read-only): " + process.env.INSTALLER_PORTAL_LOCAL_STORE);
   console.log("API routes: " + loadRoutes().map(r => r.name).join(", "));
 });
 http.createServer(onRequest).listen(PORT, "::1").on("error", () => { /* no IPv6 loopback; IPv4 still serves */ });

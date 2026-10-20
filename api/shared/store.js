@@ -48,11 +48,8 @@ function checkPath(p) {
 }
 
 /* ── Azure Blob backend ─────────────────────────────────────────────────── */
-function blobStore() {
-  const account = process.env.INSTALLER_STORAGE_ACCOUNT || "stled03";
-  const container = process.env.INSTALLER_CONTAINER || "installer-app";
-  const sasRaw = process.env.INSTALLER_STORAGE_SAS || "";
-  if (!sasRaw) throw new StoreError("NOT_CONFIGURED", "INSTALLER_STORAGE_SAS app setting is not configured");
+function blobStore(account, container, sasRaw, setting) {
+  if (!sasRaw) throw new StoreError("NOT_CONFIGURED", setting + " app setting is not configured");
   const sas = sasRaw.replace(/^\?/, "");
   const base = "https://" + account + ".blob.core.windows.net/" + container;
   const blobUrl = p => base + "/" + checkPath(p).split("/").map(encodeURIComponent).join("/") + "?" + sas;
@@ -240,8 +237,26 @@ function localStore(root) {
 let _store = null;
 function store() {
   if (_store) return _store;
-  _store = process.env.INSTALLER_LOCAL_STORE ? localStore(process.env.INSTALLER_LOCAL_STORE) : blobStore();
+  const e = process.env;
+  _store = e.INSTALLER_LOCAL_STORE ? localStore(e.INSTALLER_LOCAL_STORE)
+    : blobStore(e.INSTALLER_STORAGE_ACCOUNT || "stled03", e.INSTALLER_CONTAINER || "installer-app", e.INSTALLER_STORAGE_SAS || "", "INSTALLER_STORAGE_SAS");
   return _store;
 }
 
-module.exports = { store, StoreError };
+/* The customer portal's container, READ ONLY (2026-10-20). The installer app
+   reads a project's site from there (projects/{id}/site.json, portal.json)
+   with its own read/list SAS, as the portal's docs/storage.md allows, and
+   never writes: only the reading calls are handed out, and the SAS itself
+   carries no write permission. Locally, INSTALLER_PORTAL_LOCAL_STORE is a
+   folder laid out like the container. */
+let _portal = null;
+function portalStore() {
+  if (_portal) return _portal;
+  const e = process.env;
+  const s = e.INSTALLER_PORTAL_LOCAL_STORE ? localStore(e.INSTALLER_PORTAL_LOCAL_STORE)
+    : blobStore(e.INSTALLER_PORTAL_ACCOUNT || "stled03", e.INSTALLER_PORTAL_CONTAINER || "customer-portal", e.INSTALLER_PORTAL_SAS || "", "INSTALLER_PORTAL_SAS");
+  _portal = { kind: s.kind, get: s.get, getBytes: s.getBytes, list: s.list };
+  return _portal;
+}
+
+module.exports = { store, portalStore, StoreError };

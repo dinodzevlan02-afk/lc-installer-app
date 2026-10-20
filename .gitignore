@@ -28,3 +28,6 @@ dev/.data/
 # Azure Functions local settings (holds secrets) and packages
 local.settings.json
 node_modules/
+
+# A real site copied from the customer portal for local testing - never commit
+dev/.portal/

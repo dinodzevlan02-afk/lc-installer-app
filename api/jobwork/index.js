@@ -1,0 +1,183 @@
+/* The installer's work on a job. Everyone here must be able to see the job
+   (LC admin, or an installer it names); anything else answers 404.
+
+   PUT  /api/jobs/{id}/material          { lines: { [productKey]: { received, damaged, note } } }
+                                         Saves the counts so far (until signed off).
+   POST /api/jobs/{id}/approve           { lines, confirm: true }
+                                         The installer signs off the counted quantities.
+                                         Expected quantities come from the site, never the page.
+                                         Unlocks the install, shortages or not (a claim covers those).
+   POST /api/jobs/{id}/claims            { kind, lines: [{ key, received, damaged }], note, photos: [name] }
+                                         A material claim; "damaged" needs a photo.
+   PUT  /api/jobs/{id}/pins/{pinId}      { installed, note, serial, photos: [name] }
+                                         Marks one head installed. Needs the material signed off
+                                         and at least one photo.
+   POST /api/jobs/{id}/submit            Hands the job back once every head is installed.
+   PUT  /api/jobs/{id}/photos            { dataUrl: "data:image/jpeg;base64,..." } -> { name, url }
+   GET  /api/jobs/{id}/photos/{name}     the JPEG */
+const crypto = require("crypto");
+const P = require("../shared/app");
+const J = require("../shared/jobs");
+const { ApiError } = P;
+
+const MAX_PHOTO = 3 * 1024 * 1024, MAX_PHOTOS = 6, MAX_QTY = 100000;
+const RE_PHOTO = /^[a-f0-9]{16}\.jpg$/;
+const RE_PIN = /^[a-f0-9]{20}$/;
+const CLAIM_KINDS = { shortage: "Short shipped", damaged: "Damaged", wrong: "Wrong product", other: "Other" };
+
+function count(v, field) {
+  if (v === "" || v == null) return null;
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0 || n > MAX_QTY) throw new ApiError(400, field + " must be a whole number.");
+  return n;
+}
+
+/* Only lines the site really has; quantities whole numbers. */
+function cleanLines(lines, site) {
+  if (lines == null) return {};
+  if (typeof lines !== "object" || Array.isArray(lines)) throw new ApiError(400, "lines must be an object.");
+  const keys = new Set(site.bom.map(b => b.key)), out = {};
+  for (const [k, v] of Object.entries(lines)) {
+    if (!keys.has(k)) throw new ApiError(400, "Unknown product line \"" + k + "\".");
+    const received = count(v && v.received, "Received");
+    const damaged = count(v && v.damaged, "Damaged") || 0;
+    if (received != null && damaged > received) throw new ApiError(400, "Damaged cannot be more than received.");
+    out[k] = { received, damaged, note: P.text(v && v.note, 500, "Note") };
+  }
+  return out;
+}
+
+async function cleanPhotos(id, list) {
+  if (list == null) return [];
+  if (!Array.isArray(list) || list.length > MAX_PHOTOS) throw new ApiError(400, "Up to " + MAX_PHOTOS + " photos.");
+  const names = [...new Set(list.map(String))];
+  for (const n of names) {
+    if (!RE_PHOTO.test(n)) throw new ApiError(400, "Bad photo name.");
+    if (!(await P.store().getBytes(J.paths.photo(id, n)))) throw new ApiError(400, "Photo " + n + " was not uploaded.");
+  }
+  return names;
+}
+
+const who = u => ({ by: u.username, byName: u.name || u.username });
+
+module.exports = P.handler(async ({ req, method, body, params, send, context }) => {
+  const { user } = await P.requireSession(req);
+  const id = J.normJob(params.id);
+  const action = String(params.action || "");
+  const key = params.key ? String(params.key) : "";
+  const { job, etag: jobEtag } = await J.requireJob(user, id);
+
+  /* ── Photos ─────────────────────────────────────────────────────────── */
+  if (action === "photos") {
+    if (method === "GET") {
+      if (!RE_PHOTO.test(key)) throw new ApiError(404, "Not found.");
+      const got = await P.store().getBytes(J.paths.photo(id, key));
+      if (!got) throw new ApiError(404, "Not found.");
+      context.res = { status: 200, isRaw: true, body: got.buf,
+        headers: { "Content-Type": "image/jpeg", "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" } };
+      return;
+    }
+    if (method !== "PUT" || key) throw new ApiError(405, "Method not allowed.");
+    const m = /^data:image\/jpeg;base64,([A-Za-z0-9+/=]+)$/.exec(String(body.dataUrl || ""));
+    if (!m) throw new ApiError(400, "Send the photo as a JPEG.");
+    const buf = Buffer.from(m[1], "base64");
+    if (buf.length < 100 || buf[0] !== 0xff || buf[1] !== 0xd8 || buf[2] !== 0xff) throw new ApiError(400, "That is not a JPEG photo.");
+    if (buf.length > MAX_PHOTO) throw new ApiError(413, "Photo is too large (max 3 MB).");
+    const name = crypto.randomBytes(8).toString("hex") + ".jpg";
+    await P.store().putBytes(J.paths.photo(id, name), buf, "image/jpeg");
+    await P.audit(req, user.username, "photo.upload", "job:" + id, { name, bytes: buf.length });
+    return send(201, { name, url: "/api/jobs/" + encodeURIComponent(id) + "/photos/" + name });
+  }
+
+  if (job.submitted && action !== "claims") throw new ApiError(409, "This job was submitted on " + job.submitted.at.slice(0, 10) + ". Ask LED Connection to reopen it.");
+  const site = await J.requireSite(id);
+
+  /* ── Material check ─────────────────────────────────────────────────── */
+  if (action === "material" || action === "approve") {
+    if (method !== (action === "material" ? "PUT" : "POST")) throw new ApiError(405, "Method not allowed.");
+    const cur = await P.store().get(J.paths.material(id));
+    const mat = cur ? cur.data : { lines: {}, approved: null };
+    if (mat.approved) throw new ApiError(409, "The material was already signed off. Ask LED Connection to reopen it.");
+    mat.lines = Object.assign({}, mat.lines, cleanLines(body.lines, site));
+    mat.updated = new Date().toISOString(); mat.updatedBy = user.username;
+
+    if (action === "approve") {
+      if (body.confirm !== true) throw new ApiError(400, "Confirm that you counted the material.");
+      const summary = site.bom.map(b => {
+        const l = mat.lines[b.key] || {};
+        if (l.received == null) throw new ApiError(400, "Enter the received quantity for " + b.name + ".");
+        return { key: b.key, name: b.name, sku: b.sku, expected: b.qty, received: l.received, damaged: l.damaged || 0,
+                 short: Math.max(0, b.qty - l.received), over: Math.max(0, l.received - b.qty) };
+      });
+      mat.approved = Object.assign({ at: new Date().toISOString(),
+        short: summary.reduce((s, x) => s + x.short, 0), damaged: summary.reduce((s, x) => s + x.damaged, 0),
+        over: summary.reduce((s, x) => s + x.over, 0), summary }, who(user));
+    }
+    const etag = await P.store().put(J.paths.material(id), mat, cur ? { ifMatch: cur.etag } : { ifNoneMatch: "*" });
+    if (action === "approve") await P.audit(req, user.username, "material.approve", "job:" + id,
+      { short: mat.approved.short, damaged: mat.approved.damaged, over: mat.approved.over });
+    return send(200, { material: mat, materialEtag: etag });
+  }
+
+  /* ── Claims ─────────────────────────────────────────────────────────── */
+  if (action === "claims") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    const kind = String(body.kind || "");
+    if (!CLAIM_KINDS[kind]) throw new ApiError(400, "Pick what is wrong: short shipped, damaged, wrong product or other.");
+    const byKey = Object.fromEntries(site.bom.map(b => [b.key, b]));
+    const lines = (Array.isArray(body.lines) ? body.lines : []).map(l => {
+      const b = byKey[l && l.key];
+      if (!b) throw new ApiError(400, "Unknown product line.");
+      return { key: b.key, name: b.name, sku: b.sku, expected: b.qty, received: count(l.received, "Received"), damaged: count(l.damaged, "Damaged") || 0 };
+    });
+    const note = P.text(body.note, 2000, "Note");
+    if (!lines.length && !note) throw new ApiError(400, "Say which products, or describe the problem.");
+    const photos = await cleanPhotos(id, body.photos);
+    if (kind === "damaged" && !photos.length) throw new ApiError(400, "A damage claim needs at least one photo.");
+    const now = new Date();
+    const ref = "MC-" + now.toISOString().slice(2, 10).replace(/-/g, "") + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();
+    const claim = Object.assign({ ref, kind, kindLabel: CLAIM_KINDS[kind], lines, note, photos, status: "open", at: now.toISOString() }, who(user));
+    await P.store().put(J.paths.claim(id, ref), claim, { ifNoneMatch: "*" });
+    await P.audit(req, user.username, "claim.create", "job:" + id, { ref, kind, lines: lines.length, photos: photos.length });
+    /* Email to LED Connection comes with mail (see CLAUDE.md); until then
+       the office sees claims on the job page and the installer calls. */
+    return send(201, { claim });
+  }
+
+  /* ── Installed heads ────────────────────────────────────────────────── */
+  if (action === "pins") {
+    if (method !== "PUT") throw new ApiError(405, "Method not allowed.");
+    if (!RE_PIN.test(key)) throw new ApiError(404, "Pin not found.");
+    const pin = site.pins.find(p => p.id === key);
+    if (!pin || pin.off || !pin.product) throw new ApiError(404, "Pin not found.");
+    const mat = await P.store().get(J.paths.material(id));
+    if (!mat || !mat.data.approved) throw new ApiError(409, "Sign off the material check first.");
+    const installed = body.installed !== false;
+    const photos = await cleanPhotos(id, body.photos);
+    if (installed && !photos.length) throw new ApiError(400, "Take a photo of the installed fixture first.");
+    const rec = Object.assign({
+      pinId: key, fid: pin.fid, tag: pin.tag, poleId: pin.poleId, product: pin.productName, sku: pin.product.sku,
+      installed, note: P.text(body.note, 1000, "Note"), serial: P.text(body.serial, 100, "Serial"), photos,
+      at: new Date().toISOString()
+    }, who(user));
+    await P.store().put(J.paths.pin(id, key), rec, { compact: true });
+    await P.audit(req, user.username, installed ? "pin.install" : "pin.undo", "job:" + id, { pin: key, tag: pin.tag, photos: photos.length });
+    return send(200, { pin: rec });
+  }
+
+  /* ── Submit ─────────────────────────────────────────────────────────── */
+  if (action === "submit") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    const todo = site.pins.filter(p => !p.off && p.product);
+    const saved = (await Promise.all((await P.store().list(J.paths.pins(id))).map(n => P.store().get(n)))).filter(Boolean).map(r => r.data);
+    const done = new Set(saved.filter(r => r.installed).map(r => r.pinId));
+    const left = todo.filter(p => !done.has(p.id)).length;
+    if (left) throw new ApiError(400, left + " fixture" + (left === 1 ? " is" : "s are") + " not saved as installed yet.");
+    job.submitted = Object.assign({ at: new Date().toISOString(), heads: todo.length }, who(user));
+    await P.store().put(J.paths.job(id), job, { ifMatch: jobEtag });
+    await P.audit(req, user.username, "job.submit", "job:" + id, { heads: todo.length });
+    return send(200, { job: J.publicJob(job, user) });
+  }
+
+  throw new ApiError(404, "No such action.");
+});

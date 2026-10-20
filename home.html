@@ -12,8 +12,8 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="lci.css">
 <!-- The signed-in front page. Gated on /api/me: no session goes to
-     index.html?next=./home.html. JOBS is a placeholder until the app itself
-     is built. LOGINS shows for LC admins only, and the server refuses
+     index.html?next=./home.html. JOBS lists the installer's own jobs (LC
+     admins: all, and a form to open one on a customer portal project). LOGINS shows for LC admins only, and the server refuses
      everyone else whatever this page draws. Every value from the server is
      escaped (LCI.esc) before it goes into HTML. -->
 <style>
@@ -31,6 +31,18 @@
   .link-box { margin-top: 12px; padding: 12px; border: 1px solid var(--border-2); border-radius: 9px; background: var(--orange-soft); }
   .link-box input { margin: 6px 0 8px; }
   .placeholder { color: var(--text-2); font-size: 14px; }
+  .jobs { display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px; margin-bottom: 8px; }
+  .jobc { display: block; padding: 16px; border: 1px solid var(--border); border-radius: 12px; background: rgba(255,255,255,.03); color: var(--text-1); text-decoration: none; }
+  .jobc:hover { border-color: var(--border-2); }
+  .jobc .n { font-family: var(--display); font-weight: 800; font-size: 15px; letter-spacing: .05em; }
+  .jobc .a { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin: 4px 0 10px; }
+  .jobc .pbar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.07); overflow: hidden; margin-top: 8px; }
+  .jobc .pbar i { display: block; height: 100%; background: var(--green); }
+  .jobc .who2 { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-top: 8px; }
+  .pick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .pick label { display: inline-flex; gap: 8px; align-items: center; margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
+                font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--text-1); cursor: pointer; }
+  .pick input { width: 18px; height: 18px; min-height: 0; }
 </style>
 </head>
 <body>
@@ -48,7 +60,15 @@
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
     <h2>Jobs</h2>
     <div class="sub">» Your installs «</div>
-    <p class="placeholder">Signed in. The installer app is being built: your jobs will appear here.</p>
+    <div id="jobs"><p class="placeholder">Loading…</p></div>
+    <form id="fJob" autocomplete="off" hidden>
+      <div class="grid">
+        <div><label for="jbProject">Customer portal project id</label><input id="jbProject" autocapitalize="none" spellcheck="false" placeholder="as in the portal's Projects table" required></div>
+      </div>
+      <label>Installers on this job</label>
+      <div class="pick" id="jbPick"></div>
+      <div class="row-actions"><button class="primary" type="submit">Open job</button></div>
+    </form>
   </section>
 
   <section class="panel" id="pLogins" hidden>
@@ -137,7 +157,7 @@
   }
 
   function loadUsers() {
-    return LCI.api('GET', 'users').then(function (r) { renderUsers(r.users); }, function (e) { say(e.message); });
+    return LCI.api('GET', 'users').then(function (r) { USERS = r.users; renderUsers(r.users); renderPick(); }, function (e) { say(e.message); });
   }
 
   $('users').addEventListener('click', function (e) {
@@ -181,6 +201,40 @@
       .catch(function (err) { say(err.message); });
   });
 
+  /* ── Jobs ─────────────────────────────────────────────────────────── */
+  var USERS = [];
+  function renderJobs(list) {
+    if (!list.length) {
+      $('jobs').innerHTML = '<p class="placeholder">' + (ME.can.manageUsers ? 'No jobs yet. Open one below on a customer portal project.' : 'No jobs assigned to you yet. LED Connection will add you to one.') + '</p>';
+      return;
+    }
+    $('jobs').innerHTML = '<div class="jobs">' + list.map(function (j) {
+      var step = j.submitted ? '<span class="badge active">Submitted</span>' : !j.materialApproved ? '<span class="badge">1 · Material check</span>' : '<span class="badge installer">2 · Install</span>';
+      var pct = j.heads ? Math.round(100 * Math.min(j.pinsSaved, j.heads) / j.heads) : 0;
+      return '<a class="jobc" href="./job.html?id=' + encodeURIComponent(j.id) + (j.materialApproved && !j.submitted ? '#install' : '') + '">' +
+        '<div class="n">' + esc(j.name) + '</div><div class="a">' + esc(j.address || j.id) + '</div>' + step +
+        '<div class="pbar"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="a" style="margin:6px 0 0">' + (j.heads == null ? 'Site not readable' : Math.min(j.pinsSaved, j.heads) + ' of ' + j.heads + ' fixtures saved') + '</div>' +
+        (j.installers ? '<div class="who2">' + (j.installers.length ? esc(j.installers.join(', ')) : 'No installer assigned') + '</div>' : '') + '</a>';
+    }).join('') + '</div>';
+  }
+  function loadJobs() {
+    return LCI.api('GET', 'jobs').then(function (r) { renderJobs(r.jobs); }, function (e) { $('jobs').innerHTML = ''; say(e.message); });
+  }
+  function renderPick() {
+    $('jbPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && !u.disabled; }).map(function (u) {
+      return '<label><input type="checkbox" value="' + esc(u.username) + '">' + esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + '</label>';
+    }).join('') || '<span class="muted mono" style="font-size:11px">Add an installer login below first.</span>';
+  }
+  $('fJob').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    var inst = Array.prototype.map.call($('jbPick').querySelectorAll('input:checked'), function (c) { return c.value; });
+    LCI.api('POST', 'jobs', { projectId: $('jbProject').value.trim(), installers: inst })
+      .then(function () { e.target.reset(); say('Job opened.', true); return loadJobs(); })
+      .catch(function (err) { say(err.message); });
+  });
+
   $('btnOut').addEventListener('click', LCI.signOut);
 
   LCI.me().then(function (me) {
@@ -188,7 +242,8 @@
     if (me.user.mustChangePassword) { location.replace('./index.html?next=./home.html'); return; }
     ME = me;
     $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role);
-    if (me.can.manageUsers) { $('pLogins').hidden = false; loadUsers(); }
+    loadJobs();
+    if (me.can.manageUsers) { $('pLogins').hidden = false; $('fJob').hidden = false; loadUsers(); }
   }).catch(function (err) { say(err.message); });
 })();
 </script>
