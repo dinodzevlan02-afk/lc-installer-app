@@ -50,6 +50,8 @@
   .dlg .sub { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-bottom: 14px; }
   .kind { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--text-3); text-transform: uppercase; }
   .addrow { margin: 4px 0 14px; }
+  .addrow[hidden] { display: none; }
+  #btnShowAdd { margin: 0 0 12px; }
   .addrow label { margin-top: 0; }
   .addline { display: flex; gap: 10px; flex-wrap: wrap; }
   .addline select { flex: 1; min-width: 240px; width: auto; }
@@ -82,7 +84,8 @@
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
     <h2>Projects</h2>
     <div class="sub">» Projects with an install job · LED Connection only «</div>
-    <div class="addrow">
+    <button type="button" class="small" id="btnShowAdd" hidden>+ Add another project</button>
+    <div class="addrow" id="addRow">
       <label for="addProject">Add a project from the customer portal</label>
       <div class="addline">
         <select id="addProject"><option value="">Choose a project…</option></select>
@@ -287,7 +290,13 @@
         return '<option value="' + x.i + '">' + esc(x.p.name) + (x.p.customer ? ' · ' + esc(x.p.customer) : '') + (x.p.heads != null ? ' · ' + x.p.heads + ' fixtures' : '') + '</option>';
       }).join('');
     $('btnAddProject').disabled = !free.length;
+    /* With a project in, the picker folds away so the page shows only the
+       projects being installed; it opens again on demand. */
+    $('addRow').hidden = rows.length > 0 && !addOpen;
+    $('btnShowAdd').hidden = !(rows.length > 0 && !addOpen);
   }
+  var addOpen = false;
+  $('btnShowAdd').addEventListener('click', function () { addOpen = true; renderProjects(); $('addProject').focus(); });
   function openAssign(i) {
     assigning = PROJECTS[i];
     var on = (assigning.job && assigning.job.installers) || [];
@@ -322,7 +331,7 @@
     var call = assigning.job ? LCI.api('PATCH', 'jobs/' + encodeURIComponent(assigning.id), { installers: inst })
                              : LCI.api('POST', 'jobs', { projectId: assigning.id, installers: inst });
     $('asSave').disabled = true;
-    call.then(function () { $('ovAssign').hidden = true; say(assigning.job ? 'Installers saved.' : 'Job started on ' + assigning.name + '.', true); return loadProjects(); })
+    call.then(function () { $('ovAssign').hidden = true; addOpen = false; say(assigning.job ? 'Installers saved.' : 'Job started on ' + assigning.name + '.', true); return loadProjects(); })
       .catch(function (err) { say(err.message); }).then(function () { $('asSave').disabled = false; });
   });
 
