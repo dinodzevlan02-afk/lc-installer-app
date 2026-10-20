@@ -85,7 +85,7 @@
 
     var h = '<div class="hdr">' + (cat.imageUrl ? '<img class="prod" src="' + esc(cat.imageUrl) + '" alt="" onerror="this.remove()">' : '') +
       '<div><h1>' + esc(b.name) + '</h1>' + (b.partNo ? '<div class="mono">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' : '') +
-        '<div class="mono muted">Design label ' + esc(b.sku) + '</div><div class="muted">' + esc(d.job.name) + '</div></div></div>' +
+        (b.partNo ? '' : '<div class="mono muted">Design label ' + esc(b.sku) + '</div>') + '<div class="muted">' + esc(d.job.name) + '</div></div></div>' +
       guide +
       '<div class="draft"><b>LC DRAFT job sheet.</b> Generated from this job\'s design and the LC catalog. The instructions packed with the fixture come first: where they differ, follow them and tell LED Connection.</div>' +
       '<h2>On this job</h2><dl class="kv"><dt>Quantity</dt><dd><b>' + pins.length + '</b> heads</dd>' +
