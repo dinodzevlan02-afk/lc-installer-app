@@ -31,3 +31,6 @@ node_modules/
 
 # A real site copied from the customer portal for local testing - never commit
 dev/.portal/
+
+# Guide design previews (rebuilt with build_guides.py --preview)
+tools/guides/preview/

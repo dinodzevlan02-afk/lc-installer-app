@@ -1,0 +1,20 @@
+{
+  "code": "SS",
+  "bracket": "Straight Square Arm",
+  "doc": "LC-IG-OPT-SS",
+  "rev": "PREVIEW",
+  "source": "PREVIEW ONLY - layout check; no installation content yet",
+  "example": "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK",
+  "glance": { "time": "[from supplier guide]", "people": "[from supplier guide]", "tools": ["[tools from supplier guide]"] },
+  "parts": [
+    { "name": "[part 1 from the supplier guide's parts list]", "qty": "?" },
+    { "name": "[part 2]", "qty": "?" },
+    { "name": "[part 3]", "qty": "?" }
+  ],
+  "specs": [["[torque / drilling figure]", "[value from supplier guide]"]],
+  "steps": [
+    { "title": "[Step 1 title from the supplier guide]", "text": "Placeholder. The real wording comes from the supplier's guide for this bracket, step by step; nothing here is installation advice.", "figure": "figures/preview-1.png" },
+    { "title": "[Step 2 title]", "text": "Placeholder text.", "warn": "Placeholder caution: cautions from the supplier guide appear like this.", "figure": "figures/preview-2.png" },
+    { "title": "[Step 3 title]", "text": "Placeholder text.", "figure": null }
+  ]
+}
