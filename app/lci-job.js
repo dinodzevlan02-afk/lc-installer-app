@@ -82,7 +82,10 @@
       var c = counts[b.key] || {};
       return '<div class="line" data-line="' + esc(b.key) + '">' +
         '<div><div class="pname">' + esc(b.name) + '</div><div class="psku">' + esc(b.sku) + '</div>' +
-          '<div class="chips">' + b.tags.map(function (t) { return '<span class="chip tag">' + esc(t) + '</span>'; }).join('') +
+          '<div class="chips">' + b.tags.map(function (t) {
+            var n = b.tagCounts && b.tagCounts[t];
+            return '<span class="chip tag">' + esc(t) + (n && b.tags.length > 1 ? ' &times; ' + n : '') + '</span>';
+          }).join('') +
             (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</div>' +
           '<div class="docs">' + docButtons(b) + '</div></div>' +
         '<div class="counts"><div class="cbox"><div class="cl">Expected</div><div class="expected">' + b.qty + '</div></div>' +
@@ -427,7 +430,7 @@
     }
     h += '<dl class="kv"><dt>Install</dt><dd><b>' + esc(p.productName || (b && b.name) || '') + '</b><div class="mono muted">' + esc(sol.sku) + '</div></dd>' +
       (sol.specific ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
-      (sol.designTag && sol.designTag !== p.tag ? '<dt>Design tag</dt><dd>' + esc(sol.designTag) + '</dd>' : '') +
+      (p.auditTag && p.auditTag !== p.tag ? '<dt>Audit tag</dt><dd>' + esc(p.auditTag) + '</dd>' : '') +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +
       (sol.tilt ? '<dt>Tilt</dt><dd>' + esc(sol.tilt) + '&deg;</dd>' : '') +
