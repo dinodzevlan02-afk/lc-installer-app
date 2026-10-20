@@ -59,13 +59,15 @@ claims on the job page. Next: mail like the portal's (Cassie + Dino).
 
 ## Who sees what (Dino, 2026-10-20)
 
-- LED Connection admins: ALL PROJECTS on the home page = every project in
-  the customer portal (GET /api/projects, LC only), with START JOB /
-  INSTALLERS / OPEN. A job is started on a project from there; INSTALLERS
-  changes who installs it at any time (LC only; installer logins only;
-  whoever is unticked loses it at once, their saved work stays; the audit
-  records added / removed). Walmart 2741
-  is brought in that way (its data stays in the portal and is read live).
+- LED Connection admins: PROJECTS on the home page = the customer-portal
+  projects that have a job here (Dino: "just keep this one Walmart"). Every
+  other portal project with a site waits in the ADD A PROJECT picker;
+  starting a job IS adding the project, so there is no second list to keep
+  in step. GET /api/projects (LC only) still returns every portal project;
+  the page filters. INSTALLERS changes who installs a job at any time (LC
+  only; installer logins only; whoever is unticked loses it at once, their
+  saved work stays; the audit records added / removed). Walmart Store 2741
+  (51 fixtures, read live 2026-10-20) is the first project added this way.
 - Installers: MY JOBS only, the jobs whose `installers` name them; any
   other job answers 404 and the project list 403.
 - "Has a site" = projects/{id}/site.json exists in the portal's listing.

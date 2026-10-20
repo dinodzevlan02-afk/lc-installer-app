@@ -13,8 +13,9 @@
 <link rel="stylesheet" href="lci.css">
 <!-- The signed-in front page. Gated on /api/me: no session goes to
      index.html?next=./home.html. Installers: MY JOBS, only the jobs that
-     name them. LED Connection admins: ALL PROJECTS, every customer portal
-     project, where a job is started and installers are assigned. The server
+     name them. LED Connection admins: PROJECTS, the portal projects that have
+     a job here, plus an ADD picker for the rest; a job is started and
+     installers are assigned there. The server
      enforces both; this page only chooses what to draw. LOGINS shows for LC admins only, and the server refuses
      everyone else whatever this page draws. Every value from the server is
      escaped (LCI.esc) before it goes into HTML. -->
@@ -48,6 +49,10 @@
   .dlg h2 { margin: 0 0 4px; font-family: var(--display); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; }
   .dlg .sub { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-bottom: 14px; }
   .kind { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--text-3); text-transform: uppercase; }
+  .addrow { margin: 4px 0 14px; }
+  .addrow label { margin-top: 0; }
+  .addline { display: flex; gap: 10px; flex-wrap: wrap; }
+  .addline select { flex: 1; min-width: 240px; width: auto; }
   .mini { height: 6px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden; margin-top: 6px; width: 140px; }
   .mini i { display: block; height: 100%; background: var(--green); }
   .pick label { display: inline-flex; gap: 8px; align-items: center; margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
@@ -75,8 +80,15 @@
 
   <section class="panel" id="pProjects" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
-    <h2>All projects</h2>
-    <div class="sub">» Every customer portal project · LED Connection only «</div>
+    <h2>Projects</h2>
+    <div class="sub">» Projects with an install job · LED Connection only «</div>
+    <div class="addrow">
+      <label for="addProject">Add a project from the customer portal</label>
+      <div class="addline">
+        <select id="addProject"><option value="">Choose a project…</option></select>
+        <button type="button" class="primary" id="btnAddProject">Start job</button>
+      </div>
+    </div>
     <div class="table-wrap">
       <table>
         <thead><tr><th>Project</th><th>Customer</th><th>Fixtures</th><th>Install job</th><th></th></tr></thead>
@@ -246,47 +258,63 @@
     return LCI.api('GET', 'jobs').then(function (r) { renderJobs(r.jobs); }, function (e) { $('jobs').innerHTML = ''; say(e.message); });
   }
 
-  /* ── LED Connection: every customer portal project ─────────────────── */
+  /* ── LED Connection: the projects in this app ────────────────────────
+     A project is in the installer app when it has a job (Dino, 2026-10-20:
+     "just keep this one Walmart"). The table lists those; every other
+     customer portal project waits in the ADD picker, so starting a job IS
+     adding the project and there is no second list to keep in step. */
   var PROJECTS = [], assigning = null;
   function renderProjects() {
-    $('projects').innerHTML = PROJECTS.map(function (p, i) {
-      var j = p.job, jobCell;
-      if (!p.hasSite) jobCell = '<span class="muted mono" style="font-size:11px">No site uploaded in the portal yet</span>';
-      else if (!j) jobCell = '<span class="badge">No job yet</span>';
-      else {
-        var pct = p.heads ? Math.round(100 * Math.min(j.pinsSaved, p.heads) / p.heads) : 0;
-        jobCell = stepBadge(j) + '<div class="mini"><i style="width:' + pct + '%"></i></div>' +
-          '<div class="small-text">' + (p.heads ? Math.min(j.pinsSaved, p.heads) + ' / ' + p.heads + ' saved · ' : '') +
-          (j.installers.length ? esc(j.installers.join(', ')) : 'no installer') + '</div>';
-      }
-      var act = !p.hasSite ? '' : (j ? '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' : '') +
-        '<button type="button" class="small' + (j ? '' : ' primary') + '" data-assign="' + i + '">' + (j ? 'Installers' : 'Start job') + '</button>';
+    var rows = PROJECTS.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return x.p.job; });
+    $('projects').innerHTML = rows.map(function (x) {
+      var p = x.p, j = p.job;
+      var pct = p.heads ? Math.round(100 * Math.min(j.pinsSaved, p.heads) / p.heads) : 0;
+      var jobCell = stepBadge(j) + '<div class="mini"><i style="width:' + pct + '%"></i></div>' +
+        '<div class="small-text">' + (p.heads ? Math.min(j.pinsSaved, p.heads) + ' / ' + p.heads + ' saved · ' : '') +
+        (j.installers.length ? esc(j.installers.join(', ')) : 'no installer') + '</div>';
+      var act = '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' +
+        '<button type="button" class="small" data-assign="' + x.i + '">Installers</button>';
       return '<tr><td><b>' + esc(p.name) + '</b><div class="small-text">' + esc(p.address || p.id) + '</div>' +
           (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') + '</td>' +
         '<td>' + esc(p.customer || '-') + '</td>' +
         '<td>' + (p.heads == null ? '-' : p.heads) + '</td>' +
         '<td>' + jobCell + '</td><td style="white-space:nowrap">' + act + '</td></tr>';
-    }).join('') || '<tr><td colspan="5" class="placeholder">The customer portal has no projects.</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="placeholder">No projects yet. Add one from the customer portal above.</td></tr>';
+    /* Only projects with a site can take a job. */
+    var free = PROJECTS.map(function (p, i) { return { p: p, i: i }; }).filter(function (x) { return !x.p.job && x.p.hasSite; });
+    $('addProject').innerHTML = '<option value="">' + (free.length ? 'Choose a project…' : 'Every portal project with a site is already here') + '</option>' +
+      free.map(function (x) {
+        return '<option value="' + x.i + '">' + esc(x.p.name) + (x.p.customer ? ' · ' + esc(x.p.customer) : '') + (x.p.heads != null ? ' · ' + x.p.heads + ' fixtures' : '') + '</option>';
+      }).join('');
+    $('btnAddProject').disabled = !free.length;
   }
+  function openAssign(i) {
+    assigning = PROJECTS[i];
+    var on = (assigning.job && assigning.job.installers) || [];
+    $('asTitle').textContent = (assigning.job ? 'Installers · ' : 'Start job · ') + assigning.name;
+    $('asSub').textContent = assigning.job
+      ? 'Tick who installs this job. Anyone you untick loses it at once; what they already saved stays, with their name on it.'
+      : 'Only the installers ticked here will see this job. You can change them later.';
+    $('asPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); }).map(function (u) {
+      return '<label><input type="checkbox" value="' + esc(u.username) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
+        esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + (u.disabled ? ' (off)' : '') + '</label>';
+    }).join('') || '<span class="muted mono" style="font-size:11px">No installer logins yet: you can start the job now and add one under Logins later.</span>';
+    $('asSave').textContent = assigning.job ? 'Save' : 'Start job';
+    $('ovAssign').hidden = false;
+  }
+  $('btnAddProject').addEventListener('click', function () {
+    var v = $('addProject').value;
+    if (v === '') { say('Choose a project first.'); return; }
+    say('');
+    openAssign(+v);
+  });
   function loadProjects() {
     return LCI.api('GET', 'projects').then(function (r) { PROJECTS = r.projects; renderProjects(); },
       function (e) { $('projects').innerHTML = '<tr><td colspan="5" class="msg err">' + esc(e.message) + '</td></tr>'; });
   }
   $('projects').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-assign]');
-    if (!b) return;
-    assigning = PROJECTS[+b.getAttribute('data-assign')];
-    var on = (assigning.job && assigning.job.installers) || [];
-    $('asTitle').textContent = (assigning.job ? 'Installers · ' : 'Start job · ') + assigning.name;
-    $('asSub').textContent = assigning.job
-      ? 'Tick who installs this job. Anyone you untick loses it at once; what they already saved stays, with their name on it.'
-      : 'Only the installers ticked here will see this job.';
-    $('asPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); }).map(function (u) {
-      return '<label><input type="checkbox" value="' + esc(u.username) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
-        esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + (u.disabled ? ' (off)' : '') + '</label>';
-    }).join('') || '<span class="muted mono" style="font-size:11px">No installer logins yet: add one under Logins first.</span>';
-    $('asSave').textContent = assigning.job ? 'Save' : 'Start job';
-    $('ovAssign').hidden = false;
+    if (b) openAssign(+b.getAttribute('data-assign'));
   });
   $('asCancel').addEventListener('click', function () { $('ovAssign').hidden = true; });
   $('asSave').addEventListener('click', function () {
