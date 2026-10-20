@@ -171,7 +171,19 @@ the installer app": nothing goes to the customer portal.
 - Pole ids: blank audit pole ids take the Field Survey group (G10...); heads
   to install still without one (the floods) join the pole whose centre is
   within 6 m. Wall packs and downlights stay off poles.
-- No catalog prodId yet (no spec-sheet links).
+- Spec sheets (Dino, 2026-10-20 "add the spec sheets"): a product with no
+  catalog prodId finds its catalog product by FAMILY name when exactly one
+  catalog product has it (catalog.js byFamily): the Optimus heads. The rest
+  have no catalog product, so LED Connection's own spec sheet PDFs are
+  bundled in app/specs/ by part number (api/shared/specs.js BY_PART + READY,
+  tests/specs.test.js keeps READY = folder): LC-FWP-WS-3CCT -> the
+  Nightshade Series Full Cutoff Wallpack sheet, LC-UDL-8-A -> the Universal
+  Downlight Series sheet (Marketing-2025 > LED > SpecSheets). Waiting on
+  the PDFs (SharePoint gives this session text only, not the file). No LC
+  sheet found for the LC-FL-WS-3CCT-Y flood (the Architectural Floodlight
+  is LC-AFL, the Utility Floodlight LC-UFL).
+- The Nightshade wall pack sheet lists 45/65/75W; SO636 says FCW1 is set to
+  20W. Confirm the 20W setting with Dino.
 - Part numbers (Dino, 2026-10-20), from what NetSuite SO636 SHIPPED, not
   the Walmart rules: Optimus = the 230W hardware (Dino: "230W hardware"),
   bronze, 4000K CRI 80, straight arm SS: S03 LC-SLOT-230W-HV-L5-XX-40-80-

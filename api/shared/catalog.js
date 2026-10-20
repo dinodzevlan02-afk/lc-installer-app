@@ -63,4 +63,15 @@ async function product(prodId) {
   return (await products()).get(String(prodId)) || null;
 }
 
-module.exports = { product, products, publicCatalogProduct };
+/* A product with no catalog id (a site built in this app, tools/sites):
+   the catalog product whose family name is exactly this one, and only when
+   exactly one has it, so a generic name ("Wall pack") or two look-alikes
+   never pick a spec sheet by guess. */
+async function byFamily(fam) {
+  const f = String(fam || "").trim().toLowerCase();
+  if (!f) return null;
+  const hits = [...(await products()).values()].filter(p => String(p.fam).trim().toLowerCase() === f);
+  return hits.length === 1 ? hits[0] : null;
+}
+
+module.exports = { product, byFamily, products, publicCatalogProduct };

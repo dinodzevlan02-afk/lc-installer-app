@@ -170,7 +170,7 @@ async function buildSite(m, siteRec, pprojects, source) {
   /* Spec sheet, photo and manuals from the LC catalog by product id; the
      design's own spec sheet link wins when it has one. */
   await Promise.all(bom.map(async b => {
-    b.catalog = await CATALOG.product(b.prodId);
+    b.catalog = b.prodId != null ? await CATALOG.product(b.prodId) : await CATALOG.byFamily(b.fam);
     if (!b.specSheetUrl && b.catalog) b.specSheetUrl = b.catalog.specSheetUrl;
   }));
   const names = Object.fromEntries(bom.map(b => [b.key, b.name]));

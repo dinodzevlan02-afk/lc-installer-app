@@ -12,6 +12,7 @@ const P = require("../shared/app");
 const J = require("../shared/jobs");
 const PARTS = require("../shared/parts");
 const GUIDES = require("../shared/guides");
+const SPECS = require("../shared/specs");
 const { A, ApiError } = P;
 
 /* Installer logins only: an LC admin already sees every job, so naming one
@@ -82,7 +83,10 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
        design label's own name ("Optimus XL1 · TY5SW") stays on the label. */
     const bom = site.bom.map(b => {
       const pn = pnOf(b.sku) ? describe(pnOf(b.sku), b.sku) : null;
-      return Object.assign({}, b, { partNo: pn }, pn && pn.short ? { name: pn.short, designName: b.name } : {});
+      /* No spec sheet from the design or the catalog: LED Connection's own,
+         bundled with the app, by part number (api/shared/specs.js). */
+      const spec = !b.specSheetUrl && pn ? SPECS.forPart(pn.pn) : null;
+      return Object.assign({}, b, { partNo: pn }, spec ? { specSheetUrl: spec } : {}, pn && pn.short ? { name: pn.short, designName: b.name } : {});
     });
     /* Two design labels can share a part number (Kroger 345: S01 and S02-HS
        are one fixture, S02-HS adds a shield); their lines then carry the
