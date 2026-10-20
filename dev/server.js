@@ -18,6 +18,9 @@ const path = require("path");
 const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
+/* Only app/ is the website, as on Azure (app_location "app"): the dev server
+   cannot serve anything the live site would not. */
+const SITE = path.join(ROOT, "app");
 const PORT = Number(process.env.PORT || 4310);
 
 /* Local-only settings. These are test values for this dev server, never the
@@ -96,10 +99,8 @@ async function runApi(req, res, url) {
 function serveStatic(req, res, url) {
   let p = decodeURIComponent(url.pathname);
   if (p.endsWith("/")) p += "index.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT + path.sep) || /[\\/](dev|api|\.git|docs|tools)([\\/]|$)/.test(path.relative(ROOT, f).replace(/^/, path.sep))) {
-    res.writeHead(404); return res.end("Not found");
-  }
+  const f = path.join(SITE, p);
+  if (!f.startsWith(SITE + path.sep)) { res.writeHead(404); return res.end("Not found"); }
   fs.readFile(f, (err, buf) => {
     if (err) { res.writeHead(404, { "Content-Type": "text/plain" }); return res.end("Not found: " + p); }
     res.writeHead(200, { "Content-Type": MIME[path.extname(f).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" });
