@@ -89,7 +89,19 @@
 
   /* ── Install (map) ──────────────────────────────────────────────── */
   #vInstall:not([hidden]) { display: flex; }
-  #map { flex: 1; min-width: 0; background: #10141f; }
+  /* The aerial sits on WHITE: MAP OPACITY washes it out to white. */
+  #map { flex: 1; min-width: 0; background: #ffffff; }
+  .map-ctl { position: relative; }
+  .map-btn { width: 44px; height: 44px; display: flex; align-items: center; justify-content: center; cursor: pointer; border-radius: 8px; padding: 0;
+             background: rgba(10,14,26,.88); border: 1px solid rgba(255,255,255,.18); color: var(--text-2); }
+  .map-btn:hover, .map-ctl.open .map-btn { color: var(--orange); border-color: var(--orange); }
+  .map-pop { display: none; position: absolute; top: 0; left: 52px; flex-direction: column; gap: 10px; padding: 10px 14px; border-radius: 8px;
+             background: rgba(10,14,26,.92); border: 1px solid rgba(255,255,255,.18); white-space: nowrap; }
+  .map-ctl.open .map-pop { display: flex; }
+  .map-pop .row { display: flex; align-items: center; gap: 10px; }
+  .map-pop .lbl2 { width: 96px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .12em; color: var(--text-2); }
+  .map-pop input[type=range] { width: 160px; min-height: 0; height: 28px; padding: 0; border: 0; background: none; accent-color: var(--orange); box-shadow: none; }
+  .map-pop .val { width: 44px; text-align: right; font-family: var(--mono); font-size: 12px; font-weight: 800; color: var(--orange); }
   .side { width: 380px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: rgba(8,11,21,.97); min-height: 0; }
   .prog { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); }
   .prog .big { font-family: var(--display); font-weight: 900; font-size: 22px; }
@@ -115,7 +127,7 @@
   .pole button { min-height: 40px; }
   .pole button.cur { border-color: var(--orange); color: var(--text-1); }
   .pole button.done { color: #86efac; }
-  .lbl { background: rgba(10,14,26,.88); color: #fff; font: 700 11px/1 'JetBrains Mono', monospace; padding: 3px 5px; border-radius: 4px;
+  .lbl { background: rgba(10,14,26,.88); color: #fff; font: 700 calc(11px * var(--pin, 1))/1 'JetBrains Mono', monospace; padding: 3px 5px; border-radius: 4px;
          border: 1px solid rgba(255,255,255,.25); white-space: nowrap; transform: translate(-50%, -150%); display: inline-block; }
   .leaflet-div-icon.lbl-wrap { background: none; border: 0; }
 
