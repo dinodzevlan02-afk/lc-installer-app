@@ -1,0 +1,154 @@
+/* LC Installer App - shared look. Copied from lc-customer-portal/lcp.css (2026-10-20).
+
+   Lifted from the LC Suite launcher (lc-catalog/index.html, "tactical HUD")
+   on request, 2026-10-08, so the apps read as the same product: grid
+   ground, PCB circuit traces (drawn by LCI.circuit() in lci.js), Orbitron
+   display type, cut-corner panels and the orange-dash divider. Tokens keep
+   the launcher's names where they exist there. */
+*, *::before, *::after { box-sizing: border-box; }
+:root {
+  color-scheme: dark;
+  --bg:#0a0e1a; --bg-deep:#070a14; --panel:rgba(15,22,38,0.55); --panel-solid:#0d1322;
+  --border:rgba(255,255,255,0.07); --border-2:rgba(243,112,33,0.30);
+  --text-1:rgba(255,255,255,0.92); --text-2:rgba(255,255,255,0.55); --text-3:rgba(255,255,255,0.34);
+  --orange:#f37021; --orange-soft:rgba(243,112,33,0.12); --orange-glow:rgba(243,112,33,0.55);
+  --cyan:#22d3ee; --cyan-dim:rgba(34,211,238,0.6); --green:#22c55e; --amber:#f59e0b; --red:#f87171;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+  --sans:'Barlow',system-ui,-apple-system,"Segoe UI",sans-serif;
+  --display:'Orbitron','Barlow',system-ui,sans-serif;
+  --notch:polygon(14px 0,100% 0,100% calc(100% - 14px),calc(100% - 14px) 100%,0 100%,0 14px);
+}
+html, body { margin: 0; min-height: 100%; }
+body {
+  background: var(--bg-deep); color: var(--text-1); font: 15px/1.5 var(--sans); min-height: 100vh; overflow-x: hidden;
+  background-image:
+    radial-gradient(1100px 640px at 50% -8%, rgba(243,112,33,0.10), transparent 60%),
+    radial-gradient(900px 600px at 6% 108%, rgba(34,211,238,0.06), transparent),
+    linear-gradient(rgba(255,255,255,0.018) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.018) 1px, transparent 1px);
+  background-size: auto, auto, 42px 42px, 42px 42px;
+}
+a { color: var(--orange); }
+.shell { position: relative; z-index: 1; }
+
+/* ── Circuit traces behind everything ───────────────────────────────────── */
+#circuit { position: fixed; inset: 0; width: 100%; height: 100%; pointer-events: none; z-index: 0; opacity: .65; }
+#circuit .tr path { stroke-width: 1.4; stroke-dasharray: 5 8; stroke-linecap: round; }
+#circuit .cy path { stroke: rgba(76,140,182,.55); }
+#circuit .or path { stroke: rgba(200,110,50,.5); }
+#circuit .flow { animation: trace-flow 3.2s linear infinite; }
+#circuit .flow.s2 { animation-duration: 4.6s; animation-direction: reverse; }
+#circuit .flow.s3 { animation-duration: 5.8s; }
+@keyframes trace-flow { to { stroke-dashoffset: -26; } }
+#circuit .nd circle { opacity: .85; }
+#circuit .pulse { filter: drop-shadow(0 0 6px #22d3ee); }
+#circuit .pulse.po { filter: drop-shadow(0 0 6px #f37021); }
+@media (prefers-reduced-motion: reduce) {
+  #circuit .flow { animation: none; }
+  #circuit .pulse { display: none; }
+  .ops .dot, .sys .dot { animation: none !important; }
+}
+
+/* ── Hero (sign-in) ─────────────────────────────────────────────────────── */
+.hero { text-align: center; padding: 44px 0 10px; }
+.hero-logo { height: 64px; width: auto; max-width: 88%; margin: 0 auto 24px; display: block; filter: drop-shadow(0 8px 28px rgba(243,112,33,.28)); }
+.hero h1 { margin: 0; font-family: var(--display); font-weight: 900; font-size: clamp(26px, 4.3vw, 50px); letter-spacing: .10em; line-height: 1; text-shadow: 0 0 46px rgba(243,112,33,.35); }
+.hero h1 .a { color: var(--text-1); } .hero h1 .b { color: var(--orange); }
+.ops {
+  display: inline-flex; align-items: center; gap: 11px; font-family: var(--mono); font-size: 12px; font-weight: 700; letter-spacing: .22em;
+  color: var(--cyan); text-transform: uppercase; padding: 12px 26px; margin-top: 24px;
+  background: linear-gradient(180deg, rgba(10,15,28,.92), rgba(7,10,20,.85)); border: 1px solid rgba(255,255,255,.10); clip-path: var(--notch);
+}
+.ops .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); box-shadow: 0 0 10px var(--green); animation: pulse 2s infinite; }
+.ops.warn { color: var(--amber); } .ops.warn .dot { background: var(--amber); box-shadow: 0 0 10px var(--amber); }
+.ops.down { color: var(--red); } .ops.down .dot { background: var(--red); box-shadow: 0 0 10px var(--red); }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: .45; } }
+.divider {
+  display: flex; align-items: center; justify-content: center; gap: 18px; margin: 34px auto 6px;
+  font-family: var(--mono); font-size: 12px; letter-spacing: .30em; color: var(--text-2); text-transform: uppercase;
+}
+.divider::before, .divider::after { content: ""; height: 2px; width: 30px; background: var(--orange); box-shadow: 0 0 8px rgba(243,112,33,.5); }
+.status { font-family: var(--mono); font-size: 11px; color: var(--text-3); text-align: center; margin-top: 6px; }
+.status b { color: var(--cyan); }
+
+/* ── Gate card (the sign-in form) ───────────────────────────────────────── */
+.gate-card {
+  width: min(100%, 400px); margin: 22px auto 0; padding: 30px 30px 24px; text-align: left;
+  background: linear-gradient(180deg, rgba(13,19,34,.97), rgba(8,11,21,.97));
+  border: 1px solid var(--border-2); border-radius: 16px;
+  box-shadow: 0 24px 80px rgba(0,0,0,.6), 0 0 60px rgba(243,112,33,.08);
+  clip-path: polygon(18px 0,100% 0,100% calc(100% - 18px),calc(100% - 18px) 100%,0 100%,0 18px);
+}
+.gate-title { font-family: var(--display); font-weight: 900; font-size: 18px; letter-spacing: .14em; color: var(--text-1); text-align: center; text-transform: uppercase; }
+.gate-sub { font-family: var(--mono); font-size: 9.5px; letter-spacing: .24em; color: var(--cyan-dim); margin: 6px 0 14px; text-align: center; text-transform: uppercase; }
+.gate-lead { color: var(--text-2); font-size: 13px; margin: 0 0 4px; text-align: center; }
+.gate-note { margin-top: 14px; font-size: 11px; color: var(--text-3); text-align: center; }
+
+/* ── Forms ──────────────────────────────────────────────────────────────── */
+label { display: block; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); margin: .95rem 0 .35rem; }
+input, select, textarea {
+  width: 100%; font: 13px var(--mono); color: var(--text-1); background: rgba(255,255,255,.04);
+  border: 1px solid var(--border); border-radius: 9px; padding: 11px 13px; outline: none;
+}
+select { padding: 10px 11px; }
+select option { background: var(--panel-solid); }
+input:focus, select:focus, textarea:focus { border-color: var(--orange); box-shadow: 0 0 0 3px var(--orange-soft); }
+button, .btn {
+  font-family: var(--mono); font-size: 11px; font-weight: 700; letter-spacing: .10em; text-transform: uppercase;
+  cursor: pointer; border-radius: 8px; padding: 9px 14px; border: 1px solid var(--border); background: rgba(255,255,255,.03);
+  color: var(--text-2); text-decoration: none; display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; transition: .15s;
+}
+button:hover, .btn:hover { color: var(--text-1); border-color: var(--border-2); }
+button.primary { background: var(--orange); border-color: var(--orange); color: #0a0e1a; font-weight: 800; letter-spacing: .14em; }
+button.primary:hover { background: #ff8a3d; color: #0a0e1a; }
+button.danger { color: var(--red); border-color: rgba(248,113,113,.4); }
+button.small, .btn.small { padding: 6px 10px; font-size: 10px; }
+button:disabled { opacity: .5; cursor: default; }
+.gate-card form button.primary { width: 100%; justify-content: center; margin-top: 1.3rem; padding: 13px; font-size: 12px; }
+.msg { margin-top: 1rem; padding: .65rem .85rem; border-radius: 8px; font-family: var(--mono); font-size: 11.5px; line-height: 1.55; }
+.msg.err { background: rgba(248,113,113,.08); border: 1px solid rgba(248,113,113,.35); color: #fecaca; }
+.msg.ok { background: rgba(34,197,94,.08); border: 1px solid rgba(34,197,94,.35); color: #bbf7d0; }
+.muted { color: var(--text-2); }
+.mono { font-family: var(--mono); font-size: .88em; }
+
+/* ── Top nav (account page) ─────────────────────────────────────────────── */
+.nav {
+  display: flex; align-items: center; gap: 10px 14px; padding: 12px 22px; border-bottom: 1px solid var(--border); flex-wrap: wrap;
+  background: linear-gradient(180deg, rgba(7,10,20,0.85), rgba(7,10,20,0.4)); backdrop-filter: blur(8px);
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+}
+.nav-logo-img { height: 38px; width: auto; }
+.nav-brand { line-height: 1.1; }
+.nav-brand .t { font-family: var(--display); font-weight: 800; letter-spacing: .14em; font-size: 14px; }
+.nav-brand .t .o { color: var(--orange); }
+.nav-brand .s { font-family: var(--mono); font-size: 8px; letter-spacing: .24em; color: var(--cyan-dim); margin-top: 3px; text-transform: uppercase; }
+.nav-right { display: flex; align-items: center; gap: 10px; margin-left: auto; flex-wrap: wrap; }
+.who { font-family: var(--mono); font-size: 10px; letter-spacing: .06em; color: var(--cyan); }
+.who b { color: var(--text-1); }
+.sys {
+  display: flex; align-items: center; gap: 7px; font-family: var(--mono); font-size: 10px; font-weight: 700; letter-spacing: .1em;
+  color: var(--green); text-transform: uppercase; border: 1px solid rgba(34,197,94,.35); border-radius: 7px; padding: 6px 10px; background: rgba(34,197,94,.06);
+}
+.sys .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--green); box-shadow: 0 0 9px var(--green); animation: pulse 2s infinite; }
+.home.logout { color: #0a0e1a; background: var(--orange); border-color: var(--orange); font-weight: 800; }
+.home.logout:hover { background: #ff8a3d; color: #0a0e1a; }
+
+/* ── Panels with the launcher's corner brackets ─────────────────────────── */
+.panel { position: relative; background: var(--panel); border: 1px solid var(--border); backdrop-filter: blur(4px); }
+.panel .cnr { position: absolute; width: 14px; height: 14px; border-color: var(--orange); opacity: .85; pointer-events: none; }
+.cnr.tl { top: 6px; left: 6px; border-top: 2px solid; border-left: 2px solid; }
+.cnr.tr { top: 6px; right: 6px; border-top: 2px solid; border-right: 2px solid; }
+.cnr.bl { bottom: 6px; left: 6px; border-bottom: 2px solid; border-left: 2px solid; }
+.cnr.br { bottom: 6px; right: 6px; border-bottom: 2px solid; border-right: 2px solid; }
+
+/* ── Badges ─────────────────────────────────────────────────────────────── */
+.badge { display: inline-block; font-family: var(--mono); font-size: 9.5px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; padding: 3px 8px; border-radius: 5px; border: 1px solid var(--border); color: var(--text-2); }
+.badge.lc-admin { color: var(--orange); border-color: var(--border-2); background: var(--orange-soft); }
+.badge.installer { color: var(--cyan); border-color: rgba(34,211,238,.35); background: rgba(34,211,238,.06); }
+.badge.active, .badge.installed { color: #86efac; border-color: rgba(134,239,172,.3); }
+.badge.suspended, .badge.off { color: #fca5a5; border-color: rgba(252,165,165,.3); }
+
+/* ── Touch: every control reaches 44 px for gloved hands on site ────────── */
+@media (pointer: coarse) {
+  button, .btn, input, select { min-height: 44px; }
+}

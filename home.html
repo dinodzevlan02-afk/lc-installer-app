@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LED Connection - Installer App</title>
+<meta name="theme-color" content="#0a0e1a">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lci.css">
+<!-- The signed-in front page. Gated on /api/me: no session goes to
+     index.html?next=./home.html. JOBS is a placeholder until the app itself
+     is built. LOGINS shows for LC admins only, and the server refuses
+     everyone else whatever this page draws. Every value from the server is
+     escaped (LCI.esc) before it goes into HTML. -->
+<style>
+  .shell { padding: 22px 16px calc(40px + env(safe-area-inset-bottom, 0px)); max-width: 1000px; margin: 0 auto; }
+  .panel { padding: 22px 22px 20px; margin-bottom: 18px; }
+  .panel h2 { margin: 0 0 4px; font-family: var(--display); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; }
+  .panel .sub { font-family: var(--mono); font-size: 10px; letter-spacing: .18em; color: var(--cyan-dim); text-transform: uppercase; margin-bottom: 12px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 0 14px; }
+  .row-actions { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 14px; }
+  table { width: 100%; border-collapse: collapse; font-size: 13px; }
+  th, td { text-align: left; padding: 9px 8px; border-bottom: 1px solid var(--border); vertical-align: top; }
+  th { font-family: var(--mono); font-size: 9.5px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); font-weight: 600; }
+  td .small-text { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+  .table-wrap { overflow-x: auto; }
+  .link-box { margin-top: 12px; padding: 12px; border: 1px solid var(--border-2); border-radius: 9px; background: var(--orange-soft); }
+  .link-box input { margin: 6px 0 8px; }
+  .placeholder { color: var(--text-2); font-size: 14px; }
+</style>
+</head>
+<body>
+<nav class="nav">
+  <img class="nav-logo-img" src="lc-logo.png" alt="LED Connection" width="720" height="494">
+  <div class="nav-brand"><div class="t">LED <span class="o">CONNECTION</span></div><div class="s">Installer App</div></div>
+  <div class="nav-right">
+    <span class="who" id="who"></span>
+    <button class="home logout" id="btnOut" type="button">Sign out</button>
+  </div>
+</nav>
+
+<div class="shell">
+  <section class="panel">
+    <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+    <h2>Jobs</h2>
+    <div class="sub">» Your installs «</div>
+    <p class="placeholder">Signed in. The installer app is being built: your jobs will appear here.</p>
+  </section>
+
+  <section class="panel" id="pLogins" hidden>
+    <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+    <h2>Logins</h2>
+    <div class="sub">» LED Connection only «</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Login</th><th>Role</th><th>Contact</th><th>Status</th><th></th></tr></thead>
+        <tbody id="users"></tbody>
+      </table>
+    </div>
+    <form id="fAdd" autocomplete="off">
+      <div class="grid">
+        <div><label for="adUser">Username</label><input id="adUser" autocapitalize="none" spellcheck="false" required></div>
+        <div><label for="adName">Full name</label><input id="adName"></div>
+        <div><label for="adPhone">Phone</label><input id="adPhone" type="tel"></div>
+        <div><label for="adEmail">Email</label><input id="adEmail" type="email"></div>
+        <div><label for="adCompany">Company / crew</label><input id="adCompany"></div>
+        <div><label for="adRole">Role</label><select id="adRole"><option value="installer">Installer</option><option value="lc-admin">LED Connection admin</option></select></div>
+      </div>
+      <div class="row-actions"><button class="primary" type="submit">Add login</button></div>
+    </form>
+    <div class="link-box" id="linkBox" hidden>
+      <div class="mono" id="linkFor"></div>
+      <input id="linkVal" readonly>
+      <button type="button" class="small" id="btnCopy">Copy link</button>
+      <span class="muted mono" style="font-size:11px">Shown once. Send it to them by one channel only; it expires in 7 days.</span>
+    </div>
+  </section>
+
+  <section class="panel">
+    <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+    <h2>My login</h2>
+    <div class="sub">» Change password «</div>
+    <form id="fPw">
+      <div class="grid">
+        <div><label for="pwCur">Current password</label><input id="pwCur" type="password" autocomplete="current-password" required></div>
+        <div><label for="pwNew">New password (10+)</label><input id="pwNew" type="password" autocomplete="new-password" minlength="10" required></div>
+        <div><label for="pwNew2">Confirm new password</label><input id="pwNew2" type="password" autocomplete="new-password" minlength="10" required></div>
+      </div>
+      <div class="row-actions"><button type="submit">Change password</button></div>
+    </form>
+  </section>
+
+  <div id="msg" class="msg err" hidden role="alert"></div>
+</div>
+
+<script src="lci.js"></script>
+<script>
+(function () {
+  'use strict';
+  LCI.circuit();
+  var $ = function (id) { return document.getElementById(id); };
+  var esc = LCI.esc, ME = null;
+
+  function say(text, ok) {
+    var m = $('msg');
+    m.textContent = text || '';
+    m.className = 'msg ' + (ok ? 'ok' : 'err');
+    m.hidden = !text;
+  }
+
+  function showLink(inv) {
+    if (!inv || !inv.link) { $('linkBox').hidden = true; return; }
+    $('linkFor').textContent = (inv.kind === 'reset' ? 'Reset link for ' : 'Invite link for ') + (inv.name || inv.username) + (inv.to ? ' · ' + inv.to : '');
+    $('linkVal').value = inv.link;
+    $('linkBox').hidden = false;
+  }
+
+  function renderUsers(list) {
+    $('users').innerHTML = list.map(function (u) {
+      var status = u.disabled ? '<span class="badge off">Off</span>'
+        : !u.hasPassword ? '<span class="badge">Invited</span>' : '<span class="badge active">Active</span>';
+      var self = ME && u.username === ME.user.username;
+      return '<tr><td><b>' + esc(u.name || u.username) + '</b><div class="small-text">' + esc(u.username) + '</div></td>' +
+        '<td><span class="badge ' + esc(u.role) + '">' + esc(LCI.ROLE_LABEL[u.role] || u.role) + '</span>' +
+          (u.company ? '<div class="small-text">' + esc(u.company) + '</div>' : '') + '</td>' +
+        '<td class="small-text">' + esc(u.phone) + (u.phone && u.email ? '<br>' : '') + esc(u.email) + '</td>' +
+        '<td>' + status + '</td>' +
+        '<td>' + (self ? '' :
+          '<button class="small" data-act="link" data-u="' + esc(u.username) + '"' + (u.disabled ? ' disabled' : '') + '>' + (u.hasPassword ? 'Reset link' : 'New link') + '</button> ' +
+          '<button class="small' + (u.disabled ? '' : ' danger') + '" data-act="toggle" data-off="' + (u.disabled ? '0' : '1') + '" data-u="' + esc(u.username) + '">' + (u.disabled ? 'Switch on' : 'Switch off') + '</button>') +
+        '</td></tr>';
+    }).join('');
+  }
+
+  function loadUsers() {
+    return LCI.api('GET', 'users').then(function (r) { renderUsers(r.users); }, function (e) { say(e.message); });
+  }
+
+  $('users').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-act]');
+    if (!b) return;
+    say('');
+    var u = b.getAttribute('data-u');
+    var body = b.getAttribute('data-act') === 'link' ? { sendInvite: true } : { disabled: b.getAttribute('data-off') === '1' };
+    b.disabled = true;
+    LCI.api('PATCH', 'users/' + encodeURIComponent(u), body)
+      .then(function (r) { showLink(r.invite); return loadUsers(); })
+      .catch(function (err) { say(err.message); b.disabled = false; });
+  });
+
+  $('fAdd').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    LCI.api('POST', 'users', {
+      username: $('adUser').value, name: $('adName').value, phone: $('adPhone').value,
+      email: $('adEmail').value, company: $('adCompany').value, role: $('adRole').value
+    }).then(function (r) {
+      e.target.reset();
+      showLink(r.invite);
+      return loadUsers();
+    }).catch(function (err) { say(err.message); });
+  });
+
+  $('btnCopy').addEventListener('click', function () {
+    var v = $('linkVal');
+    (navigator.clipboard ? navigator.clipboard.writeText(v.value) : Promise.reject()).then(function () {
+      say('Link copied.', true);
+    }, function () { v.select(); document.execCommand('copy'); });
+  });
+
+  $('fPw').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    if ($('pwNew').value !== $('pwNew2').value) { say('The two passwords do not match.'); return; }
+    LCI.api('POST', 'password', { current: $('pwCur').value, next: $('pwNew').value })
+      .then(function () { e.target.reset(); say('Password changed. Your other devices are signed out.', true); })
+      .catch(function (err) { say(err.message); });
+  });
+
+  $('btnOut').addEventListener('click', LCI.signOut);
+
+  LCI.me().then(function (me) {
+    if (!me) { location.replace('./index.html?next=./home.html'); return; }
+    if (me.user.mustChangePassword) { location.replace('./index.html?next=./home.html'); return; }
+    ME = me;
+    $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role);
+    if (me.can.manageUsers) { $('pLogins').hidden = false; loadUsers(); }
+  }).catch(function (err) { say(err.message); });
+})();
+</script>
+</body>
+</html>

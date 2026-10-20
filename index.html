@@ -1,0 +1,249 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>LED Connection - Installer App</title>
+<meta name="theme-color" content="#0a0e1a">
+<link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
+<link rel="apple-touch-icon" href="apple-touch-icon-180.png">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="lci.css">
+<!-- Sign-in, in the LC Suite launcher's look. Three states, one card:
+       sign in            the normal case
+       first-time setup   only while no admin exists (GET /api/setup)
+       choose a password  after signing in with a temporary one
+     The status pill under the title is the REAL state of the app's
+     server, not decoration: green once /api/setup answers, red if the
+     server is up but failing (e.g. a missing app setting), amber if it
+     cannot be reached at all.
+     Copied from lc-customer-portal/index.html (2026-10-20).
+     home.html sends anyone without a session here, so this page must never
+     redirect to it unless /api/me says there IS a session, or the two would
+     bounce forever. -->
+<style>
+  .shell { padding: 0 16px calc(40px + env(safe-area-inset-bottom, 0px)); }
+</style>
+</head>
+<body>
+<div class="shell">
+  <header class="hero">
+    <img class="hero-logo" src="lc-logo.png" alt="LED Connection" width="720" height="494">
+    <h1><span class="a">LED</span> <span class="b">CONNECTION</span></h1>
+    <div class="ops" id="ops" role="status"><span class="dot"></span><span id="opsText">Connecting</span></div>
+    <div class="divider" id="divider">Installer App</div>
+    <div class="status" id="status">Establishing link…</div>
+  </header>
+
+  <main class="gate-card">
+    <section id="vLoading"><p class="gate-lead">Loading…</p></section>
+
+    <section id="vSignIn" hidden>
+      <div class="gate-title">Access Control</div>
+      <div class="gate-sub">» Installer App «</div>
+      <p class="gate-lead">Sign in to see your jobs.</p>
+      <form id="fSignIn" autocomplete="on">
+        <label for="siUser">Username</label>
+        <input id="siUser" name="username" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="siPass">Password</label>
+        <input id="siPass" name="password" type="password" autocomplete="current-password" required>
+        <button class="primary" type="submit">⟶ Sign in</button>
+      </form>
+    </section>
+
+    <section id="vSetup" hidden>
+      <div class="gate-title">First-time Setup</div>
+      <div class="gate-sub">» Create the first admin «</div>
+      <p class="gate-lead">Works once. The setup key is the <span class="mono">INSTALLER_SETUP_KEY</span> setting in Azure.</p>
+      <form id="fSetup" autocomplete="off">
+        <label for="suKey">Setup key</label>
+        <input id="suKey" type="password" required>
+        <label for="suUser">Admin username</label>
+        <input id="suUser" autocomplete="username" autocapitalize="none" spellcheck="false" required>
+        <label for="suName">Full name</label>
+        <input id="suName" autocomplete="name">
+        <label for="suEmail">Email</label>
+        <input id="suEmail" type="email" autocomplete="email">
+        <label for="suPass">Password (10+ characters)</label>
+        <input id="suPass" type="password" autocomplete="new-password" minlength="10" required>
+        <label for="suPass2">Confirm password</label>
+        <input id="suPass2" type="password" autocomplete="new-password" minlength="10" required>
+        <button class="primary" type="submit">⟶ Create admin</button>
+      </form>
+    </section>
+
+    <section id="vInvite" hidden>
+      <div class="gate-title" id="ivTitle">Welcome</div>
+      <div class="gate-sub" id="ivSub">» Set your password «</div>
+      <p class="gate-lead" id="ivLead"></p>
+      <form id="fInvite">
+        <label for="ivUser">Your username</label>
+        <input id="ivUser" autocomplete="username" readonly>
+        <label for="ivPass">Choose a password (10+ characters)</label>
+        <input id="ivPass" type="password" autocomplete="new-password" minlength="10" required>
+        <label for="ivPass2">Confirm password</label>
+        <input id="ivPass2" type="password" autocomplete="new-password" minlength="10" required>
+        <button class="primary" type="submit">⟶ Save and sign in</button>
+      </form>
+    </section>
+
+    <section id="vChange" hidden>
+      <div class="gate-title">New Password</div>
+      <div class="gate-sub">» Replace your temporary one «</div>
+      <p class="gate-lead">You signed in with a temporary password. Pick your own to continue.</p>
+      <form id="fChange">
+        <label for="chCur">Temporary password</label>
+        <input id="chCur" type="password" autocomplete="current-password" required>
+        <label for="chNew">New password (10+ characters)</label>
+        <input id="chNew" type="password" autocomplete="new-password" minlength="10" required>
+        <label for="chNew2">Confirm new password</label>
+        <input id="chNew2" type="password" autocomplete="new-password" minlength="10" required>
+        <button class="primary" type="submit">⟶ Save and continue</button>
+      </form>
+    </section>
+
+    <div id="msg" class="msg err" hidden role="alert"></div>
+    <div class="gate-note">Need access? Contact the LED Connection office.</div>
+  </main>
+</div>
+
+<script src="lci.js"></script>
+<script>
+(function () {
+  'use strict';
+  LCI.circuit();
+  var $ = function (id) { return document.getElementById(id); };
+  var views = ['vLoading', 'vSignIn', 'vSetup', 'vInvite', 'vChange'];
+  var DIVIDER = { vLoading: 'Installer App', vSignIn: 'Secure Sign-in', vSetup: 'First-time Setup', vInvite: 'Account Setup', vChange: 'Set Password' };
+
+  function show(id) {
+    views.forEach(function (v) { $(v).hidden = v !== id; });
+    $('divider').textContent = DIVIDER[id];
+    var first = $(id).querySelector('input:not([readonly])');
+    if (first) first.focus();
+  }
+  function say(text, ok) {
+    var m = $('msg');
+    m.textContent = text || '';
+    m.className = 'msg ' + (ok ? 'ok' : 'err');
+    m.hidden = !text;
+  }
+  /* up | down (server answered with an error) | offline (no answer) */
+  function link(state) {
+    var ops = $('ops');
+    ops.className = 'ops' + (state === 'up' ? '' : state === 'down' ? ' down' : ' warn');
+    $('opsText').textContent = state === 'up' ? 'All Systems Operational' : state === 'down' ? 'Service Unavailable' : 'Link Offline';
+    $('status').innerHTML = state === 'up' ? '<b>Link established</b> · installer app online'
+      : state === 'down' ? 'The app is not accepting sign-ins right now'
+      : 'Could not reach the app · check your connection';
+  }
+
+  /* Where to go after signing in. Only same-site paths, so a crafted link
+     cannot use this page to forward someone to another site. */
+  function next() {
+    var n = new URLSearchParams(location.search).get('next') || '';
+    return /^\.?\/(?!\/)[\w\-./?=&%]*$/.test(n) ? n : './home.html';
+  }
+
+  function landed(me) {
+    if (me.user.mustChangePassword) { say(''); show('vChange'); return; }
+    location.replace(next());
+  }
+
+  function busy(form, on) {
+    Array.prototype.forEach.call(form.elements, function (el) { el.disabled = on; });
+  }
+
+  $('fSignIn').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    busy(this, true);
+    var form = this;
+    LCI.api('POST', 'login', { username: $('siUser').value, password: $('siPass').value })
+      .then(function (me) { LCI.me().then(function () { landed(me); }); })
+      .catch(function (err) { say(err.message); $('siPass').value = ''; busy(form, false); $('siPass').focus(); });
+  });
+
+  $('fSetup').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    if ($('suPass').value !== $('suPass2').value) { say('The two passwords do not match.'); return; }
+    busy(this, true);
+    var form = this;
+    LCI.api('POST', 'setup', {
+      key: $('suKey').value, username: $('suUser').value, name: $('suName').value,
+      email: $('suEmail').value, password: $('suPass').value
+    }).then(function (me) { LCI.me().then(function () { landed(me); }); })
+      .catch(function (err) { say(err.message); busy(form, false); });
+  });
+
+  /* ── The emailed link: ?invite=<token> ─────────────────────────────── */
+  var INVITE = new URLSearchParams(location.search).get('invite');
+
+  $('fInvite').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    if ($('ivPass').value !== $('ivPass2').value) { say('The two passwords do not match.'); return; }
+    busy(this, true);
+    var form = this;
+    LCI.api('POST', 'invite', { token: INVITE, password: $('ivPass').value })
+      .then(function () { return LCI.me(); })
+      .then(function () { location.replace('./home.html'); })
+      .catch(function (err) { say(err.message); busy(form, false); $('ivUser').readOnly = true; });
+  });
+
+  function openInvite() {
+    return LCI.api('GET', 'invite?token=' + encodeURIComponent(INVITE)).then(function (iv) {
+      link('up');
+      var reset = iv.kind === 'reset';
+      $('ivTitle').textContent = reset ? 'Reset Password' : 'Welcome' + (iv.name ? ', ' + iv.name.split(' ')[0] : '');
+      $('ivSub').textContent = reset ? '» Choose a new password «' : '» Set your password «';
+      $('ivLead').textContent = reset ? 'Choose a new password for your login.'
+        : 'You have been given access to the LED Connection Installer App. Choose a password to finish.';
+      $('ivUser').value = iv.username;
+      show('vInvite');
+    }, function (err) {
+      if (!err.status || err.status >= 500) throw err;
+      link('up');
+      show('vSignIn');
+      say(err.message);
+    });
+  }
+
+  $('fChange').addEventListener('submit', function (e) {
+    e.preventDefault();
+    say('');
+    if ($('chNew').value !== $('chNew2').value) { say('The two passwords do not match.'); return; }
+    busy(this, true);
+    var form = this;
+    LCI.api('POST', 'password', { current: $('chCur').value, next: $('chNew').value })
+      .then(function () { return LCI.me(); })
+      .then(function () { location.replace(next()); })
+      .catch(function (err) { say(err.message); busy(form, false); });
+  });
+
+  /* Already signed in? Go straight through. Otherwise sign-in, or setup if
+     the app has no admin yet. /api/setup is also the health check: it is
+     the one call that needs storage and no session. */
+  /* An invite link wins over an existing session: someone may open their
+     colleague's link on a shared computer, and it must not be swallowed. */
+  (INVITE ? (LCI.forget(), Promise.resolve(null)) : LCI.me()).then(function (me) {
+    if (INVITE) return openInvite();
+    if (me) { link('up'); return landed(me); }
+    return LCI.api('GET', 'setup').then(function (s) { link('up'); show(s && s.needed ? 'vSetup' : 'vSignIn'); });
+  }).catch(function (err) {
+    /* The real reason goes to the console for us; an installer only needs to
+       know it is not them, and setting names mean nothing to them. */
+    console.error('[installer] start-up check failed:', err.status, err.message);
+    link(err.status ? 'down' : 'offline');
+    show('vSignIn');
+    say(err.status >= 500
+      ? 'Sign-in is not available right now. Please try again later.'
+      : 'The app could not reach its server. Check your connection and try again.');
+  });
+})();
+</script>
+</body>
+</html>

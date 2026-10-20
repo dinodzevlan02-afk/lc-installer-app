@@ -1,0 +1,30 @@
+# Working copies and backups
+*.bak
+*.orig
+*.pre-*.html
+*.backup.html
+
+# Local scratch
+scratch/
+tmp/
+
+# Local test login for the dev server - never commit
+*.local.json
+LOCAL-DEV-LOGIN.txt
+
+# Editor / OS
+.vscode/
+.idea/
+.claude/
+.DS_Store
+Thumbs.db
+desktop.ini
+*.log
+
+# Dev server storage (local test accounts, never stled03)
+dev/.data/
+*.local.md
+
+# Azure Functions local settings (holds secrets) and packages
+local.settings.json
+node_modules/

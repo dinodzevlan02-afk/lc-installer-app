@@ -1,0 +1,9 @@
+{
+  "name": "lc-installer-app-api",
+  "version": "1.0.0",
+  "private": true,
+  "description": "LC Installer App backend: sign-in and logins. No npm dependencies.",
+  "engines": {
+    "node": ">=20"
+  }
+}
