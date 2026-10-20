@@ -12,7 +12,7 @@
    when this list and the folder disagree. A bracket not yet ready still
    names its guide, marked not ready, so the page can say it is coming. */
 const BRACKET_NAMES = { F: "Slipfitter", SS: "Straight square arm", SR: "Straight round arm", R: "Adjustable straight arm", U: "Yoke", T: "Trunnion" };
-const READY = [];
+const READY = ["F", "R", "SR", "SS", "T", "U"];
 
 const file = code => "LC-Optimus-Installation-Guide-" + code + ".pdf";
 
