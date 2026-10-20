@@ -12,16 +12,20 @@ const P = require("../shared/app");
 const J = require("../shared/jobs");
 const { portalStore } = require("../shared/store");
 
-async function directChildren(store, prefix) {
-  const names = (await store.list(prefix)).filter(n => n.endsWith(".json") && !n.slice(prefix.length).includes("/"));
+async function directChildren(store, prefix, all) {
+  const names = (all || await store.list(prefix)).filter(n => n.endsWith(".json") && !n.slice(prefix.length).includes("/"));
   return (await Promise.all(names.map(n => store.get(n)))).filter(Boolean).map(r => r.data);
 }
 
 module.exports = P.handler(async ({ req, send }) => {
   await P.requireLc(req);
   const ps = portalStore();
+  /* One listing gives both the project records and which of them really
+     have a site file (projects/{id}/site.json), without reading the sites. */
+  const names = await ps.list("projects/");
+  const withSite = new Set(names.filter(n => /^projects\/[^/]+\/site\.json$/.test(n)).map(n => n.split("/")[1]));
   const [metas, customers, jobs] = await Promise.all([
-    directChildren(ps, "projects/"), directChildren(ps, "customers/"), P.loadAll("jobs/")
+    directChildren(ps, "projects/", names), directChildren(ps, "customers/"), P.loadAll("jobs/")
   ]);
   const custName = Object.fromEntries(customers.map(c => [c.id, c.name || c.id]));
   const jobOf = Object.fromEntries(jobs.map(j => [j.id, j]));
@@ -39,7 +43,7 @@ module.exports = P.handler(async ({ req, send }) => {
       customer: m.customerId ? (custName[m.customerId] || m.customerId) : "",
       kind: site.kind || "", installDate: m.installDate || "",
       heads: typeof site.fixtures === "number" ? site.fixtures : null,
-      hasSite: !!(site.uploadedAt || site.exportedAt || site.fixtures),
+      hasSite: withSite.has(m.id),
       job
     };
   }));

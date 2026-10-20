@@ -139,7 +139,7 @@ async function main() {
   const p1 = pl.body.projects.find(p => p.id === "TEST-SITE-01"), p2 = pl.body.projects.find(p => p.id === "TEST-SITE-02");
   check(pl.status === 200 && p1 && p2, "LC admin sees every portal project, with or without a job");
   check(p1.job && p1.job.installers[0] === "mike.crew" && p2.job === null, "each project says whether it has a job and who is on it");
-  check(p1.customer === "Test Customer" && p2.hasSite === false, "customer name shown; a project with no site says so");
+  check(p1.customer === "Test Customer" && p1.hasSite === true && p2.hasSite === false, "customer name shown; whether a project has a site comes from its site file");
   check(!/9999|8888|INTERNAL CUSTOMER NOTE|netsuite|uploadedBy/.test(JSON.stringify(pl.body)), "no NetSuite number or internal notes in the list");
   check((await lc("POST", "jobs", { projectId: "TEST-SITE-02", installers: [] })).status === 404, "no job on a project whose site was never uploaded");
   const jv = await inst("GET", "jobs/TEST-SITE-01");
