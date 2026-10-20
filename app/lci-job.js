@@ -11,6 +11,7 @@
   var esc = LCI.esc;
   var JOB_ID = new URLSearchParams(location.search).get('id') || '';
   var D = null;              // the job, as GET /api/jobs/{id} returned it
+  var ME = null;             // /api/me: who is signed in
   var counts = {};           // productKey -> { received, damaged, note }
   var map = null, markers = {}, labels = {}, filterTag = null, selected = null, pinShots = [];
 
@@ -76,12 +77,52 @@
       '<button type="button" data-k="' + esc(key) + '" data-f="' + field + '" data-d="1"' + (locked ? ' disabled' : '') + ' aria-label="More">+</button></div>';
   }
 
+  /* The UL-listed part number is what the installer checks on the box; the
+     design's own label stays underneath for reference. */
+  function partLine(b) {
+    if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div><div class="psku">Design label ' + esc(b.sku) + '</div>';
+    return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
+  }
+
+  /* LED Connection only: design label -> part number for this job. Saved
+     values apply for everyone; a suggestion applies only once saved. The
+     server checks every Optimus number against the order logic. */
+  function renderParts() {
+    if (!D.parts) { $('partsBox').innerHTML = ''; return; }
+    var pending = D.parts.filter(function (r) { return !r.saved; }).length;
+    $('partsBox').innerHTML = '<details class="partsbox"' + (pending ? ' open' : '') + '><summary>Part numbers <span class="muted">· LED Connection only · ' +
+      (pending ? pending + ' not saved' : 'all saved') + '</span></summary>' +
+      '<table class="sum"><tr><th>Design label</th><th>Tags</th><th>UL-listed part number</th><th></th></tr>' +
+      D.parts.map(function (r, i) {
+        var val = r.saved ? r.saved.pn : (r.suggested || '');
+        var st = r.saved ? '<span class="st ok">Saved</span>' : r.suggested ? '<span class="st over">Suggested</span>' : '<span class="st todo">Not set</span>';
+        return '<tr><td class="mono">' + esc(r.label) + '</td><td>' + esc(r.tags.join(', ')) + '</td>' +
+          '<td><input class="mono" data-pi="' + i + '" value="' + esc(val) + '" placeholder="LC-..." spellcheck="false" autocapitalize="characters"></td><td>' + st + '</td></tr>';
+      }).join('') + '</table>' +
+      '<div class="actions" style="justify-content:flex-start"><button type="button" class="primary" id="btnSaveParts">Save part numbers</button>' +
+      '<span class="muted" style="font-size:12px">Suggested = from the order logic, not applied until you save. Empty = remove.</span></div></details>';
+    $('btnSaveParts').addEventListener('click', function () {
+      var by = {};
+      Array.prototype.forEach.call($('partsBox').querySelectorAll('input[data-pi]'), function (inp) {
+        var r = D.parts[+inp.getAttribute('data-pi')], v = inp.value.trim();
+        if (v !== (r.saved ? r.saved.pn : '') ) by[r.label] = v;
+      });
+      if (!Object.keys(by).length) { toast('Nothing changed.'); return; }
+      this.disabled = true;
+      api('PUT', 'parts', { byLabel: by }).then(function () { return api('GET'); }).then(function (d) {
+        D.site = d.site; D.parts = d.parts;
+        renderParts(); renderMaterial();
+        toast('Part numbers saved.');
+      }).catch(function (e) { toast(e.message, true); $('btnSaveParts').disabled = false; });
+    });
+  }
+
   function renderMaterial() {
     var locked = approved();
     $('lines').innerHTML = D.site.bom.map(function (b) {
       var c = counts[b.key] || {};
       return '<div class="line" data-line="' + esc(b.key) + '">' +
-        '<div><div class="pname">' + esc(b.name) + '</div><div class="psku">' + esc(b.sku) + '</div>' +
+        '<div><div class="pname">' + esc(b.name) + '</div>' + partLine(b) +
           '<div class="chips">' + b.tags.map(function (t) {
             var n = b.tagCounts && b.tagCounts[t];
             return '<span class="chip tag">' + esc(t) + (n && b.tags.length > 1 ? ' &times; ' + n : '') + '</span>';
@@ -428,7 +469,8 @@
       $('card').innerHTML = h + '<p class="msg err">Not replaced in this design' + (p.offReason ? ': ' + esc(p.offReason) : '') + '. Leave it as it is.</p>';
       return;
     }
-    h += '<dl class="kv"><dt>Install</dt><dd><b>' + esc(p.productName || (b && b.name) || '') + '</b><div class="mono muted">' + esc(sol.sku) + '</div></dd>' +
+    h += '<dl class="kv"><dt>Install</dt><dd><b>' + esc(p.productName || (b && b.name) || '') + '</b>' +
+        (p.partNo ? '<div class="mono">Part no. <b>' + esc(p.partNo) + '</b></div><div class="mono muted">Design ' + esc(sol.sku) + '</div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
       (sol.specific ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
       (p.auditTag && p.auditTag !== p.tag ? '<dt>Audit tag</dt><dd>' + esc(p.auditTag) + '</dd>' : '') +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
@@ -530,6 +572,7 @@
   /* ══ Start ══════════════════════════════════════════════════════════ */
   LCI.me().then(function (me) {
     if (!me || me.user.mustChangePassword) { location.replace('./index.html?next=' + encodeURIComponent('./job.html?id=' + JOB_ID)); return null; }
+    ME = me;
     $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b>';
     return api('GET');
   }).then(function (d) {
@@ -540,7 +583,7 @@
     $('jobName').textContent = d.job.name;
     $('jobAddr').textContent = d.job.address || d.job.id;
     $('vLoading').hidden = true;
-    renderContact(); renderMaterial(); renderSteps();
+    renderContact(); renderParts(); renderMaterial(); renderSteps();
     show(approved() && location.hash === '#install' ? 'install' : 'material');
   }).catch(function (e) {
     $('vLoading').innerHTML = '<p class="msg err">' + esc(e.message) + '</p><p><a href="./home.html">Back to jobs</a></p>';

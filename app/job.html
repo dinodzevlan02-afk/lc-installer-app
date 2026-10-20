@@ -73,6 +73,14 @@
   .st.ok { color: #86efac; border: 1px solid rgba(134,239,172,.4); background: rgba(34,197,94,.08); }
   .st.short, .st.dmg { color: #fca5a5; border: 1px solid rgba(252,165,165,.45); background: rgba(248,113,113,.08); }
   .st.over { color: var(--amber); border: 1px solid rgba(245,158,11,.45); }
+  .pn { font-family: var(--mono); font-size: 12.5px; color: var(--cyan); margin-top: 4px; word-break: break-all; }
+  .pn b { color: var(--text-1); }
+  .warn-pn { color: var(--amber); }
+  .partsbox { margin: 0 0 14px; padding: 12px 14px; border: 1px solid var(--border-2); border-radius: 12px; background: rgba(243,112,33,.04); }
+  .partsbox summary { cursor: pointer; font-family: var(--display); font-size: 13px; letter-spacing: .12em; text-transform: uppercase; }
+  .partsbox summary .muted { font-family: var(--mono); font-size: 11px; letter-spacing: .04em; text-transform: none; }
+  .partsbox td input { min-width: 330px; font-size: 12.5px; padding: 8px 10px; }
+  .partsbox .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .claims h3 { font-family: var(--display); font-size: 13px; letter-spacing: .14em; margin: 26px 0 10px; text-transform: uppercase; }
   .claim { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--panel); font-size: 14px; }
   .claim .ref { font-family: var(--mono); color: var(--orange); font-weight: 800; }
@@ -183,6 +191,7 @@
   <section class="view" id="vMaterial" hidden>
     <div class="wrap">
       <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged, then sign off the quantities to start the install.</p>
+      <div id="partsBox"></div>
       <div id="matSigned"></div>
       <div id="lines"></div>
       <div class="claims" id="claims"></div>

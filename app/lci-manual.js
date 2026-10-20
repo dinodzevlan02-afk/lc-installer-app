@@ -77,7 +77,8 @@
       (cat.docs || []).map(function (x) { return '<a class="btn" target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(x.label) + '</a>'; }).join('');
 
     var h = '<div class="hdr">' + (cat.imageUrl ? '<img class="prod" src="' + esc(cat.imageUrl) + '" alt="" onerror="this.remove()">' : '') +
-      '<div><h1>' + esc(b.name) + '</h1><div class="mono muted">' + esc(b.sku) + '</div><div class="muted">' + esc(d.job.name) + '</div></div></div>' +
+      '<div><h1>' + esc(b.name) + '</h1>' + (b.partNo ? '<div class="mono">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' : '') +
+        '<div class="mono muted">Design label ' + esc(b.sku) + '</div><div class="muted">' + esc(d.job.name) + '</div></div></div>' +
       '<div class="draft"><b>LC DRAFT install guide.</b> Generated from this job\'s design and the LC catalog. The instructions packed with the fixture come first: where they differ, follow them and tell LED Connection.</div>' +
       '<h2>On this job</h2><dl class="kv"><dt>Quantity</dt><dd><b>' + pins.length + '</b> heads</dd>' +
       '<dt>Tags</dt><dd>' + Object.keys(byTag).map(function (t) { return '<b>' + esc(t) + '</b> &times; ' + byTag[t].length; }).join(', ') + '</dd>' +
@@ -91,7 +92,9 @@
       (docs ? '<h2>Manufacturer documents</h2><div class="docs">' + docs + '</div>' : '') +
 
       '<h2>1 · Before you lift</h2><ol>' +
-        '<li>Check the box label against this job: SKU <b>' + esc(b.sku) + '</b>' + (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different SKU, CCT or optic: stop and report it (Material check &rarr; Report a problem).</li>' +
+        '<li>Check the box label against this job: ' + (b.partNo ? 'part number <b>' + esc(b.partNo.pn) + '</b>' : 'design label <b>' + esc(b.sku) + '</b> (no part number set yet)') +
+          (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different part number, CCT or optic: stop and report it (Material check &rarr; Report a problem).</li>' +
+        (b.partNo && b.partNo.parts ? '<li>This part number means: <b>' + esc([b.partNo.parts.watts + 'W', b.partNo.parts.volt, b.partNo.parts.cct, b.partNo.parts.cri, b.partNo.parts.optic, b.partNo.parts.bracket + ' bracket', b.partNo.parts.color, b.partNo.parts.sensor].join(' · ')) + '</b>.</li>' : '') +
         voltageNote(b, pins) +
         '<li>Inspect for shipping damage before installing. A damaged fixture is not installed; photograph it and report it.</li>' +
         '<li>Lift and fall protection for the mounting height, cones around the work area, and the store\'s site rules for working in the lot.</li></ol>' +
