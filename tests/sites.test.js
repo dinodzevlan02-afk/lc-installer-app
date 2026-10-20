@@ -17,26 +17,41 @@ test("CSV reader: quoted fields, doubled quotes, CRLF, BOM", () => {
 test("KR-00345-NV: every audit row placed, heads per tag as the A-02 schedule", () => {
   const out = build(path.join(__dirname, "..", "tools", "sites", "KR-00345-NV"));
   assert.deepStrictEqual(out.errors, []);
-  assert.strictEqual(out.rows, 113);
-  assert.strictEqual(out.heads, 87);
+  assert.strictEqual(out.rows, 114, "113 audit rows + the 6th flood added on 20203's pole");
+  assert.strictEqual(out.heads, 88, "= the A-02's 88 heads");
   assert.strictEqual(out.excluded, 26, "24 existing LED gas canopy heads + 2 heads the design removes");
   const by = Object.fromEntries(out.checks.map(c => [c.tag, c]));
-  ["S03", "S02-HS", "S01", "FCW2", "FCW1", "DL1-GR"].forEach(t => assert.strictEqual(by[t].pins, by[t].design, t));
-  assert.deepStrictEqual([by.FL1.design, by.FL1.pins], [6, 5], "one design flood has no audit pin (open with Dino)");
+  out.checks.forEach(c => assert.strictEqual(c.pins, c.design, c.tag));
   const ds = out.file.site.datasets[0];
-  assert.strictEqual(ds.data.length, 113);
+  assert.strictEqual(ds.data.length, 114);
   assert.ok(!JSON.stringify(out.file).includes("sig="), "no signed photo links in the file");
   const fcw1 = Object.keys(ds.solutions).filter(i => ds.solutions[i].tag === "FCW1").map(i => ds.solutions[i].mh).sort();
   assert.deepStrictEqual(fcw1, [12, 15, 15, 15, 15], "FCW1 takes the audit height where the design draws both 12 and 15 ft");
 });
 
+test("KR-00345-NV: the 6th flood sits on 20203's pole, opposite it; every flood is on a pole", () => {
+  const ds = build(path.join(__dirname, "..", "tools", "sites", "KR-00345-NV")).file.site.datasets[0];
+  const row = id => ds.data.find(r => r.id === id);
+  const add = row("ADD-FL1-01"), base = row("20203");
+  const i = ds.data.indexOf(add);
+  assert.strictEqual(ds.solutions[i].tag, "FL1");
+  assert.strictEqual(add["pole id"], "G12");
+  assert.strictEqual(base["pole id"], "G12");
+  assert.match(add.added, /New head/);
+  /* opposite: the pole centre (20201 + 20202) is the midpoint of 20203 and the new head */
+  const c = { lat: (+row("20201").latitude + +row("20202").latitude) / 2, lng: (+row("20201").longitude + +row("20202").longitude) / 2 };
+  assert.ok(Math.abs((+add.latitude + +base.latitude) / 2 - c.lat) < 1e-7 && Math.abs((+add.longitude + +base.longitude) / 2 - c.lng) < 1e-7);
+  ds.data.forEach((r, j) => { if (ds.solutions[j] && ds.solutions[j].tag === "FL1") assert.ok(r["pole id"], r.id + " has a pole"); });
+  ds.data.forEach((r, j) => { if (ds.solutions[j] && /^(FCW|DL)/.test(ds.solutions[j].tag)) assert.ok(!r["pole id"], r.id + " is on the building, not a pole"); });
+});
+
 test("the built file passes the app's own upload check unchanged in counts", () => {
   const out = build(path.join(__dirname, "..", "tools", "sites", "KR-00345-NV"));
   const { meta, site } = FILE.check("KR-00345-NV", out.file, "test");
-  assert.strictEqual(meta.fixtures, 87);
-  assert.strictEqual(meta.rows, 113);
+  assert.strictEqual(meta.fixtures, 88);
+  assert.strictEqual(meta.rows, 114);
   assert.strictEqual(meta.name, "Kroger 345 · El Dorado Village");
-  assert.strictEqual(Object.keys(site.site.datasets[0].solutions).length, 87);
+  assert.strictEqual(Object.keys(site.site.datasets[0].solutions).length, 88);
 });
 
 test("upload check: keeps only the solution fields an installer may see", () => {

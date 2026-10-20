@@ -145,6 +145,9 @@ async function buildSite(m, siteRec, pprojects, source) {
           voltage: str(row.voltage)
         },
         productKey: product ? key : null, product,
+        /* A head the design adds where nothing is mounted today (sites built
+           here: tools/sites project.json "added"), with the installer's line. */
+        added: str(row.added),
         off, offReason: off ? str(row.deactivated) : ""
       });
       if (product && !off) {
