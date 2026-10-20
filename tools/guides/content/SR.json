@@ -1,0 +1,96 @@
+{
+ "code": "SR",
+ "bracket": "Straight Round Arm",
+ "doc": "LC-IG-OPT-SR",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket SR, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "13 mm open wrench",
+  "6 mm hexagon wrench",
+  "Cross (Phillips) screwdriver"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M8×50 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "2",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "3",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "4",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "5",
+   "name": "Through",
+   "qty": 1
+  },
+  {
+   "ref": "6",
+   "name": "M4×8 mm screw",
+   "qty": 4
+  },
+  {
+   "ref": "7",
+   "name": "E stamping sheet",
+   "qty": 1
+  }
+ ],
+ "specs": [
+  [
+   "Luminaire to stand adapter, M8 screw",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "Back plate screw spacing",
+   "101.6 mm (2 × M8 screw teeth)"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Install the back plate and bracket adapter on the pole with the top bolts, nuts and washers.",
+   "figures": [
+    "SR-fig-A.png"
+   ]
+  },
+  {
+   "title": "Remove the screw and open the cover.",
+   "figures": [
+    "SR-fig-B.png"
+   ]
+  },
+  {
+   "title": "Fix the luminaire on the stand adapter and secure it with the M8 screw.",
+   "figures": [
+    "SR-fig-C.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "SR-fig-D.png"
+   ]
+  },
+  {
+   "title": "Finally, install the bracket cover and secure it with the screw.",
+   "figures": [
+    "SR-fig-E.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "SR-fig-F.png",
+  "SR-fig-G.png"
+ ]
+}

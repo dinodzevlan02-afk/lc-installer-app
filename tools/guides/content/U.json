@@ -1,0 +1,64 @@
+{
+ "code": "U",
+ "bracket": "Yoke",
+ "doc": "LC-IG-OPT-U",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket U, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "13 mm open wrench"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M8×25 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "2",
+   "name": "M8 mm",
+   "qty": 2
+  }
+ ],
+ "specs": [
+  [
+   "Yoke to wall or ceiling",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "Mounting holes",
+   "170 mm and 130 mm apart, ø12.5 mm; center ø20 mm"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Make two holes in the wall or ceiling. Hole sizes and spacing as shown.",
+   "figures": [
+    "U-fig-A.png",
+    "U-fig-E.png"
+   ]
+  },
+  {
+   "title": "Push the expansion screws into the wall or ceiling.",
+   "figures": [
+    "U-fig-B.png"
+   ]
+  },
+  {
+   "title": "Fix the fixture on the wall or ceiling and adjust the angle.",
+   "figures": [
+    "U-fig-C.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "U-fig-D.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "U-fig-F.png",
+  "U-fig-G.png"
+ ]
+}

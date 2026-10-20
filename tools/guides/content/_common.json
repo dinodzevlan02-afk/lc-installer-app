@@ -1,0 +1,21 @@
+{
+ "warning": [
+  "This product should be installed, inspected, and maintained by a qualified electrician only, in accordance with the NEC (National Electrical Code) and all local codes.",
+  "Turn off electrical power before inspection, installation or removal.",
+  "Use only UL (or other NRTL) approved wire for input/output connections. Minimum size 18 AWG, or 14 AWG for continuous runs.",
+  "Make sure LEDs and drivers are cool to touch when performing maintenance.",
+  "Make sure the supply voltage is the same as the rated voltage of the luminaire.",
+  "Do not install in a hazardous atmosphere, except where the ambient temperature does not exceed the rated operating temperature of the fixture.",
+  "Keep tightly closed when in operation."
+ ],
+ "electrical": "The LED driver must be supplied with the voltage specified on the product label and connected to an individual, properly grounded branch circuit protected by a 20 Ampere circuit breaker. Use min. 75°C supply.",
+ "grounding": "The grounding and bonding of the overall system shall be done in accordance with NEC Article 600 and local codes.",
+ "before": [
+  "Ensure that the supply power is shut off.",
+  "Unpack the fixture and ensure that there are no damaged or missing parts.",
+  "The fixture must be sealed with a silicone sealant where it contacts the mounting surface."
+ ],
+ "toolsNote": "Installation tools are not included with the product.",
+ "waterproof": "The wiring terminals are waterproofed with glue or connected with waterproof connectors.",
+ "wiring": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram: standard wiring, or 0-10V dim wiring."
+}

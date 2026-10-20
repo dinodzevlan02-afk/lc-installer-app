@@ -1,0 +1,65 @@
+{
+ "code": "F",
+ "bracket": "Slipfitter",
+ "doc": "LC-IG-OPT-F",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket F, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "13 mm open wrench",
+  "14 mm hexagon wrench"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M16×50 mm screw",
+   "qty": 1
+  },
+  {
+   "ref": "2",
+   "name": "M8×25 mm screw",
+   "qty": 4
+  }
+ ],
+ "specs": [
+  [
+   "Slipfitter to pole",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "Angle adjustment, M16 screw",
+   "at least 17 N·m, until locking"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Remove the screws from the bracket.",
+   "figures": [
+    "F-fig-A.png"
+   ]
+  },
+  {
+   "title": "Pass the wire through the lamp post and fix the lamp.",
+   "figures": [
+    "F-fig-B.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Loosen the M16 screw for angle adjustment.",
+   "figures": [
+    "F-fig-C.png"
+   ],
+   "torque": "at least 17 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "F-fig-D.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "F-fig-E.png",
+  "F-fig-F.png"
+ ]
+}
