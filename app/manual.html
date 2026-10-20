@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
-<title>Install guide - LC Installer App</title>
+<title>Job sheet - LC Installer App</title>
 <meta name="theme-color" content="#0a0e1a">
 <link rel="icon" type="image/png" sizes="32x32" href="favicon-32.png">
 <link rel="manifest" href="manifest.webmanifest">
@@ -24,6 +24,13 @@
   .draft { margin: 18px 0; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(245,158,11,.5); background: rgba(245,158,11,.08); font-size: 14px; }
   .warn { margin: 12px 0; padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(248,113,113,.5); background: rgba(248,113,113,.08); font-size: 14px; }
   ol, ul { padding-left: 22px; } li { margin: 7px 0; font-size: 16px; line-height: 1.5; }
+  .guide-pdf { display: flex; flex-direction: column; gap: 4px; margin: 18px 0 0; padding: 14px 16px; border-radius: 10px; border: 1px solid var(--orange); background: rgba(243,112,33,.12); color: var(--text-1); text-decoration: none; }
+  a.guide-pdf:hover { background: rgba(243,112,33,.22); }
+  .guide-pdf .k { font-family: 'JetBrains Mono', monospace; font-size: 11px; letter-spacing: .16em; text-transform: uppercase; color: var(--orange); }
+  .guide-pdf b { font-size: 17px; }
+  .guide-pdf.off { border-color: var(--border); background: transparent; }
+  .guide-pdf.off .k { color: var(--text-3); }
+  @media print { .guide-pdf { display: none; } }
   .docs { display: flex; flex-wrap: wrap; gap: 8px; }
   .docs .btn { min-height: 44px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }

@@ -50,7 +50,7 @@ deploys after `npm test` passes in the same workflow).
    aerial to WHITE, never darker) in one pop-up under the zoom buttons, as
    in the customer portal (Dino, 2026-10-20). Per tablet, in its browser:
    localStorage lc_installer_pin_size / lc_installer_map_wash.
-3. **Install guide** (app/manual.html?job=&p=). Generated per product from the
+3. **Job sheet** (app/manual.html?job=&p=; was "install guide"). Generated per product from the
    design and catalog. LC DRAFT until Dino approves the wording: product-
    specific details (wire colours, torque) always point to the fixture's own
    label and instructions, never guessed.
@@ -84,6 +84,18 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   S09-W and S09-W-N give the same part number (the "-N" is not an order
   code). Not done: FCW-45 / FCW-20 wall packs and LC-FL-170 / LC-FL-40
   floods have no order logic in this repo yet.
+- Installation guide PDF per product (Dino, 2026-10-20: "installation guide
+  here as pdf ... what is relevant for the product"): an Optimus head
+  installs the way its BRACKET mounts, so the guide is picked from the
+  bracket in the SAVED part number (api/shared/guides.js), one PDF per
+  bracket in app/guides/optimus/LC-Optimus-Installation-Guide-{code}.pdf.
+  Orange INSTALLATION GUIDE (PDF) button on the material line and pin card,
+  a card at the top of the page. guides.js READY lists the brackets whose
+  PDF is committed (the API cannot see app/ on Azure); tests/guides.test.js
+  fails when READY and the folder disagree. Not ready: the page says it is
+  being prepared. The generated page (manual.html) is now called the JOB
+  SHEET so it is not confused with the PDF guide. The PDFs are public like
+  every file in app/ (catalog spec sheets are public too).
 - Supplier guides: bracket SS = AOK Bracket E, U = AOK Bracket C (lc-skb.js
   bracket vn). Seven AOK OT guides (A-G) received as links 2026-10-20;
   ldycdn.com is blocked here, so they still need to be attached.
@@ -183,7 +195,7 @@ never by writing its container.
   `local-dev-setup-key`.
 - `npm test` = tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/api.test.js, 132 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 134 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

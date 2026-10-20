@@ -71,7 +71,14 @@
     var mh = Object.keys(existing).some(function (k) { return /metal halide|mh|hps|sodium|mercury/i.test(k); });
     var byTag = {};
     pins.forEach(function (p) { (byTag[p.tag] = byTag[p.tag] || []).push(p); });
-    document.title = b.name + ' - install guide';
+    document.title = b.name + ' - job sheet';
+
+    /* The LED Connection installation guide for this product's bracket,
+       from its part number (api/shared/guides.js). */
+    var g = b.partNo && b.partNo.guide, guide;
+    if (g && g.ready) guide = '<a class="guide-pdf" target="_blank" rel="noopener" href="' + esc(g.url) + '"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Opens the step-by-step guide for this bracket.</span></a>';
+    else if (g) guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Being prepared by LED Connection. Until then, follow the instructions packed with the fixture.</span></div>';
+    else guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + (b.partNo ? 'No LED Connection guide for this product yet' : 'Shown once LED Connection sets this product\'s part number') + '</b><span class="muted">Follow the instructions packed with the fixture.</span></div>';
 
     var docs = (b.specSheetUrl ? '<a class="btn" target="_blank" rel="noopener" href="' + esc(b.specSheetUrl) + '">Spec sheet</a>' : '') +
       (cat.docs || []).map(function (x) { return '<a class="btn" target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(x.label) + '</a>'; }).join('');
@@ -79,7 +86,8 @@
     var h = '<div class="hdr">' + (cat.imageUrl ? '<img class="prod" src="' + esc(cat.imageUrl) + '" alt="" onerror="this.remove()">' : '') +
       '<div><h1>' + esc(b.name) + '</h1>' + (b.partNo ? '<div class="mono">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' : '') +
         '<div class="mono muted">Design label ' + esc(b.sku) + '</div><div class="muted">' + esc(d.job.name) + '</div></div></div>' +
-      '<div class="draft"><b>LC DRAFT install guide.</b> Generated from this job\'s design and the LC catalog. The instructions packed with the fixture come first: where they differ, follow them and tell LED Connection.</div>' +
+      guide +
+      '<div class="draft"><b>LC DRAFT job sheet.</b> Generated from this job\'s design and the LC catalog. The instructions packed with the fixture come first: where they differ, follow them and tell LED Connection.</div>' +
       '<h2>On this job</h2><dl class="kv"><dt>Quantity</dt><dd><b>' + pins.length + '</b> heads</dd>' +
       '<dt>Tags</dt><dd>' + Object.keys(byTag).map(function (t) { return '<b>' + esc(t) + '</b> &times; ' + byTag[t].length; }).join(', ') + '</dd>' +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +

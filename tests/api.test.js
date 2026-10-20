@@ -171,6 +171,9 @@ async function main() {
   check(ob.partNo && ob.partNo.pn === "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK" && ob.partNo.parts.bracket === "Straight square arm", "the installer sees the part number on the material line, explained");
   check(ij.body.site.pins.filter(p => p.partNo === "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK").length === 6, "and on every pin of that product");
   check(ob.name === "Optimus 300W \u00b7 T5S" && ob.designName && ij.body.site.pins.find(p => p.partNo).productName === "Optimus 300W \u00b7 T5S", "the product name follows the saved part number, not the design label");
+  check(ob.partNo.guide && ob.partNo.guide.bracket === "SS" && ob.partNo.guide.url === "/guides/optimus/LC-Optimus-Installation-Guide-SS.pdf",
+    "the installation guide follows the bracket in the part number (SS)");
+  check(ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo.guide === null, "a product with no guide family gets none");
   check(ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo.checked === false, "a non-Optimus part number is shown as not checked against an order logic");
   check(!/AOK|SECRET VENDOR/.test(JSON.stringify(ij.body)), "no supplier name or code reaches the installer");
   check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { "LC-WP-40W-50K": "" } })).status === 200 &&

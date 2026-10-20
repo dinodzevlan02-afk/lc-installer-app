@@ -11,6 +11,7 @@
 const P = require("../shared/app");
 const J = require("../shared/jobs");
 const PARTS = require("../shared/parts");
+const GUIDES = require("../shared/guides");
 const { A, ApiError } = P;
 
 /* Installer logins only: an LC admin already sees every job, so naming one
@@ -67,7 +68,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     const partsRec = await P.store().get(J.paths.parts(id));
     const saved = (partsRec && partsRec.data.byLabel) || {};
     const pnOf = sku => saved[sku] && saved[sku].pn;
-    const describe = pn => { const c = PARTS.check(pn); return c.ok ? { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null } : null; };
+    /* The installation guide follows the bracket in the part number. */
+    const describe = pn => { const c = PARTS.check(pn); return c.ok ? { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c) } : null; };
     /* Once a checked part number is saved, the product's name follows it
        ("Optimus 300W · T5S"), so name, box and part number agree; the
        design label's own name ("Optimus XL1 · TY5SW") stays on the label. */

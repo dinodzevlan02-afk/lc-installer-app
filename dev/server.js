@@ -38,7 +38,7 @@ process.env.INSTALLER_PORTAL_LOCAL_STORE = process.env.INSTALLER_PORTAL_LOCAL_ST
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
   ".json": "application/json; charset=utf-8", ".webmanifest": "application/manifest+json", ".png": "image/png",
-  ".svg": "image/svg+xml", ".ico": "image/x-icon", ".md": "text/plain; charset=utf-8"
+  ".svg": "image/svg+xml", ".pdf": "application/pdf", ".ico": "image/x-icon", ".md": "text/plain; charset=utf-8"
 };
 
 /* ── Load the functions ─────────────────────────────────────────────────── */
