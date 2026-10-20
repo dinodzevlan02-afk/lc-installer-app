@@ -279,6 +279,8 @@ async function main() {
   const ob1 = oj.body.site.bom[0];
   check(ob1.partNo && ob1.partNo.pn === "LC-SLOT-230W-HV-L5-XX-40-80-T5S-SS-BR" && /181W/.test(ob1.partNo.setup) && ob1.partNo.guide.bracket === "SS",
     "a decided part number applies on an uploaded site, with its set-up line and bracket guide");
+  check(ob1.catalog && ob1.catalog.id === 7 && /fixtures\/7\/spec-sheet\/Optimus-Spec\.pdf$/.test(ob1.specSheetUrl),
+    "a product with no catalog id finds its spec sheet by its family name in the catalog");
   const pinIds = oj.body.site.pins.map(p => p.id).join();
   const re = await lc("PUT", "sites/TEST-OWN-01", own);
   check(re.status === 200 && re.body.replaced === true, "the site can be replaced");
