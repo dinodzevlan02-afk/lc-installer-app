@@ -4,7 +4,10 @@
   "address": "5564 Camino Al Norte, North Las Vegas, NV 89031",
   "customer": "Kroger",
   "kind": "exterior",
-  "dataset": { "id": "kr345-audit73", "label": "Exterior" },
+  "dataset": {
+    "id": "kr345-audit73",
+    "label": "Exterior"
+  },
   "source": {
     "audit": "LED Audit app project 73 export (fixtures.csv), job folder 1191 LED-KR-00345-NV-TURNKEY/Design/w new tags",
     "design": "KR-00345-NV A-02, sent with Kroger PO 2698315 on 2026-09-09 (same as Design/w new tags/KR-00345-NV A-02-Tag fix.pdf)",
@@ -13,13 +16,94 @@
   "design": {
     "note": "A-02 luminaire schedule (page 2) and plan labels (page 4). qty = heads; S03 is 9 back-to-back poles. Lum. Watts are per head (5,400 W total on the sheet). MH is from the plan labels; FCW1 is drawn at 15 ft and at 12 ft, so its heads take the audit's own height when it is one of those.",
     "tags": {
-      "S03":    { "label": "LC-SLOT-L-L1-480-40-70-TY5SW",    "qty": 18, "arrangement": "BACK-BACK", "watt": 180.75, "mh": 23, "tilt": 0, "fam": "Optimus", "cat": "Area Light", "cct": "4000K", "volt": "480V" },
-      "S02-HS": { "label": "LC-SLOT-L-S1-480-40-70-TY4W-HS", "qty": 7,  "arrangement": "SINGLE", "watt": 74.21, "mh": 15, "tilt": 0, "fam": "Optimus", "cat": "Area Light", "cct": "4000K", "volt": "480V", "specific": "House-side shield" },
-      "S01":    { "label": "LC-SLOT-L-S1-480-40-70-TY4W",    "qty": 2,  "arrangement": "SINGLE", "watt": 74.21, "mh": 15, "tilt": 0, "fam": "Optimus", "cat": "Area Light", "cct": "4000K", "volt": "480V" },
-      "FL1":    { "label": "LC-FL32A-40-480-40",             "qty": 6,  "arrangement": "SINGLE", "watt": 40, "mh": 23, "tilt": 66, "fam": "Flood", "cat": "Flood Light", "cct": "4000K", "volt": "480V" },
-      "FCW2":   { "label": "FCW-45-740-277-CT",              "qty": 12, "arrangement": "SINGLE", "watt": 45, "mh": 15, "tilt": 0, "fam": "Wall pack", "cat": "Wall Pack", "cct": "4000K", "volt": "277V" },
-      "FCW1":   { "label": "FCW-20-740-277-CT",              "qty": 5,  "arrangement": "SINGLE", "watt": 20, "mh": [15, 12], "tilt": 0, "fam": "Wall pack", "cat": "Wall Pack", "cct": "4000K", "volt": "277V" },
-      "DL1-GR": { "label": "LC-UDL-10-16W-277-40-GR",        "qty": 38, "arrangement": "SINGLE", "watt": 15.9, "mh": 12, "tilt": 0, "fam": "Downlight", "cat": "Downlight", "cct": "4000K", "volt": "277V" }
+      "S03": {
+        "label": "LC-SLOT-L-L1-480-40-70-TY5SW",
+        "qty": 18,
+        "arrangement": "BACK-BACK",
+        "watt": 180.75,
+        "mh": 23,
+        "tilt": 0,
+        "fam": "Optimus",
+        "cat": "Area Light",
+        "cct": "4000K",
+        "volt": "480V"
+      },
+      "S02-HS": {
+        "label": "LC-SLOT-L-S1-480-40-70-TY4W-HS",
+        "qty": 7,
+        "arrangement": "SINGLE",
+        "watt": 74.21,
+        "mh": 15,
+        "tilt": 0,
+        "fam": "Optimus",
+        "cat": "Area Light",
+        "cct": "4000K",
+        "volt": "480V",
+        "specific": "House-side shield"
+      },
+      "S01": {
+        "label": "LC-SLOT-L-S1-480-40-70-TY4W",
+        "qty": 2,
+        "arrangement": "SINGLE",
+        "watt": 74.21,
+        "mh": 15,
+        "tilt": 0,
+        "fam": "Optimus",
+        "cat": "Area Light",
+        "cct": "4000K",
+        "volt": "480V"
+      },
+      "FL1": {
+        "label": "LC-FL32A-40-480-40",
+        "qty": 6,
+        "arrangement": "SINGLE",
+        "watt": 40,
+        "mh": 23,
+        "tilt": 66,
+        "fam": "Flood",
+        "cat": "Flood Light",
+        "cct": "4000K",
+        "volt": "480V"
+      },
+      "FCW2": {
+        "label": "FCW-45-740-277-CT",
+        "qty": 12,
+        "arrangement": "SINGLE",
+        "watt": 45,
+        "mh": 15,
+        "tilt": 0,
+        "fam": "Wall pack",
+        "cat": "Wall Pack",
+        "cct": "4000K",
+        "volt": "277V"
+      },
+      "FCW1": {
+        "label": "FCW-20-740-277-CT",
+        "qty": 5,
+        "arrangement": "SINGLE",
+        "watt": 20,
+        "mh": [
+          15,
+          12
+        ],
+        "tilt": 0,
+        "fam": "Wall pack",
+        "cat": "Wall Pack",
+        "cct": "4000K",
+        "volt": "277V"
+      },
+      "DL1-GR": {
+        "label": "LC-UDL-10-16W-277-40-GR",
+        "qty": 38,
+        "arrangement": "SINGLE",
+        "watt": 15.9,
+        "mh": 12,
+        "tilt": 0,
+        "fam": "Downlight",
+        "cat": "Downlight",
+        "cct": "4000K",
+        "volt": "277V"
+      }
     }
   },
   "excluded": {
@@ -29,5 +113,14 @@
   "removed": {
     "20227": "Removed by the design: double head replaced with a single head",
     "20233": "Removed by the design: double head replaced with a single head"
-  }
+  },
+  "added": [
+    {
+      "id": "ADD-FL1-01",
+      "tag": "FL1",
+      "opposite": "20203",
+      "why": "The A-02 has 6 FL1 floods, the audit 5 pins. Dino (2026-10-20): the 6th goes on 20203's pole (S03 pole G12), opposite 20203.",
+      "installer": "New head: nothing is mounted here today. Add this flood to the pole, on the side opposite the existing flood."
+    }
+  ]
 }

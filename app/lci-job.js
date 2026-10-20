@@ -484,7 +484,8 @@
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +
       (sol.tilt ? '<dt>Tilt</dt><dd>' + esc(sol.tilt) + '&deg;</dd>' : '') +
       (sol.armLength ? '<dt>Arm</dt><dd>' + esc(sol.armLength) + '</dd>' : '') +
-      '<dt>Replaces</dt><dd>' + esc([p.existing.type, p.existing.tech, p.existing.watts ? p.existing.watts + ' W' : ''].filter(Boolean).join(' · ') || '-') + '</dd>' +
+      (p.added ? '<dt>New head</dt><dd>' + esc(p.added) + '</dd>'
+        : '<dt>Replaces</dt><dd>' + esc([p.existing.type, p.existing.tech, p.existing.watts ? p.existing.watts + ' W' : ''].filter(Boolean).join(' · ') || '-') + '</dd>') +
       (p.existing.voltage ? '<dt>Site voltage</dt><dd>' + esc(p.existing.voltage) + '</dd>' : '') + '</dl>' +
       '<div class="docs">' + docButtons(b) + '</div>';
     if (rec && rec.installed) h += '<div class="installed"><b>Installed</b> by ' + esc(rec.byName) + ' · ' + esc(new Date(rec.at).toLocaleString()) + '</div>';

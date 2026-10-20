@@ -161,10 +161,16 @@ the installer app": nothing goes to the customer portal.
 - Approved design = the A-02 sent with the PO on 2026-09-09 (tags S01, S02-HS,
   S03, FL1, FCW1, FCW2, DL1-GR; = "A-02-Tag fix.pdf"). "A-02 Approved.pdf"
   (Apr 7) still has the old tags: not it.
-- KR-00345-NV: 113 audit rows, 87 heads to install (A-02: 88), 24 gas-canopy
-  heads excluded (existing LED, not in the design), 20227 / 20233 removed
-  (double head -> single). OPEN: FL1 is 6 in the design, 5 audit pins.
-- Pole ids: blank audit pole ids take the Field Survey group (G10...).
+- KR-00345-NV: 113 audit rows + 1 added = 114, 88 heads to install (= A-02),
+  24 gas-canopy heads excluded (existing LED, not in the design), 20227 /
+  20233 removed (double head -> single).
+- The 6th FL1 (design 6, audit 5): Dino 2026-10-20 "put the 6th flood on
+  20203's pole": project.json "added" ADD-FL1-01, placed opposite 20203
+  across pole G12's centre; the pin card says NEW HEAD (row.added, whitelisted
+  in site.js) instead of Replaces.
+- Pole ids: blank audit pole ids take the Field Survey group (G10...); heads
+  to install still without one (the floods) join the pole whose centre is
+  within 6 m. Wall packs and downlights stay off poles.
 - No catalog prodId yet (no spec-sheet links).
 - Part numbers (Dino, 2026-10-20), from what NetSuite SO636 SHIPPED, not
   the Walmart rules: Optimus = the 230W hardware (Dino: "230W hardware"),

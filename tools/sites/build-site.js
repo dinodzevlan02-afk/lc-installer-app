@@ -108,6 +108,39 @@ function build(dir) {
     if (best) { r["pole id"] = best.pole; r["pole id source"] = "nearest head, " + best.d.toFixed(1) + " m"; }
   });
 
+  /* A pole's centre: the mean position of the heads on it. */
+  const centre = (pole, skip) => {
+    const on = data.filter((o, j) => j !== skip && solutions[j] && String(o["pole id"] || "").trim() === pole);
+    return on.length ? { lat: on.reduce((a, o) => a + pos(o).lat, 0) / on.length, lng: on.reduce((a, o) => a + pos(o).lng, 0) / on.length } : null;
+  };
+  /* A head to install with no pole at all (the floods the survey left
+     ungrouped) joins the pole whose centre is within 6 m: the audit drops a
+     pole's heads up to ~8 m apart, and the next pole is ~30 m away. */
+  const poles = [...new Set(data.map(o => String(o["pole id"] || "").trim()).filter(Boolean))];
+  data.forEach((r, i) => {
+    if (!solutions[i] || excluded[i] || String(r["pole id"] || "").trim()) return;
+    let best = null;
+    poles.forEach(p => { const c = centre(p); const d = c && metres(pos(r), c); if (c && d <= 6 && (!best || d < best.d)) best = { d, pole: p }; });
+    if (best) { r["pole id"] = best.pole; r["pole id source"] = "nearest pole centre, " + best.d.toFixed(1) + " m"; }
+  });
+
+  /* Heads the design has and the audit does not (nothing there today):
+     placed opposite a named head across its pole's centre, as decided. */
+  (project.added || []).forEach(a => {
+    const bi = data.findIndex(o => String(o.id).trim() === a.opposite), d = tags[a.tag];
+    if (bi < 0 || !d) { errors.push("Added head " + a.id + ": no audit row " + a.opposite + " or no design tag " + a.tag + "."); return; }
+    const base = data[bi], pole = String(base["pole id"] || "").trim(), c = pole && centre(pole, bi);
+    if (!c) { errors.push("Added head " + a.id + ": " + a.opposite + " has no pole to place it on."); return; }
+    const b = pos(base);
+    const lat = 2 * c.lat - b.lat, lng = 2 * c.lng - b.lng;
+    /* `added` is the one line the installer reads; `why` stays in project.json. */
+    data.push({ id: a.id, latitude: String(+lat.toFixed(8)), longitude: String(+lng.toFixed(8)), schedule: "", "fixture type": "None (new head)",
+      area: base.area, "pole id": pole, "pole id source": "added opposite " + a.opposite, added: a.installer });
+    solutions[data.length - 1] = { fam: d.fam, lc_sku: d.label, cat: d.cat, cct: d.cct, volt: d.volt, watt: d.watt,
+      tag: a.tag, arrangement: d.arrangement, mh: Array.isArray(d.mh) ? d.mh[0] : d.mh, tilt: d.tilt,
+      specific: d.specific || undefined, prodId: d.prodId || undefined, specSheetUrl: d.specSheetUrl || undefined };
+  });
+
   const counts = {};
   Object.keys(solutions).forEach(i => { if (!excluded[i]) counts[solutions[i].tag] = (counts[solutions[i].tag] || 0) + 1; });
   const checks = Object.keys(tags).map(t => ({ tag: t, design: tags[t].qty, pins: counts[t] || 0 }));
