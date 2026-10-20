@@ -105,8 +105,9 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   Orange INSTALLATION GUIDE (PDF) button on the material line and pin card,
   a card at the top of the page. guides.js READY lists the brackets whose
   PDF is committed (the API cannot see app/ on Azure); tests/guides.test.js
-  fails when READY and the folder disagree. Not ready: the page says it is
-  being prepared. The generated page (manual.html) is now called the JOB
+  fails when READY and the folder disagree. Not ready: the card opens the
+  product's catalog SPEC SHEET instead (Dino, 2026-10-20: "link the spec
+  sheet in it") and says the bracket guide is being prepared. The generated page (manual.html) is now called the JOB
   SHEET so it is not confused with the PDF guide. The PDFs are public like
   every file in app/ (catalog spec sheets are public too).
 - Supplier guides: bracket SS = AOK Bracket E, U = AOK Bracket C (lc-skb.js

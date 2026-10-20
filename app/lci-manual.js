@@ -77,6 +77,10 @@
        from its part number (api/shared/guides.js). */
     var g = b.partNo && b.partNo.guide, guide;
     if (g && g.ready) guide = '<a class="guide-pdf" target="_blank" rel="noopener" href="' + esc(g.url) + '"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Opens the step-by-step guide for this bracket.</span></a>';
+    /* Until the bracket guide is ready, the card opens the product's spec
+       sheet from the LC catalog (Dino, 2026-10-20: "link the spec sheet in
+       it"), so the installer has the product's own document now. */
+    else if (b.specSheetUrl) guide = '<a class="guide-pdf" target="_blank" rel="noopener" href="' + esc(b.specSheetUrl) + '"><span class="k">Installation guide · Spec sheet</span><b>' + esc(b.name) + ' spec sheet</b><span class="muted">Opens this product\'s spec sheet from the LC catalog.' + (g ? ' The step-by-step ' + esc(g.bracketName.toLowerCase()) + ' bracket guide is being prepared by LED Connection.' : '') + ' The instructions packed with the fixture come first.</span></a>';
     else if (g) guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Being prepared by LED Connection. Until then, follow the instructions packed with the fixture.</span></div>';
     else guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + (b.partNo ? 'No LED Connection guide for this product yet' : 'Shown once LED Connection sets this product\'s part number') + '</b><span class="muted">Follow the instructions packed with the fixture.</span></div>';
 
@@ -92,7 +96,8 @@
       '<dt>Tags</dt><dd>' + Object.keys(byTag).map(function (t) { return '<b>' + esc(t) + '</b> &times; ' + byTag[t].length; }).join(', ') + '</dd>' +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +
-      (sol.specific ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
+      (b.partNo && b.partNo.parts && b.partNo.parts.means ? '<dt>Part no. means</dt><dd>' + esc(b.partNo.parts.means) + '</dd>'
+        : sol.specific && sol.specific !== b.sku ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
       (b.cct ? '<dt>CCT</dt><dd>' + esc(b.cct) + '</dd>' : '') +
       (b.volt ? '<dt>Input</dt><dd>' + esc(b.volt) + '</dd>' : '') +
       (cat.mounts && cat.mounts.length ? '<dt>Mounts made</dt><dd>' + esc(cat.mounts.join(', ')) + '</dd>' : '') +
