@@ -64,10 +64,11 @@ function check(raw) {
 
 /* Walmart A-05 design labels -> part numbers, decided by Dino 2026-10-20
    (pole heads straight square arm, wall heads and S10 yoke, TY5SW -> T5S,
-   TY4W -> T4, black, no sensor, S10 CRI 70). Offered to LED Connection as
-   SUGGESTIONS on a job that has no part number saved for that label; they
-   apply only once saved. Never shown to installers. */
-const SUGGESTED = {
+   TY4W -> T4, black, no sensor, S10 CRI 70). They APPLY on any job with
+   that design label until LED Connection saves a different number for it
+   (Dino, on the pin card: "I need you to upload the codes here"). Each is
+   checked against the order logic by tests/parts.test.js. */
+const DECIDED = {
   "LC-SLOT-S-S1-NV-40-70-TY4W-W-N": "LC-SLOT-75W-NV-L5-XX-40-70-T4-U-BK",
   "LC-SLOT-S-S1-NV-40-70-TY4W-W": "LC-SLOT-75W-NV-L5-XX-40-70-T4-U-BK",
   "LC-SLOT-145-HV-L5-50-TY03": "LC-SLOT-145W-HV-L5-XX-50-70-T3-U-BK",
@@ -76,4 +77,4 @@ const SUGGESTED = {
   "LC-SLOT-XL-XL2-HV-30-70-TY5S": "LC-SLOT-420W-HV-L5-XX-30-70-T5S-SS-BK"
 };
 
-module.exports = { check, SUGGESTED, OPTIMUS, LABELS };
+module.exports = { check, DECIDED, OPTIMUS, LABELS };

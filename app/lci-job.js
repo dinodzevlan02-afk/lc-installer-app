@@ -80,33 +80,38 @@
 
   /* The UL-listed part number is what the installer checks on the box; the
      design's own label stays underneath for reference. */
+  function partMeaning(x) {
+    return [x.watts + 'W', x.volt, x.cct, x.cri, x.optic, x.bracket + ' bracket', x.color, x.sensor].join(' · ');
+  }
+
   function partLine(b) {
     if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div><div class="psku">Design label ' + esc(b.sku) + '</div>';
     return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
   }
 
-  /* LED Connection only: design label -> part number for this job. Saved
-     values apply for everyone; a suggestion applies only once saved. The
-     server checks every Optimus number against the order logic. */
+  /* LED Connection only: design label -> part number for this job. A saved
+     number applies for everyone; without one, the number Dino decided for
+     that design label applies (api/shared/parts.js DECIDED). The server
+     checks every Optimus number against the order logic. */
   function renderParts() {
     if (!D.parts) { $('partsBox').innerHTML = ''; return; }
-    var pending = D.parts.filter(function (r) { return !r.saved; }).length;
+    var pending = D.parts.filter(function (r) { return !r.saved && !r.decided; }).length;
     $('partsBox').innerHTML = '<details class="partsbox"' + (pending ? ' open' : '') + '><summary>Part numbers <span class="muted">· LED Connection only · ' +
-      (pending ? pending + ' not saved' : 'all saved') + '</span></summary>' +
+      (pending ? pending + ' not set' : 'all set') + '</span></summary>' +
       '<table class="sum"><tr><th>Design label</th><th>Tags</th><th>UL-listed part number</th><th></th></tr>' +
       D.parts.map(function (r, i) {
-        var val = r.saved ? r.saved.pn : (r.suggested || '');
-        var st = r.saved ? '<span class="st ok">Saved</span>' : r.suggested ? '<span class="st over">Suggested</span>' : '<span class="st todo">Not set</span>';
+        var val = r.saved ? r.saved.pn : (r.decided || '');
+        var st = r.saved ? '<span class="st ok">Saved</span>' : r.decided ? '<span class="st ok">Decided</span>' : '<span class="st todo">Not set</span>';
         return '<tr><td class="mono">' + esc(r.label) + '</td><td>' + esc(r.tags.join(', ')) + '</td>' +
           '<td><input class="mono" data-pi="' + i + '" value="' + esc(val) + '" placeholder="LC-..." spellcheck="false" autocapitalize="characters"></td><td>' + st + '</td></tr>';
       }).join('') + '</table>' +
       '<div class="actions" style="justify-content:flex-start"><button type="button" class="primary" id="btnSaveParts">Save part numbers</button>' +
-      '<span class="muted" style="font-size:12px">Suggested = from the order logic, not applied until you save. Empty = remove.</span></div></details>';
+      '<span class="muted" style="font-size:12px">Decided = the number decided for this design label, already applied. Type a different one and save to change it.</span></div></details>';
     $('btnSaveParts').addEventListener('click', function () {
       var by = {};
       Array.prototype.forEach.call($('partsBox').querySelectorAll('input[data-pi]'), function (inp) {
         var r = D.parts[+inp.getAttribute('data-pi')], v = inp.value.trim();
-        if (v !== (r.saved ? r.saved.pn : '') ) by[r.label] = v;
+        if (v !== (r.saved ? r.saved.pn : (r.decided || ''))) by[r.label] = v;
       });
       if (!Object.keys(by).length) { toast('Nothing changed.'); return; }
       this.disabled = true;
@@ -471,8 +476,9 @@
       return;
     }
     h += '<dl class="kv"><dt>Install</dt><dd><b>' + esc(p.productName || (b && b.name) || '') + '</b>' +
-        (p.partNo ? '<div class="mono">Part no. <b>' + esc(p.partNo) + '</b></div><div class="mono muted">Design ' + esc(sol.sku) + '</div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
-      (sol.specific ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
+        (p.partNo ? '<div class="mono pn">Part no. <b>' + esc(p.partNo) + '</b></div><div class="mono muted">Design label ' + esc(sol.sku) + '</div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
+      (p.partNo && b && b.partNo && b.partNo.parts ? '<dt>Part no. means</dt><dd>' + esc(partMeaning(b.partNo.parts)) + '</dd>'
+        : sol.specific && sol.specific !== sol.sku ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
       (p.auditTag && p.auditTag !== p.tag ? '<dt>Audit tag</dt><dd>' + esc(p.auditTag) + '</dd>' : '') +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +

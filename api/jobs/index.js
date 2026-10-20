@@ -67,7 +67,7 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
        pin. The cached site is shared, so it is copied, never written to. */
     const partsRec = await P.store().get(J.paths.parts(id));
     const saved = (partsRec && partsRec.data.byLabel) || {};
-    const pnOf = sku => saved[sku] && saved[sku].pn;
+    const pnOf = sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null;
     /* The installation guide follows the bracket in the part number. */
     const describe = pn => { const c = PARTS.check(pn); return c.ok ? { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c) } : null; };
     /* Once a checked part number is saved, the product's name follows it
@@ -83,12 +83,12 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       pins: site.pins.map(p => p.product && pnOf(p.product.sku)
         ? Object.assign({}, p, { partNo: pnOf(p.product.sku), productName: nameOf[p.productKey] || p.productName }) : p)
     });
-    /* LED Connection also gets the table to edit, with suggestions for
-       labels that have no part number yet. Installers never see suggestions. */
+    /* LED Connection also gets the table to edit: the saved number, or the
+       decided one that applies until a different number is saved. */
     const parts = !A.isLc(user) ? undefined : site.bom.map(b => ({
       label: b.sku, name: b.name, tags: b.tags, qty: b.qty,
       saved: saved[b.sku] || null,
-      suggested: !saved[b.sku] && PARTS.SUGGESTED[b.sku] ? PARTS.SUGGESTED[b.sku] : null
+      decided: !saved[b.sku] && PARTS.DECIDED[b.sku] ? PARTS.DECIDED[b.sku] : null
     }));
     return send(200, {
       job: J.publicJob(job, user), site, parts,
