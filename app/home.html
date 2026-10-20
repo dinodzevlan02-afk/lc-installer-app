@@ -12,8 +12,10 @@
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
 <link rel="stylesheet" href="lci.css">
 <!-- The signed-in front page. Gated on /api/me: no session goes to
-     index.html?next=./home.html. JOBS lists the installer's own jobs (LC
-     admins: all, and a form to open one on a customer portal project). LOGINS shows for LC admins only, and the server refuses
+     index.html?next=./home.html. Installers: MY JOBS, only the jobs that
+     name them. LED Connection admins: ALL PROJECTS, every customer portal
+     project, where a job is started and installers are assigned. The server
+     enforces both; this page only chooses what to draw. LOGINS shows for LC admins only, and the server refuses
      everyone else whatever this page draws. Every value from the server is
      escaped (LCI.esc) before it goes into HTML. -->
 <style>
@@ -40,6 +42,14 @@
   .jobc .pbar i { display: block; height: 100%; background: var(--green); }
   .jobc .who2 { font-family: var(--mono); font-size: 11px; color: var(--cyan); margin-top: 8px; }
   .pick { display: flex; flex-wrap: wrap; gap: 8px; }
+  .ov { position: fixed; inset: 0; z-index: 2000; background: rgba(3,5,10,.72); display: flex; align-items: center; justify-content: center; padding: 16px; }
+  .ov[hidden] { display: none; }
+  .dlg { width: min(100%, 560px); padding: 22px; border-radius: 14px; border: 1px solid var(--border-2); background: linear-gradient(180deg, rgba(13,19,34,.99), rgba(8,11,21,.99)); }
+  .dlg h2 { margin: 0 0 4px; font-family: var(--display); font-size: 15px; letter-spacing: .14em; text-transform: uppercase; }
+  .dlg .sub { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin-bottom: 14px; }
+  .kind { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--text-3); text-transform: uppercase; }
+  .mini { height: 6px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden; margin-top: 6px; width: 140px; }
+  .mini i { display: block; height: 100%; background: var(--green); }
   .pick label { display: inline-flex; gap: 8px; align-items: center; margin: 0; padding: 8px 12px; border: 1px solid var(--border); border-radius: 8px;
                 font-size: 12px; text-transform: none; letter-spacing: 0; color: var(--text-1); cursor: pointer; }
   .pick input { width: 18px; height: 18px; min-height: 0; }
@@ -56,20 +66,36 @@
 </nav>
 
 <div class="shell">
-  <section class="panel">
+  <section class="panel" id="pJobs" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
-    <h2>Jobs</h2>
-    <div class="sub">» Your installs «</div>
+    <h2>My jobs</h2>
+    <div class="sub">» Assigned to you «</div>
     <div id="jobs"><p class="placeholder">Loading…</p></div>
-    <form id="fJob" autocomplete="off" hidden>
-      <div class="grid">
-        <div><label for="jbProject">Customer portal project id</label><input id="jbProject" autocapitalize="none" spellcheck="false" placeholder="as in the portal's Projects table" required></div>
-      </div>
-      <label>Installers on this job</label>
-      <div class="pick" id="jbPick"></div>
-      <div class="row-actions"><button class="primary" type="submit">Open job</button></div>
-    </form>
   </section>
+
+  <section class="panel" id="pProjects" hidden>
+    <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+    <h2>All projects</h2>
+    <div class="sub">» Every customer portal project · LED Connection only «</div>
+    <div class="table-wrap">
+      <table>
+        <thead><tr><th>Project</th><th>Customer</th><th>Fixtures</th><th>Install job</th><th></th></tr></thead>
+        <tbody id="projects"><tr><td colspan="5" class="placeholder">Loading…</td></tr></tbody>
+      </table>
+    </div>
+  </section>
+
+  <div class="ov" id="ovAssign" hidden>
+    <div class="dlg" role="dialog" aria-labelledby="asTitle">
+      <h2 id="asTitle">Installers</h2>
+      <div class="sub" id="asSub"></div>
+      <div class="pick" id="asPick"></div>
+      <div class="row-actions">
+        <button type="button" id="asCancel">Cancel</button>
+        <button type="button" class="primary" id="asSave">Save</button>
+      </div>
+    </div>
+  </div>
 
   <section class="panel" id="pLogins" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
@@ -157,7 +183,7 @@
   }
 
   function loadUsers() {
-    return LCI.api('GET', 'users').then(function (r) { USERS = r.users; renderUsers(r.users); renderPick(); }, function (e) { say(e.message); });
+    return LCI.api('GET', 'users').then(function (r) { USERS = r.users; renderUsers(r.users); }, function (e) { say(e.message); });
   }
 
   $('users').addEventListener('click', function (e) {
@@ -201,38 +227,73 @@
       .catch(function (err) { say(err.message); });
   });
 
-  /* ── Jobs ─────────────────────────────────────────────────────────── */
+  /* ── Installer: my jobs ───────────────────────────────────────────── */
   var USERS = [];
+  function stepBadge(j) {
+    return j.submitted ? '<span class="badge active">Submitted</span>' : !j.materialApproved ? '<span class="badge">1 · Material check</span>' : '<span class="badge installer">2 · Install</span>';
+  }
   function renderJobs(list) {
-    if (!list.length) {
-      $('jobs').innerHTML = '<p class="placeholder">' + (ME.can.manageUsers ? 'No jobs yet. Open one below on a customer portal project.' : 'No jobs assigned to you yet. LED Connection will add you to one.') + '</p>';
-      return;
-    }
+    if (!list.length) { $('jobs').innerHTML = '<p class="placeholder">No jobs assigned to you yet. LED Connection will add you to one.</p>'; return; }
     $('jobs').innerHTML = '<div class="jobs">' + list.map(function (j) {
-      var step = j.submitted ? '<span class="badge active">Submitted</span>' : !j.materialApproved ? '<span class="badge">1 · Material check</span>' : '<span class="badge installer">2 · Install</span>';
       var pct = j.heads ? Math.round(100 * Math.min(j.pinsSaved, j.heads) / j.heads) : 0;
       return '<a class="jobc" href="./job.html?id=' + encodeURIComponent(j.id) + (j.materialApproved && !j.submitted ? '#install' : '') + '">' +
-        '<div class="n">' + esc(j.name) + '</div><div class="a">' + esc(j.address || j.id) + '</div>' + step +
+        '<div class="n">' + esc(j.name) + '</div><div class="a">' + esc(j.address || j.id) + '</div>' + stepBadge(j) +
         '<div class="pbar"><i style="width:' + pct + '%"></i></div>' +
-        '<div class="a" style="margin:6px 0 0">' + (j.heads == null ? 'Site not readable' : Math.min(j.pinsSaved, j.heads) + ' of ' + j.heads + ' fixtures saved') + '</div>' +
-        (j.installers ? '<div class="who2">' + (j.installers.length ? esc(j.installers.join(', ')) : 'No installer assigned') + '</div>' : '') + '</a>';
+        '<div class="a" style="margin:6px 0 0">' + (j.heads == null ? 'Site not readable' : Math.min(j.pinsSaved, j.heads) + ' of ' + j.heads + ' fixtures saved') + '</div></a>';
     }).join('') + '</div>';
   }
   function loadJobs() {
     return LCI.api('GET', 'jobs').then(function (r) { renderJobs(r.jobs); }, function (e) { $('jobs').innerHTML = ''; say(e.message); });
   }
-  function renderPick() {
-    $('jbPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && !u.disabled; }).map(function (u) {
-      return '<label><input type="checkbox" value="' + esc(u.username) + '">' + esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + '</label>';
-    }).join('') || '<span class="muted mono" style="font-size:11px">Add an installer login below first.</span>';
+
+  /* ── LED Connection: every customer portal project ─────────────────── */
+  var PROJECTS = [], assigning = null;
+  function renderProjects() {
+    $('projects').innerHTML = PROJECTS.map(function (p, i) {
+      var j = p.job, jobCell;
+      if (!p.hasSite) jobCell = '<span class="muted mono" style="font-size:11px">No site uploaded in the portal yet</span>';
+      else if (!j) jobCell = '<span class="badge">No job yet</span>';
+      else {
+        var pct = p.heads ? Math.round(100 * Math.min(j.pinsSaved, p.heads) / p.heads) : 0;
+        jobCell = stepBadge(j) + '<div class="mini"><i style="width:' + pct + '%"></i></div>' +
+          '<div class="small-text">' + (p.heads ? Math.min(j.pinsSaved, p.heads) + ' / ' + p.heads + ' saved · ' : '') +
+          (j.installers.length ? esc(j.installers.join(', ')) : 'no installer') + '</div>';
+      }
+      var act = !p.hasSite ? '' : (j ? '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' : '') +
+        '<button type="button" class="small' + (j ? '' : ' primary') + '" data-assign="' + i + '">' + (j ? 'Installers' : 'Start job') + '</button>';
+      return '<tr><td><b>' + esc(p.name) + '</b><div class="small-text">' + esc(p.address || p.id) + '</div>' +
+          (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') + '</td>' +
+        '<td>' + esc(p.customer || '-') + '</td>' +
+        '<td>' + (p.heads == null ? '-' : p.heads) + '</td>' +
+        '<td>' + jobCell + '</td><td style="white-space:nowrap">' + act + '</td></tr>';
+    }).join('') || '<tr><td colspan="5" class="placeholder">The customer portal has no projects.</td></tr>';
   }
-  $('fJob').addEventListener('submit', function (e) {
-    e.preventDefault();
-    say('');
-    var inst = Array.prototype.map.call($('jbPick').querySelectorAll('input:checked'), function (c) { return c.value; });
-    LCI.api('POST', 'jobs', { projectId: $('jbProject').value.trim(), installers: inst })
-      .then(function () { e.target.reset(); say('Job opened.', true); return loadJobs(); })
-      .catch(function (err) { say(err.message); });
+  function loadProjects() {
+    return LCI.api('GET', 'projects').then(function (r) { PROJECTS = r.projects; renderProjects(); },
+      function (e) { $('projects').innerHTML = '<tr><td colspan="5" class="msg err">' + esc(e.message) + '</td></tr>'; });
+  }
+  $('projects').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-assign]');
+    if (!b) return;
+    assigning = PROJECTS[+b.getAttribute('data-assign')];
+    var on = (assigning.job && assigning.job.installers) || [];
+    $('asTitle').textContent = (assigning.job ? 'Installers · ' : 'Start job · ') + assigning.name;
+    $('asSub').textContent = 'Only the installers ticked here see this job.';
+    $('asPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); }).map(function (u) {
+      return '<label><input type="checkbox" value="' + esc(u.username) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
+        esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + (u.disabled ? ' (off)' : '') + '</label>';
+    }).join('') || '<span class="muted mono" style="font-size:11px">No installer logins yet: add one under Logins first.</span>';
+    $('asSave').textContent = assigning.job ? 'Save' : 'Start job';
+    $('ovAssign').hidden = false;
+  });
+  $('asCancel').addEventListener('click', function () { $('ovAssign').hidden = true; });
+  $('asSave').addEventListener('click', function () {
+    var inst = Array.prototype.map.call($('asPick').querySelectorAll('input:checked'), function (c) { return c.value; });
+    var call = assigning.job ? LCI.api('PATCH', 'jobs/' + encodeURIComponent(assigning.id), { installers: inst })
+                             : LCI.api('POST', 'jobs', { projectId: assigning.id, installers: inst });
+    $('asSave').disabled = true;
+    call.then(function () { $('ovAssign').hidden = true; say(assigning.job ? 'Installers saved.' : 'Job started on ' + assigning.name + '.', true); return loadProjects(); })
+      .catch(function (err) { say(err.message); }).then(function () { $('asSave').disabled = false; });
   });
 
   $('btnOut').addEventListener('click', LCI.signOut);
@@ -242,8 +303,13 @@
     if (me.user.mustChangePassword) { location.replace('./index.html?next=./home.html'); return; }
     ME = me;
     $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role);
-    loadJobs();
-    if (me.can.manageUsers) { $('pLogins').hidden = false; $('fJob').hidden = false; loadUsers(); }
+    if (me.can.manageUsers) {
+      /* LED Connection: every portal project; the server refuses this list to installers anyway. */
+      $('pProjects').hidden = false; $('pLogins').hidden = false;
+      loadUsers(); loadProjects();
+    } else {
+      $('pJobs').hidden = false; loadJobs();
+    }
   }).catch(function (err) { say(err.message); });
 })();
 </script>
