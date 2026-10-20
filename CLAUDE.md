@@ -61,6 +61,33 @@ be installed; a submitted job is locked; only jobs that name the installer
 are visible (404 otherwise). Claim emails are NOT sent yet: the office sees
 claims on the job page. Next: mail like the portal's (Cassie + Dino).
 
+## UL-listed part numbers (Dino, 2026-10-20)
+
+"Change all the codes that are on the design ... apply these codes first."
+The photometric design labels heads its own way (A-05: LC-SLOT-XL-XL1-HV-
+50-70-TY5SW, by head size + IES file); what ships and is installed is the
+UL-listed LC part number from the spec sheet's ORDER LOGIC
+(lc-catalog/lc-skb.js OPTIMUS_OPTS + buildSku, 11 segments:
+LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
+- Per job: jobs/{id}/parts.json, design label -> part number, set by LC
+  admins on the job page (PART NUMBERS panel); PUT /api/jobs/{id}/parts.
+  api/shared/parts.js refuses an Optimus number outside the order logic
+  (keep its code lists in step with lc-skb.js); other LC- numbers are
+  accepted and shown as not checked. Installers see saved numbers on the
+  material line, pin card and install guide; the product NAME follows the
+  part number ("Optimus 300W · T5S"). Never the supplier's code.
+- Walmart A-05 decisions (Dino): pole heads S11-S16 straight square arm
+  (SS), wall heads S09-W / S09-W-N and S10 yoke (U), TY5SW -> T5S, TY4W ->
+  T4 (the wide optics have no order code), black, no sensor, S10 CRI 70.
+  Wattage from the schedule's own watts (S1 75, 145, L3 230, XL1 300, XL2
+  420, all within 2.2%). These are SUGGESTIONS in parts.js until saved.
+  S09-W and S09-W-N give the same part number (the "-N" is not an order
+  code). Not done: FCW-45 / FCW-20 wall packs and LC-FL-170 / LC-FL-40
+  floods have no order logic in this repo yet.
+- Supplier guides: bracket SS = AOK Bracket E, U = AOK Bracket C (lc-skb.js
+  bracket vn). Seven AOK OT guides (A-G) received as links 2026-10-20;
+  ldycdn.com is blocked here, so they still need to be attached.
+
 ## Who sees what (Dino, 2026-10-20)
 
 - LED Connection admins: PROJECTS on the home page = the customer-portal
@@ -156,7 +183,7 @@ never by writing its container.
   `local-dev-setup-key`.
 - `npm test` = tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/api.test.js, 119 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/api.test.js, 132 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

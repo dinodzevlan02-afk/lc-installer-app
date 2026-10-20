@@ -13,11 +13,15 @@
                                          Marks one head installed. Needs the material signed off
                                          and at least one photo.
    POST /api/jobs/{id}/submit            Hands the job back once every head is installed.
+   PUT  /api/jobs/{id}/parts             LC admins: { byLabel: { "<design label>": "<LC part number>" | "" } }
+                                         The UL-listed part number for each design label;
+                                         an Optimus one must follow the order logic (shared/parts.js).
    PUT  /api/jobs/{id}/photos            { dataUrl: "data:image/jpeg;base64,..." } -> { name, url }
    GET  /api/jobs/{id}/photos/{name}     the JPEG */
 const crypto = require("crypto");
 const P = require("../shared/app");
 const J = require("../shared/jobs");
+const PARTS = require("../shared/parts");
 const { ApiError } = P;
 
 const MAX_PHOTO = 3 * 1024 * 1024, MAX_PHOTOS = 6, MAX_QTY = 100000;
@@ -87,6 +91,30 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     await P.store().putBytes(J.paths.photo(id, name), buf, "image/jpeg");
     await P.audit(req, user.username, "photo.upload", "job:" + id, { name, bytes: buf.length });
     return send(201, { name, url: "/api/jobs/" + encodeURIComponent(id) + "/photos/" + name });
+  }
+
+  /* ── Part numbers (LED Connection only; allowed after submit too) ─── */
+  if (action === "parts") {
+    if (method !== "PUT") throw new ApiError(405, "Method not allowed.");
+    if (!P.A.isLc(user)) throw new ApiError(403, "Only LED Connection sets part numbers.");
+    const site = await J.requireSite(id);
+    const labels = new Set(site.bom.map(b => b.sku));
+    const by = body.byLabel;
+    if (!by || typeof by !== "object" || Array.isArray(by)) throw new ApiError(400, "byLabel must be an object of design label: part number.");
+    const cur = await P.store().get(J.paths.parts(id));
+    const rec = cur ? cur.data : { v: J.SCHEMA, byLabel: {} };
+    const changed = {};
+    for (const [label, raw] of Object.entries(by)) {
+      if (!labels.has(label)) throw new ApiError(400, "\"" + label + "\" is not a product on this site.");
+      if (raw === "" || raw == null) { if (rec.byLabel[label]) { delete rec.byLabel[label]; changed[label] = null; } continue; }
+      const c = PARTS.check(raw);
+      if (!c.ok) throw new ApiError(400, label + ": " + c.error);
+      rec.byLabel[label] = Object.assign({ pn: c.pn, at: new Date().toISOString() }, who(user));
+      changed[label] = c.pn;
+    }
+    await P.store().put(J.paths.parts(id), rec, cur ? { ifMatch: cur.etag } : { ifNoneMatch: "*" });
+    await P.audit(req, user.username, "parts.update", "job:" + id, changed);
+    return send(200, { byLabel: rec.byLabel });
   }
 
   if (job.submitted && action !== "claims") throw new ApiError(409, "This job was submitted on " + job.submitted.at.slice(0, 10) + ". Ask LED Connection to reopen it.");
