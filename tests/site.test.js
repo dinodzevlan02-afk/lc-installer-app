@@ -13,6 +13,9 @@ const assert = require("node:assert/strict");
 const path = require("path");
 
 process.env.INSTALLER_PORTAL_LOCAL_STORE = path.join(__dirname, "fixtures", "portal");
+/* The app's own store is read first (sites uploaded here): an empty one, so
+   these tests read the portal's site. */
+process.env.INSTALLER_LOCAL_STORE = require("fs").mkdtempSync(path.join(require("os").tmpdir(), "lci-site-test-"));
 process.env.INSTALLER_CATALOG_FILE = path.join(__dirname, "fixtures", "catalog-data.json");
 const SITE = require("../api/shared/site");
 

@@ -4,7 +4,7 @@
   "description": "LED Connection installer app. No dependencies: the site is plain HTML in app/, the API is Azure Functions in api/.",
   "scripts": {
     "dev": "node dev/server.js",
-    "test": "node --test tests/site.test.js tests/parts.test.js tests/guides.test.js && node tests/api.test.js"
+    "test": "node --test tests/site.test.js tests/parts.test.js tests/guides.test.js tests/sites.test.js && node tests/api.test.js"
   },
   "engines": {
     "node": ">=20"

@@ -141,6 +141,34 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   other job answers 404 and the project list 403.
 - "Has a site" = projects/{id}/site.json exists in the portal's listing.
 
+## Sites kept in the installer app only (Dino, 2026-10-20)
+
+Kroger 345 (KR-00345-NV, El Dorado Village, 5564 Camino Al Norte, North Las
+Vegas; NetSuite 1191; Kroger PO 2698315, requester Jim Green) "written only in
+the installer app": nothing goes to the customer portal.
+- sites/{id}.json + sites/{id}/site.json in this app's container, the portal's
+  "lc-site" shape. site.js reads them FIRST, then the portal; same id = this
+  app's wins. GET /api/projects lists both (source "installer" | "portal").
+- PUT /api/sites/{id} (LC only; home page UPLOAD SITE FILE). api/shared/
+  sitefile.js keeps only the solution fields site.js reads and drops `images`
+  (signed SAS links), refuses rows/solutions that do not line up.
+- The file is built by tools/sites/build-site.js from tools/sites/{id}/:
+  fixtures.csv (LED Audit app export; KR-00345-NV = audit project 73, from the
+  1191 job folder Design/w new tags), survey-mapping.tsv (Field Survey
+  audit_results.xlsx), project.json (the approved design's schedule). The
+  DESIGN wins on product fields (the survey's flood label said -30 (3000K);
+  A-02 says LC-FL32A-40-480-40).
+- Approved design = the A-02 sent with the PO on 2026-09-09 (tags S01, S02-HS,
+  S03, FL1, FCW1, FCW2, DL1-GR; = "A-02-Tag fix.pdf"). "A-02 Approved.pdf"
+  (Apr 7) still has the old tags: not it.
+- KR-00345-NV: 113 audit rows, 87 heads to install (A-02: 88), 24 gas-canopy
+  heads excluded (existing LED, not in the design), 20227 / 20233 removed
+  (double head -> single). OPEN: FL1 is 6 in the design, 5 audit pins.
+- Pole ids: blank audit pole ids take the Field Survey group (G10...).
+- No catalog prodId yet (no spec-sheet links) and no part numbers: step 3.
+- The landlord's audit (project 74, "Audit Data - 5-27-26.csv", NetSuite 1583)
+  is a different job.
+
 ## Reading the customer portal (2026-10-20)
 
 - api/shared/site.js reads projects/{id}.json, site.json, portal.json from
@@ -219,14 +247,16 @@ never by writing its container.
 - `node dev/server.js` serves the site AND runs api/ on http://localhost:4310
   with storage in `dev/.data` (gitignored). Setup key locally is
   `local-dev-setup-key`.
-- `npm test` = tests/site.test.js (7 unit tests of the site reader: product
+- `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
+  schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 136 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 153 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no
   pricing/vendor/notes, BOM counts, moved pins, material sign-off, claims,
-  photos, pins, submit. Runs in CI before every deploy.
+  photos, pins, submit; uploaded sites (LC only, nothing internal stored,
+  same pin ids on replace). Runs in CI before every deploy.
 
 ## Open items
 

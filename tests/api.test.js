@@ -244,6 +244,43 @@ async function main() {
   check((await lc("PATCH", "users/anna.crew", { disabled: true })).status === 200 && (await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew"] })).status === 200, "a switched-off installer already on the job can stay listed");
   check((await lc("PATCH", "jobs/TEST-SITE-01", { installers: ["anna.crew", "temp.crew"] })).status === 200, "another installer can be added alongside");
 
+  console.log("sites uploaded into the installer app (not the customer portal)");
+  const own = { format: "lc-site", version: 1,
+    project: { id: "TEST-OWN-01", name: "Synthetic own site", address: "Not a real site", customer: "Test", kind: "exterior" },
+    site: { datasets: [{ id: "own-a", label: "Exterior", data: [
+      { id: "A-1", schedule: "AL1", "pole id": "P1", "fixture type": "AreaLight", wattage: "400", latitude: "36.1", longitude: "-115.1", images: "https://example.com/p.jpg?sig=SECRET" },
+      { id: "A-2", schedule: "AL1", "pole id": "P1", "fixture type": "AreaLight", wattage: "400", latitude: "36.1001", longitude: "-115.1" },
+      { id: "C-1", schedule: "CP1", "fixture type": "Canopy", wattage: "150", latitude: "36.1002", longitude: "-115.1", deactivated: "Not in the design" }],
+      solutions: { 0: { fam: "Optimus", lc_sku: "LC-SLOT-L-L1-480-40-70-TY5SW", watt: 180.75, tag: "S03", arrangement: "BACK-BACK", mh: 23, costPrice: 99, vendor: "SECRET VENDOR" },
+                   1: { fam: "Optimus", lc_sku: "LC-SLOT-L-L1-480-40-70-TY5SW", watt: 180.75, tag: "S03", arrangement: "BACK-BACK", mh: 23 } },
+      excluded: { 2: true } }] } };
+  check((await inst("PUT", "sites/TEST-OWN-01", own)).status === 403, "an installer cannot upload a site");
+  check((await anon("PUT", "sites/TEST-OWN-01", own)).status === 401, "no upload without a session");
+  check((await lc("PUT", "sites/TEST-OWN-01", own, { "X-LCI": "" })).status === 403, "upload needs the CSRF header");
+  check((await lc("PUT", "sites/TEST-OWN-01", { format: "something-else" })).status === 400, "a file that is not a site file is refused");
+  check((await lc("PUT", "sites/OTHER-ID", own)).status === 400, "a file for another project id is refused");
+  check((await lc("PUT", "sites/TEST-OWN-01", Object.assign({}, own, { site: { datasets: [{ id: "x", data: [{ id: "1" }], solutions: { 3: { tag: "S1" } } }] } }))).status === 400, "a solution on a row that does not exist is refused");
+  const up = await lc("PUT", "sites/TEST-OWN-01", own);
+  check(up.status === 201 && up.body.site.fixtures === 2 && up.body.replaced === false, "LC admin uploads a site: 2 heads to install, the excluded one not counted");
+  const stored = fs.readFileSync(path.join(store, "sites", "TEST-OWN-01", "site.json"), "utf8");
+  check(!/SECRET|costPrice|sig=/.test(stored), "pricing, supplier and signed photo links are not stored");
+  check(!fs.existsSync(path.join(__dirname, "fixtures", "portal", "projects", "TEST-OWN-01.json")), "nothing is written to the customer portal");
+  const pl2 = await lc("GET", "projects");
+  const op = pl2.body.projects.find(p => p.id === "TEST-OWN-01");
+  check(op && op.source === "installer" && op.hasSite && op.heads === 2 && op.customer === "Test" && op.job === null, "the uploaded site is in the project list, marked as an installer app site");
+  check((await inst("GET", "sites")).status === 403 && (await lc("GET", "sites")).body.sites.length === 1, "only LED Connection lists uploaded sites");
+  check((await lc("POST", "jobs", { projectId: "TEST-OWN-01", installers: ["mike.crew"] })).status === 201, "a job starts on an uploaded site");
+  const tc = inst;
+  const oj = await tc("GET", "jobs/TEST-OWN-01");
+  check(oj.status === 200 && oj.body.site.project.source === "installer" && oj.body.site.pins.length === 3 && oj.body.site.pins.filter(p => p.off).length === 1,
+    "the installer opens it: every audit row a pin, the excluded one off");
+  check(oj.body.site.bom.length === 1 && oj.body.site.bom[0].qty === 2 && JSON.stringify(oj.body.site.tags) === '[{"tag":"S03","count":2}]', "material list and design tags from the uploaded site");
+  check(!/SECRET|costPrice/.test(JSON.stringify(oj.body)), "no pricing or supplier reaches the installer");
+  const pinIds = oj.body.site.pins.map(p => p.id).join();
+  const re = await lc("PUT", "sites/TEST-OWN-01", own);
+  check(re.status === 200 && re.body.replaced === true, "the site can be replaced");
+  check((await tc("GET", "jobs/TEST-OWN-01")).body.site.pins.map(p => p.id).join() === pinIds, "a replaced site keeps the same pin ids, so saved work stays on its heads");
+
   console.log("last admin");
   const add2 = await lc("POST", "users", { username: "office2", role: "lc-admin", password: PW });
   check(add2.status === 201, "second LC admin created");

@@ -1,6 +1,14 @@
 /* LC Installer App - a project's site, as an installer needs it.
 
-   Read from the customer portal's container (portalStore, read-only):
+   Two sources, one shape ({ format:"lc-site", site:{ datasets } }):
+   1. The installer app's OWN sites (Dino, 2026-10-20: Kroger 345 "written
+      only in the installer app"), in this app's container:
+        sites/{id}.json              name, address, customer, kind, source
+        sites/{id}/site.json         { format:"lc-site", site: { datasets } }
+      uploaded by an LC admin (PUT /api/sites/{id}) from a file built by
+      tools/sites/build-site.js. An own site wins over a portal project with
+      the same id. It has no portal.json, so no hand-moved pins.
+   2. The customer portal's container (portalStore, read-only):
      projects/{id}.json           name, address, customer
      projects/{id}/site.json      { format:"lc-site", site: { datasets:[...] } }
      projects/{id}/portal.json    { projects: { [dsId]: { assets: { [fid]: { pos } } } } }
@@ -15,7 +23,7 @@
    portal's sitefilter SOLUTION_INTERNAL / ROW_INTERNAL) can never reach an
    installer, even when the suite adds a new internal field. */
 const crypto = require("crypto");
-const { portalStore } = require("./store");
+const { portalStore, store } = require("./store");
 const CATALOG = require("./catalog");
 
 const num = v => { const n = parseFloat(v); return isFinite(n) ? n : null; };
@@ -88,8 +96,12 @@ function publicProduct(sol) {
   };
 }
 
-/* -> { project, datasets, pins, bom, tags } or null when the portal has no such site. */
+/* -> { project, datasets, pins, bom, tags } or null when neither this app
+   nor the portal has such a site. */
 async function loadSite(projectId) {
+  const own = store();
+  const [ownMeta, ownSite] = await Promise.all([own.get("sites/" + projectId + ".json"), own.get("sites/" + projectId + "/site.json")]);
+  if (ownMeta && ownSite) return buildSite(ownMeta.data, ownSite.data, {}, "installer");
   const ps = portalStore();
   const [meta, siteRec, portalRec] = await Promise.all([
     ps.get("projects/" + projectId + ".json"),
@@ -97,8 +109,11 @@ async function loadSite(projectId) {
     ps.get("projects/" + projectId + "/portal.json")
   ]);
   if (!meta || !siteRec) return null;
-  const m = meta.data, site = (siteRec.data && siteRec.data.site) || {};
-  const pprojects = (portalRec && portalRec.data && portalRec.data.projects) || {};
+  return buildSite(meta.data, siteRec.data, (portalRec && portalRec.data && portalRec.data.projects) || {}, "portal");
+}
+
+async function buildSite(m, siteRec, pprojects, source) {
+  const site = (siteRec && siteRec.site) || {};
 
   const pins = [], bomMap = {}, datasets = [];
   (site.datasets || []).forEach(ds => {
@@ -162,14 +177,16 @@ async function loadSite(projectId) {
   pins.forEach(p => { if (!p.off) tags[p.tag] = (tags[p.tag] || 0) + 1; });
 
   return {
-    project: { id: m.id, name: str(m.name), address: str(m.address), installDate: str(m.installDate), kind: (m.site && m.site.kind) || "" },
+    project: { id: m.id, name: str(m.name), address: str(m.address), installDate: str(m.installDate), kind: (m.site && m.site.kind) || str(m.kind), source },
     datasets, pins, bom,
     tags: Object.keys(tags).sort((a, b) => a.localeCompare(b, undefined, { numeric: true })).map(t => ({ tag: t, count: tags[t] }))
   };
 }
 
-/* The site changes rarely and is read on every job open: keep it a minute. */
+/* The site changes rarely and is read on every job open: keep it a minute
+   (an upload here clears it, see forget). */
 const cache = new Map();
+const forget = projectId => cache.delete(projectId);
 async function site(projectId) {
   const hit = cache.get(projectId);
   if (hit && Date.now() - hit.at < 60000) return hit.value;
@@ -178,4 +195,4 @@ async function site(projectId) {
   return value;
 }
 
-module.exports = { site, loadSite, shortProduct, productKey, fixtureId, pinKey, existingWatts };
+module.exports = { site, loadSite, forget, shortProduct, productKey, fixtureId, pinKey, existingWatts };
