@@ -46,6 +46,10 @@ deploys after `npm test` passes in the same workflow).
    MH / arrangement / tilt / arm, what it replaces, spec sheet, install
    guide, catalog PDFs, photo (required), serial, note, SAVE AS INSTALLED,
    NEXT (same pole first, then nearest). SUBMIT JOB once every head is saved.
+   PIN SIZE (50-250%, pins and tags) and MAP OPACITY (10-100%, washes the
+   aerial to WHITE, never darker) in one pop-up under the zoom buttons, as
+   in the customer portal (Dino, 2026-10-20). Per tablet, in its browser:
+   localStorage lc_installer_pin_size / lc_installer_map_wash.
 3. **Install guide** (app/manual.html?job=&p=). Generated per product from the
    design and catalog. LC DRAFT until Dino approves the wording: product-
    specific details (wire colours, torque) always point to the fixture's own

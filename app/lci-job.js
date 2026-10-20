@@ -261,20 +261,81 @@
   function isDone(p) { return !!(D.pins[p.id] && D.pins[p.id].installed); }
 
   function pinStyle(p) {
-    var dim = filterTag && p.tag !== filterTag;
+    var dim = filterTag && p.tag !== filterTag, k = pinScale();
     var col = p.off || !p.product ? '#6b7280' : isDone(p) ? '#22c55e' : '#f37021';
-    return { radius: selected === p.id ? 12 : 9, color: selected === p.id ? '#22d3ee' : '#0a0e1a', weight: selected === p.id ? 4 : 2,
+    return { radius: (selected === p.id ? 12 : 9) * k, color: selected === p.id ? '#22d3ee' : '#0a0e1a', weight: selected === p.id ? 4 : 2,
              fillColor: col, fillOpacity: dim ? 0.15 : 0.95, opacity: dim ? 0.25 : 1 };
+  }
+
+  /* ── PIN SIZE and MAP OPACITY, as in the customer portal (Dino, 2026-10-20)
+     Both are preferences of this tablet, kept in its browser, never on the
+     job. Pin size scales pins and tags 50-250%. Map opacity washes the
+     aerial to WHITE (the map sits on white), so pins stand out on a dark
+     aerial; it never darkens. Both live in one pop-up under the zoom. */
+  var PIN_MIN = 50, PIN_MAX = 250, tiles = [];
+  function pref(key, dflt, lo, hi) {
+    var v = NaN;
+    try { v = parseInt(localStorage.getItem(key), 10); } catch (e) {}
+    return isFinite(v) ? Math.max(lo, Math.min(hi, v)) : dflt;
+  }
+  function savePref(key, v) { try { localStorage.setItem(key, String(v)); } catch (e) {} }
+  function pinScale() { return pref('lc_installer_pin_size', 100, PIN_MIN, PIN_MAX) / 100; }
+  var pinTimer = 0;
+  function setPinSize(v) {
+    v = Math.max(PIN_MIN, Math.min(PIN_MAX, parseInt(v, 10) || 100));
+    savePref('lc_installer_pin_size', v);
+    $('pinSizeVal').textContent = v + '%';
+    $('map').style.setProperty('--pin', v / 100);
+    /* One redraw per 60 ms while dragging; a timer, not a frame callback. */
+    if (pinTimer) return;
+    pinTimer = setTimeout(function () { pinTimer = 0; restyle(); }, 60);
+  }
+  function setMapOpacity(v) {
+    v = Math.max(10, Math.min(100, parseInt(v, 10) || 100));
+    savePref('lc_installer_map_wash', v);
+    tiles.forEach(function (t) { t.setOpacity(v / 100); });
+    $('mapOpacityVal').textContent = v + '%';
+  }
+  function toggleMapCtl(open) {
+    var w = document.querySelector('.map-ctl');
+    if (!w) return;
+    var on = open == null ? !w.classList.contains('open') : !!open;
+    w.classList.toggle('open', on);
+    $('mapCtlBtn').setAttribute('aria-expanded', on ? 'true' : 'false');
+  }
+  function addMapCtl() {
+    var ctl = L.control({ position: 'topleft' });
+    ctl.onAdd = function () {
+      var w = L.DomUtil.create('div', 'map-ctl'), ps = Math.round(pinScale() * 100), op = pref('lc_installer_map_wash', 100, 10, 100);
+      w.innerHTML = '<button type="button" class="map-btn" id="mapCtlBtn" title="Map opacity and pin size" aria-label="Map opacity and pin size" aria-expanded="false">' +
+          '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linejoin="round"><path d="M12 3l9 5-9 5-9-5z"/><path d="M3 13l9 5 9-5"/></svg></button>' +
+        '<div class="map-pop">' +
+          '<div class="row"><span class="lbl2">MAP OPACITY</span><input type="range" id="mapOpacity" min="10" max="100" step="5" value="' + op + '" aria-label="Map opacity">' +
+            '<span class="val" id="mapOpacityVal">' + op + '%</span></div>' +
+          '<div class="row"><span class="lbl2">PIN SIZE</span><input type="range" id="pinSize" min="' + PIN_MIN + '" max="' + PIN_MAX + '" step="10" value="' + ps + '" aria-label="Pin and tag size">' +
+            '<span class="val" id="pinSizeVal">' + ps + '%</span></div></div>';
+      L.DomEvent.disableClickPropagation(w);   // sliding must not drag the map
+      L.DomEvent.disableScrollPropagation(w);
+      w.querySelector('#mapCtlBtn').addEventListener('click', function () { toggleMapCtl(); });
+      w.querySelector('#mapOpacity').addEventListener('input', function () { setMapOpacity(this.value); });
+      w.querySelector('#pinSize').addEventListener('input', function () { setPinSize(this.value); });
+      return w;
+    };
+    ctl.addTo(map);
   }
 
   function initMap() {
     if (map) return;
     map = L.map('map', { maxZoom: 21, zoomSnap: 0.25, zoomDelta: 0.5, attributionControl: false });
-    /* Google satellite + labels, as the customer portal. */
+    /* Google satellite + labels, as the customer portal, at this tablet's opacity. */
+    var op = pref('lc_installer_map_wash', 100, 10, 100) / 100;
     ['s', 'h'].forEach(function (code) {
-      L.tileLayer('https://{s}.google.com/vt/lyrs=' + code + '&x={x}&y={y}&z={z}',
-        { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 21, maxNativeZoom: 20 }).addTo(map);
+      tiles.push(L.tileLayer('https://{s}.google.com/vt/lyrs=' + code + '&x={x}&y={y}&z={z}',
+        { subdomains: ['mt0', 'mt1', 'mt2', 'mt3'], maxZoom: 21, maxNativeZoom: 20, opacity: op }).addTo(map));
     });
+    $('map').style.setProperty('--pin', pinScale());
+    addMapCtl();
+    map.on('click', function () { toggleMapCtl(false); });   // a tap on the map puts the pop-up away
     var pts = [];
     D.site.pins.forEach(function (p) {
       if (p.lat == null || p.lng == null) return;
