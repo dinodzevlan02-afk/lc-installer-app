@@ -46,7 +46,7 @@ test("other LED Connection part numbers are accepted but marked unchecked", () =
   assert.equal(PARTS.check("").ok, false);
 });
 
-test("every A-05 suggestion is a valid order-logic part number", () => {
+test("every decided part number is a valid LC part number (Walmart A-05, Kroger 345 A-02)", () => {
   const want = {
     "LC-SLOT-S-S1-NV-40-70-TY4W-W-N": "LC-SLOT-75W-NV-L5-XX-40-70-T4-U-BK",
     "LC-SLOT-S-S1-NV-40-70-TY4W-W": "LC-SLOT-75W-NV-L5-XX-40-70-T4-U-BK",
@@ -55,8 +55,29 @@ test("every A-05 suggestion is a valid order-logic part number", () => {
     "LC-SLOT-XL-XL1-HV-50-70-TY5SW": "LC-SLOT-300W-HV-L5-XX-50-70-T5S-SS-BK",
     "LC-SLOT-XL-XL2-HV-30-70-TY5S": "LC-SLOT-420W-HV-L5-XX-30-70-T5S-SS-BK",
     "FCW-45-NV-740-CT": "LC-WP-40W-H-40K",
-    "FCW-20-NV-740-CT": "LC-WP-40W-L-40K"
+    "FCW-20-NV-740-CT": "LC-WP-40W-L-40K",
+    "LC-SLOT-L-L1-480-40-70-TY5SW": "LC-SLOT-230W-HV-L5-XX-40-80-T5S-SS-BR",
+    "LC-SLOT-L-S1-480-40-70-TY4W": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
+    "LC-SLOT-L-S1-480-40-70-TY4W-HS": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
+    "FCW-20-740-277-CT": "LC-FWP-WS-3CCT",
+    "FCW-45-740-277-CT": "LC-FWP-WS-3CCT",
+    "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-Y",
+    "LC-UDL-10-16W-277-40-GR": "LC-UDL-8-A"
   };
   assert.deepEqual(PARTS.DECIDED, want);
   for (const pn of Object.values(PARTS.DECIDED)) assert.equal(PARTS.check(pn).ok, true, pn);
+});
+
+test("Kroger 345: every design label has a part number and a set-up line; the Optimus ones are checked", () => {
+  const tags = require("../tools/sites/KR-00345-NV/project.json").design.tags;
+  for (const [tag, d] of Object.entries(tags)) {
+    const pn = PARTS.DECIDED[d.label];
+    assert.ok(pn, tag + " has a decided part number");
+    assert.ok(PARTS.SETUP[d.label], tag + " has a set-up line");
+    const c = PARTS.check(pn);
+    assert.equal(c.checked, d.fam === "Optimus", tag + (d.fam === "Optimus" ? " checked against the order logic" : " accepted, not checked"));
+  }
+  const s03 = PARTS.check(PARTS.DECIDED["LC-SLOT-L-L1-480-40-70-TY5SW"]);
+  assert.equal(s03.parts.means, "230W \u00b7 200-480V \u00b7 4000K \u00b7 CRI 80 \u00b7 Type V square \u00b7 Straight square arm bracket \u00b7 Bronze \u00b7 No sensor");
+  assert.match(PARTS.SETUP["LC-SLOT-L-S1-480-40-70-TY4W-HS"], /75W.*shield/);
 });

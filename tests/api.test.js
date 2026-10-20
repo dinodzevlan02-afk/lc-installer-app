@@ -276,6 +276,9 @@ async function main() {
     "the installer opens it: every audit row a pin, the excluded one off");
   check(oj.body.site.bom.length === 1 && oj.body.site.bom[0].qty === 2 && JSON.stringify(oj.body.site.tags) === '[{"tag":"S03","count":2}]', "material list and design tags from the uploaded site");
   check(!/SECRET|costPrice/.test(JSON.stringify(oj.body)), "no pricing or supplier reaches the installer");
+  const ob1 = oj.body.site.bom[0];
+  check(ob1.partNo && ob1.partNo.pn === "LC-SLOT-230W-HV-L5-XX-40-80-T5S-SS-BR" && /181W/.test(ob1.partNo.setup) && ob1.partNo.guide.bracket === "SS",
+    "a decided part number applies on an uploaded site, with its set-up line and bracket guide");
   const pinIds = oj.body.site.pins.map(p => p.id).join();
   const re = await lc("PUT", "sites/TEST-OWN-01", own);
   check(re.status === 200 && re.body.replaced === true, "the site can be replaced");
