@@ -165,7 +165,20 @@ the installer app": nothing goes to the customer portal.
   heads excluded (existing LED, not in the design), 20227 / 20233 removed
   (double head -> single). OPEN: FL1 is 6 in the design, 5 audit pins.
 - Pole ids: blank audit pole ids take the Field Survey group (G10...).
-- No catalog prodId yet (no spec-sheet links) and no part numbers: step 3.
+- No catalog prodId yet (no spec-sheet links).
+- Part numbers (Dino, 2026-10-20), from what NetSuite SO636 SHIPPED, not
+  the Walmart rules: Optimus = the 230W hardware (Dino: "230W hardware"),
+  bronze, 4000K CRI 80, straight arm SS: S03 LC-SLOT-230W-HV-L5-XX-40-80-
+  T5S-SS-BR; S01 and S02-HS LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR (one
+  fixture, dip switch to 75W; S02-HS adds LC-SLOT-LG-SHIELD). No order logic
+  for the rest, so the LC item that shipped (not checked): FCW1/FCW2
+  LC-FWP-WS-3CCT (set 20W / 45W), FL1 LC-FL-WS-3CCT-Y (40W, through a
+  480-to-277V step-down), DL1-GR LC-UDL-8-A + goof ring LC-UDL-8-GR.
+- parts.js SETUP[label]: how a head is set up where the part number does not
+  say it (dip switch, shield, goof ring, transformer). Shown as SET UP on the
+  material line, pin card and job sheet, only while the decided number
+  applies. Look-alike lines (same part number) get their design tags in the
+  name ("Optimus 230W · T4 · S02-HS").
 - The landlord's audit (project 74, "Audit Data - 5-27-26.csv", NetSuite 1583)
   is a different job.
 

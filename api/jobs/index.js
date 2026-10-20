@@ -69,14 +69,27 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     const saved = (partsRec && partsRec.data.byLabel) || {};
     const pnOf = sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null;
     /* The installation guide follows the bracket in the part number. */
-    const describe = pn => { const c = PARTS.check(pn); return c.ok ? { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c) } : null; };
+    /* How it is set up follows the design label, and only while the number
+       is the decided one: a different saved number may not need it. */
+    const describe = (pn, label) => {
+      const c = PARTS.check(pn);
+      if (!c.ok) return null;
+      const setup = PARTS.SETUP[label] && !(saved[label] && saved[label].pn !== PARTS.DECIDED[label]) ? PARTS.SETUP[label] : null;
+      return { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c), setup };
+    };
     /* Once a checked part number is saved, the product's name follows it
        ("Optimus 300W · T5S"), so name, box and part number agree; the
        design label's own name ("Optimus XL1 · TY5SW") stays on the label. */
     const bom = site.bom.map(b => {
-      const pn = pnOf(b.sku) ? describe(pnOf(b.sku)) : null;
+      const pn = pnOf(b.sku) ? describe(pnOf(b.sku), b.sku) : null;
       return Object.assign({}, b, { partNo: pn }, pn && pn.short ? { name: pn.short, designName: b.name } : {});
     });
+    /* Two design labels can share a part number (Kroger 345: S01 and S02-HS
+       are one fixture, S02-HS adds a shield); their lines then carry the
+       design tags, so the installer can tell the boxes' uses apart. */
+    const seen = {};
+    bom.forEach(b => { seen[b.name] = (seen[b.name] || 0) + 1; });
+    bom.forEach(b => { if (seen[b.name] > 1 && b.tags.length) b.name += " \u00b7 " + b.tags.join("/"); });
     const nameOf = Object.fromEntries(bom.map(b => [b.key, b.name]));
     site = Object.assign({}, site, {
       bom,

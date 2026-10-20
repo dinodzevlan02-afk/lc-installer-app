@@ -98,6 +98,7 @@
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +
       (b.partNo && b.partNo.parts && b.partNo.parts.means ? '<dt>Part no. means</dt><dd>' + esc(b.partNo.parts.means) + '</dd>'
         : sol.specific && sol.specific !== b.sku ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
+      (b.partNo && b.partNo.setup ? '<dt>Set up</dt><dd>' + esc(b.partNo.setup) + '</dd>' : '') +
       (b.cct ? '<dt>CCT</dt><dd>' + esc(b.cct) + '</dd>' : '') +
       (b.volt ? '<dt>Input</dt><dd>' + esc(b.volt) + '</dd>' : '') +
       (cat.mounts && cat.mounts.length ? '<dt>Mounts made</dt><dd>' + esc(cat.mounts.join(', ')) + '</dd>' : '') +
@@ -108,6 +109,7 @@
         '<li>Check the box label against this job: ' + (b.partNo ? 'part number <b>' + esc(b.partNo.pn) + '</b>' : 'design label <b>' + esc(b.sku) + '</b> (no part number set yet)') +
           (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different part number, CCT or optic: stop and report it (Material check &rarr; Report a problem).</li>' +
         (b.partNo && b.partNo.parts ? '<li>This part number means: <b>' + esc(b.partNo.parts.means) + '</b>.</li>' : '') +
+        (b.partNo && b.partNo.setup ? '<li>Set it up for this job: <b>' + esc(b.partNo.setup) + '</b></li>' : '') +
         voltageNote(b, pins) +
         '<li>Inspect for shipping damage before installing. A damaged fixture is not installed; photograph it and report it.</li>' +
         '<li>Lift and fall protection for the mounting height, cones around the work area, and the store\'s site rules for working in the lot.</li></ol>' +

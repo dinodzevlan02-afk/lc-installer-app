@@ -83,7 +83,8 @@
   function partMeaning(x) { return x.means || ''; }
 
   function partLine(b) {
-    if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>';
+    if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' +
+      (b.partNo.setup ? '<div class="psku setup">Set up: ' + esc(b.partNo.setup) + '</div>' : '');
     return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
   }
 
@@ -477,6 +478,7 @@
         (p.partNo ? '<div class="mono pn">Part no. <b>' + esc(p.partNo) + '</b></div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
       (p.partNo && b && b.partNo && b.partNo.parts ? '<dt>Part no. means</dt><dd>' + esc(partMeaning(b.partNo.parts)) + '</dd>'
         : sol.specific && sol.specific !== sol.sku ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
+      (p.partNo && b && b.partNo && b.partNo.setup ? '<dt>Set up</dt><dd>' + esc(b.partNo.setup) + '</dd>' : '') +
       (p.auditTag && p.auditTag !== p.tag ? '<dt>Audit tag</dt><dd>' + esc(p.auditTag) + '</dd>' : '') +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
       (sol.arrangement ? '<dt>Arrangement</dt><dd>' + esc(sol.arrangement) + '</dd>' : '') +

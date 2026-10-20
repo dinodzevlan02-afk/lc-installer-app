@@ -109,7 +109,36 @@ const DECIDED = {
   /* Wall packs (Dino, same day): FCW-45 (45W) -> the 40W Prime Wallpack, as
      on Kroger; FCW-20 (20W) -> the 40W low-output tier. 4000K, no accessory. */
   "FCW-45-NV-740-CT": "LC-WP-40W-H-40K",
-  "FCW-20-NV-740-CT": "LC-WP-40W-L-40K"
+  "FCW-20-NV-740-CT": "LC-WP-40W-L-40K",
+
+  /* Kroger 345 A-02 (Dino, 2026-10-20), from what NetSuite SO636 shipped:
+     the Optimus heads are 230W fixtures (230W in the part number, the
+     hardware), bronze, 4000K CRI 80, straight arm, set down to the design's
+     watts on site; S01 and S02-HS are the same fixture, S02-HS adds the
+     shield. Wall packs, flood and downlight have no order logic here, so
+     they carry the LC item number that shipped (not checked). */
+  "LC-SLOT-L-L1-480-40-70-TY5SW": "LC-SLOT-230W-HV-L5-XX-40-80-T5S-SS-BR",
+  "LC-SLOT-L-S1-480-40-70-TY4W": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
+  "LC-SLOT-L-S1-480-40-70-TY4W-HS": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
+  "FCW-20-740-277-CT": "LC-FWP-WS-3CCT",
+  "FCW-45-740-277-CT": "LC-FWP-WS-3CCT",
+  "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-Y",
+  "LC-UDL-10-16W-277-40-GR": "LC-UDL-8-A"
 };
 
-module.exports = { check, DECIDED, OPTIMUS, LABELS, WALLPACK };
+/* How a head with that design label is set up on site, where the part
+   number alone does not say it (a selectable fixture, a shield, a goof
+   ring). Shown under the part number on the material line, the pin card
+   and the job sheet. Settings come from the design; what ships with it
+   from the sales order. */
+const SETUP = {
+  "LC-SLOT-L-L1-480-40-70-TY5SW": "Lens (Type V square) and 4000K board come inside the fixture; the 240W driver ships in its own box. The design runs each head at 181W.",
+  "LC-SLOT-L-S1-480-40-70-TY4W": "Set to 75W with the fixture's dip switch (design 74W).",
+  "LC-SLOT-L-S1-480-40-70-TY4W-HS": "Set to 75W with the fixture's dip switch (design 74W). Fit the house-side shield (LC-SLOT-LG-SHIELD, shipped with it) on site.",
+  "FCW-20-740-277-CT": "Selectable wall pack: set to 20W and 4000K.",
+  "FCW-45-740-277-CT": "Selectable wall pack: set to 45W and 4000K.",
+  "LC-FL32A-40-480-40": "Selectable flood on its yoke: set to 40W and 4000K. It runs on 120-277V: wire it through the 480V-to-277V step-down transformer in its junction box (shipped with it).",
+  "LC-UDL-10-16W-277-40-GR": "Selectable 8\" downlight: set to 16W and 4000K. Fit the goof ring (LC-UDL-8-GR) to cover the old 10\" opening."
+};
+
+module.exports = { check, DECIDED, SETUP, OPTIMUS, LABELS, WALLPACK };
