@@ -1,0 +1,12 @@
+{
+  "name": "lc-installer-app",
+  "private": true,
+  "description": "LED Connection installer app. No dependencies: the site is plain HTML in app/, the API is Azure Functions in api/.",
+  "scripts": {
+    "dev": "node dev/server.js",
+    "test": "node --test tests/site.test.js && node tests/api.test.js"
+  },
+  "engines": {
+    "node": ">=20"
+  }
+}

@@ -1,6 +1,6 @@
-/* LC Installer App - API smoke test. Same approach as lc-customer-portal's.
+/* LC Installer App - API checks. Same approach as lc-customer-portal's smoke test.
 
-     node dev/smoke.js
+     node tests/api.test.js        (or: npm test, which runs every test)
 
    Starts dev/server.js on a spare port with a THROWAWAY store folder, walks
    the whole sign-in and login model through the real HTTP API, and exits
@@ -204,7 +204,7 @@ async function main() {
   check((await o2("GET", "me")).status === 401, "signed out");
 }
 
-const srv = spawn(process.execPath, [path.join(__dirname, "server.js")], {
+const srv = spawn(process.execPath, [path.join(__dirname, "..", "dev", "server.js")], {
   env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store, INSTALLER_PORTAL_LOCAL_STORE: path.join(__dirname, "fixtures", "portal"), INSTALLER_CATALOG_FILE: path.join(__dirname, "fixtures", "catalog-data.json") }), stdio: ["ignore", "pipe", "inherit"]
 });
 let started = false;
