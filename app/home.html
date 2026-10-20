@@ -278,7 +278,9 @@
     assigning = PROJECTS[+b.getAttribute('data-assign')];
     var on = (assigning.job && assigning.job.installers) || [];
     $('asTitle').textContent = (assigning.job ? 'Installers · ' : 'Start job · ') + assigning.name;
-    $('asSub').textContent = 'Only the installers ticked here see this job.';
+    $('asSub').textContent = assigning.job
+      ? 'Tick who installs this job. Anyone you untick loses it at once; what they already saved stays, with their name on it.'
+      : 'Only the installers ticked here will see this job.';
     $('asPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); }).map(function (u) {
       return '<label><input type="checkbox" value="' + esc(u.username) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
         esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + (u.disabled ? ' (off)' : '') + '</label>';
