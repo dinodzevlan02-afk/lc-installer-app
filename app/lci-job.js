@@ -49,9 +49,10 @@
   /* Spec sheet and manual buttons for a product line. */
   function docButtons(b) {
     if (!b) return '';
-    var h = '';
+    var h = '', g = b.partNo && b.partNo.guide;
+    if (g && g.ready) h += '<a class="btn primary" target="_blank" rel="noopener" href="' + esc(g.url) + '">Installation guide (PDF)</a>';
     if (b.specSheetUrl) h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(b.specSheetUrl) + '">Spec sheet</a>';
-    h += '<a class="btn" href="./manual.html?job=' + encodeURIComponent(JOB_ID) + '&p=' + encodeURIComponent(b.key) + '">Install guide</a>';
+    h += '<a class="btn" href="./manual.html?job=' + encodeURIComponent(JOB_ID) + '&p=' + encodeURIComponent(b.key) + '">Job sheet</a>';
     ((b.catalog && b.catalog.docs) || []).forEach(function (d) {
       h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(d.url) + '">' + esc(d.label) + '</a>';
     });

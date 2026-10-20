@@ -54,7 +54,7 @@ function check(raw) {
     for (const [k, v] of Object.entries(seg)) {
       if (!OPTIMUS[k].includes(v)) return { ok: false, pn, error: "\"" + v + "\" is not a valid " + k + " code (" + OPTIMUS[k].join(", ") + ")." };
     }
-    return { ok: true, pn, family: "Optimus", checked: true, short: "Optimus " + seg.watt + "W \u00b7 " + dist, parts: {
+    return { ok: true, pn, family: "Optimus", checked: true, short: "Optimus " + seg.watt + "W \u00b7 " + dist, codes: seg, parts: {
       watts: Number(seg.watt), volt: LABELS.volt[volt], sensor: LABELS.sensor[sensor], cct: LABELS.cct[cct], cri: LABELS.cri[cri],
       optic: LABELS.dist[dist], bracket: LABELS.bracket[bracket], color: LABELS.color[color] } };
   }

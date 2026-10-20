@@ -99,8 +99,8 @@ button, .btn {
   color: var(--text-2); text-decoration: none; display: inline-flex; align-items: center; gap: .45rem; white-space: nowrap; transition: .15s;
 }
 button:hover, .btn:hover { color: var(--text-1); border-color: var(--border-2); }
-button.primary { background: var(--orange); border-color: var(--orange); color: #0a0e1a; font-weight: 800; letter-spacing: .14em; }
-button.primary:hover { background: #ff8a3d; color: #0a0e1a; }
+button.primary, .btn.primary { background: var(--orange); border-color: var(--orange); color: #0a0e1a; font-weight: 800; letter-spacing: .14em; }
+button.primary:hover, .btn.primary:hover { background: #ff8a3d; color: #0a0e1a; }
 button.danger { color: var(--red); border-color: rgba(248,113,113,.4); }
 button.small, .btn.small { padding: 6px 10px; font-size: 10px; }
 button:disabled { opacity: .5; cursor: default; }
