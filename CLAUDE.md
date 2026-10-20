@@ -110,13 +110,21 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   sheet in it") and says the bracket guide is being prepared. The generated page (manual.html) is now called the JOB
   SHEET so it is not confused with the PDF guide. The PDFs are public like
   every file in app/ (catalog spec sheets are public too).
-- The guides are LED Connection's OWN Optimus installation manuals (DNC1,
-  April 2024, LC branded, no supplier name), one per bracket F / R / SR /
-  SS / T / U, from SharePoint LEDDocuments > LED > Sales > Sales - D&E >
-  Product > Spec Sheet > Active > Optimus; Dino attached them 2026-10-20.
-  All six READY. Replacing one: same file name, then redeploy. The
-  supplier's own bracket guides (AOK A-G) are NOT used; tools/guides on
-  branch feat/install-guides (an LC generator for them) is not needed.
+- The guides' CONTENT is LED Connection's own Optimus installation manuals
+  (DNC1, April 2024), one per bracket F / R / SR / SS / T / U, from
+  SharePoint LEDDocuments > LED > Sales > Sales - D&E > Product > Spec
+  Sheet > Active > Optimus (Dino attached them 2026-10-20). Kept as
+  masters in tools/guides/source/. Dino then asked to "rebrand in the new
+  format LC, not like a spec sheet": tools/guides/extract_figures.py crops
+  the manuals' own drawings, content/{code}.json holds their words (tools,
+  parts, steps, torque, dimensions; _common.json the shared safety page),
+  build_guides.py sets them in the LC look (dark cover, part-number chips,
+  four steps a page, wiring, Installer App record + support card) into
+  app/guides/optimus/. Nothing added from memory; contact is the manuals'
+  own (702.847.7680, info@ledconnection.com). The manuals print the
+  supplier's bracket letter in "connect the cable in the E holder" (F=A,
+  R=B, SR=F, SS=E, T=G): the LC guides say "the bracket holder". Rebuild:
+  extract_figures.py, then build_guides.py; check with --preview first.
 
 ## Who sees what (Dino, 2026-10-20)
 

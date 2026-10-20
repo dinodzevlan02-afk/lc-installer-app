@@ -1,0 +1,92 @@
+{
+ "code": "R",
+ "bracket": "Adjustable Straight Arm",
+ "doc": "LC-IG-OPT-R",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket R, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "14 mm open wrench",
+  "6 mm hexagon wrench",
+  "Cross (Phillips) screwdriver"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M16×50 mm screw",
+   "qty": 1
+  },
+  {
+   "ref": "2",
+   "name": "M8×35 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "3",
+   "name": "M4×12 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "4",
+   "name": "E stamping sheet",
+   "qty": 1
+  }
+ ],
+ "specs": [
+  [
+   "Adapter bracket",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "M4×12 mm screws (hang the fixture)",
+   "at least 5 N·m, until locking"
+  ],
+  [
+   "Back plate screw spacing",
+   "101.6 mm (2 × M8 screw teeth)"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Install the back plate inside the pole with the top bolt, nut and washer.",
+   "figures": [
+    "R-fig-A.png"
+   ]
+  },
+  {
+   "title": "Install the adapter bracket.",
+   "figures": [
+    "R-fig-B.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Align the bottom holes in the luminaire and back plate with the closest hole in the pole, install the lower bolt, and tighten both bolts.",
+   "figures": [
+    "R-fig-C.png"
+   ]
+  },
+  {
+   "title": "Hang the fixture on the bracket and tighten the M4×12 mm screws.",
+   "figures": [
+    "R-fig-D.png"
+   ],
+   "torque": "at least 5 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "R-fig-E.png"
+   ]
+  },
+  {
+   "title": "Tighten the cover screws and make a good waterproof seal.",
+   "figures": [
+    "R-fig-F.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "R-fig-G.png",
+  "R-fig-H.png"
+ ]
+}

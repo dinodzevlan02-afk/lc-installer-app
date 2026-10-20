@@ -1,0 +1,112 @@
+{
+ "code": "T",
+ "bracket": "Trunnion",
+ "doc": "LC-IG-OPT-T",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket T, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "13 mm open wrench",
+  "7 mm open wrench"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M16×25 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "2",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "3",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "4",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "5",
+   "name": "M4×20 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "6",
+   "name": "M4 mm",
+   "qty": 2
+  },
+  {
+   "ref": "7",
+   "name": "M4 mm",
+   "qty": 2
+  },
+  {
+   "ref": "8",
+   "name": "M4 mm",
+   "qty": 2
+  }
+ ],
+ "specs": [
+  [
+   "Trunnion to wall or ceiling",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "Angle adjustment",
+   "at least 5 N·m and 8.5 N·m, until locking"
+  ],
+  [
+   "Mounting holes",
+   "90.0 mm apart, ø17.0 mm"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Make two holes in the wall or ceiling. Hole sizes and spacing as shown.",
+   "figures": [
+    "T-fig-A.png",
+    "T-fig-F.png"
+   ]
+  },
+  {
+   "title": "Push the expansion screws into the wall or ceiling.",
+   "figures": [
+    "T-fig-B.png"
+   ]
+  },
+  {
+   "title": "Fix the fixture on the wall or ceiling.",
+   "figures": [
+    "T-fig-C.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Loosen the screw for angle adjustment.",
+   "figures": [
+    "T-fig-D.png"
+   ],
+   "torque": "at least 5 N·m and 8.5 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "T-fig-E.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "T-fig-H.png",
+  "T-fig-I.png"
+ ],
+ "extra": {
+  "title": "Trunnion bracket dimensions",
+  "figures": [
+   "T-fig-G.png"
+  ]
+ }
+}

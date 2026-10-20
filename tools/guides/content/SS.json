@@ -1,0 +1,91 @@
+{
+ "code": "SS",
+ "bracket": "Straight Square Arm",
+ "doc": "LC-IG-OPT-SS",
+ "rev": "A",
+ "source": "LED Connection Optimus installation manual, bracket SS, DNC1 April 2024 (tools/guides/source)",
+ "tools": [
+  "13 mm open wrench",
+  "6 mm hexagon wrench",
+  "Cross (Phillips) screwdriver"
+ ],
+ "parts": [
+  {
+   "ref": "1",
+   "name": "M8×50 mm screw",
+   "qty": 2
+  },
+  {
+   "ref": "2",
+   "name": "M8×25 mm",
+   "qty": 4
+  },
+  {
+   "ref": "3",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "4",
+   "name": "M8 mm",
+   "qty": 2
+  },
+  {
+   "ref": "5",
+   "name": "M4×8 mm screw",
+   "qty": 4
+  },
+  {
+   "ref": "6",
+   "name": "E stamping sheet",
+   "qty": 1
+  }
+ ],
+ "specs": [
+  [
+   "Arm to pole, M8 screw",
+   "at least 8.5 N·m, until locking"
+  ],
+  [
+   "Back plate screw spacing",
+   "101.6 mm (2 × M8 screw teeth)"
+  ]
+ ],
+ "steps": [
+  {
+   "title": "Install the back plate inside the pole with the top bolt, nut and washer.",
+   "figures": [
+    "SS-fig-A.png"
+   ]
+  },
+  {
+   "title": "Remove the screw and open the cover.",
+   "figures": [
+    "SS-fig-B.png"
+   ]
+  },
+  {
+   "title": "Fix the luminaire on the pole and secure it with the M8 screw.",
+   "figures": [
+    "SS-fig-C.png"
+   ],
+   "torque": "at least 8.5 N·m, until locking"
+  },
+  {
+   "title": "Connect the cable in the bracket holder to the municipal (supply) wire, as shown in the wiring diagram.",
+   "figures": [
+    "SS-fig-D.png"
+   ]
+  },
+  {
+   "title": "Finally, install the bracket cover and secure it with the screw.",
+   "figures": [
+    "SS-fig-E.png"
+   ]
+  }
+ ],
+ "wiring": [
+  "SS-fig-F.png",
+  "SS-fig-G.png"
+ ]
+}
