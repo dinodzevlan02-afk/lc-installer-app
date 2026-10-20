@@ -53,7 +53,19 @@ test("the material list counts heads per product, leaving excluded heads out", a
   assert.equal(s.pins.filter(p => p.off).length, 1);
   assert.equal(s.bom.reduce((n, b) => n + b.qty, 0), s.pins.filter(p => !p.off && p.product).length,
     "material total = heads to install");
-  assert.deepEqual(s.tags, [{ tag: "S07", count: 6 }, { tag: "W1", count: 2 }]);
+  assert.deepEqual(s.tags, [{ tag: "S07", count: 4 }, { tag: "S08", count: 2 }, { tag: "W1", count: 2 }]);
+});
+
+test("pins carry the design's tag (luminaire schedule), the audit's tag kept beside it", async () => {
+  const s = await SITE.loadSite("TEST-SITE-01");
+  const p = s.pins.find(x => x.fid === "T-000");
+  assert.equal(p.tag, "S07", "design tag (sol.tag) wins");
+  assert.equal(p.auditTag, "AL1", "audit tag kept for reference");
+  const off = s.pins.find(x => x.off);
+  assert.equal(off.tag, "FCWP1", "a head with no design falls back to the audit tag");
+  const opt = s.bom.find(b => b.fam === "Optimus");
+  assert.deepEqual(opt.tags, ["S07", "S08"]);
+  assert.deepEqual(opt.tagCounts, { S07: 4, S08: 2 }, "one product serving two design tags, heads per tag");
 });
 
 test("a position corrected in the portal (MOVE PINS) wins", async () => {

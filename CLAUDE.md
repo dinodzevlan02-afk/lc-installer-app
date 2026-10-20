@@ -82,7 +82,10 @@ claims on the job page. Next: mail like the portal's (Cassie + Dino).
   the portal's container with INSTALLER_PORTAL_SAS (read + list only) via
   portalStore(), which hands out only reading calls. Never writes there.
 - Field meanings are the portal's: one audit row = one head; ds.solutions /
-  ds.excluded keyed by row INDEX; tag = row.schedule; pole = row['pole id'];
+  ds.excluded keyed by row INDEX; tag = the DESIGN's tag sol.tag (S13, FCW2,
+  FL3: the photometric sheet's luminaire schedule; Dino 2026-10-20 "use this
+  tag names"), falling back to the audit's row.schedule (kept as auditTag,
+  shown on the pin card); pole = row['pole id'];
   asset.pos (MOVE PINS) wins over row.latitude/longitude; product key =
   fam + ' · ' + lc_sku; names by cpShortProduct (ported, keep in step).
 - WHITELIST: only named fields leave site.js / catalog.js. Pricing, vendor,
@@ -174,6 +177,13 @@ never by writing its container.
    a deleted claim or pin record is gone. Turn it on, then restore one
    record once to prove it.
 4. Errors only go to context.log. Turn on Application Insights for the SWA.
+
+5. Walmart 2741 head count: the A-05 luminaire schedule (Dino's screenshot,
+   2026-10-20) gives 26 positions = 41 heads (FCW2 6, FCW3 1, FL3 4, FL4 1,
+   S09-W-N 1, S09-W 2, S10 2, S11 1, S12 4, S13 6, S14 3, S15 8, S16 2);
+   the app read 40 heads to install from the portal. Compare the design-tag
+   filter counts with the schedule to find the missing head (likely a
+   design head with no audit pin, or one excluded that should not be).
 
 ## Conventions
 

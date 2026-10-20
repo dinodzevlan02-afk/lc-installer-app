@@ -11,7 +11,7 @@
     "data": [
      {
       "id": "T-000",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P1",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -25,7 +25,7 @@
      },
      {
       "id": "T-001",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P1",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -39,7 +39,7 @@
      },
      {
       "id": "T-002",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P1",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -53,7 +53,7 @@
      },
      {
       "id": "T-003",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P1",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -67,7 +67,7 @@
      },
      {
       "id": "T-004",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P2",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -81,7 +81,7 @@
      },
      {
       "id": "T-005",
-      "schedule": "S07",
+      "schedule": "AL1",
       "pole id": "P2",
       "fixture type": "AreaLight",
       "tech type": "Metal Halide",
@@ -95,7 +95,7 @@
      },
      {
       "id": "T-006",
-      "schedule": "W1",
+      "schedule": "FCWP1",
       "pole id": "",
       "fixture type": "WallpackFullCutOff",
       "tech type": "Metal Halide",
@@ -109,7 +109,7 @@
      },
      {
       "id": "T-007",
-      "schedule": "W1",
+      "schedule": "FCWP1",
       "pole id": "",
       "fixture type": "WallpackFullCutOff",
       "tech type": "Metal Halide",
@@ -123,7 +123,7 @@
      },
      {
       "id": "T-008",
-      "schedule": "W1",
+      "schedule": "FCWP1",
       "pole id": "",
       "fixture type": "WallpackFullCutOff",
       "tech type": "Metal Halide",
@@ -229,7 +229,7 @@
       "watt": 230,
       "cct": "5000K",
       "volt": "277-480V",
-      "tag": "S07",
+      "tag": "S08",
       "prodId": 7,
       "costPrice": 111,
       "sellPrice": 222,
@@ -247,7 +247,7 @@
       "watt": 230,
       "cct": "5000K",
       "volt": "277-480V",
-      "tag": "S07",
+      "tag": "S08",
       "prodId": 7,
       "costPrice": 111,
       "sellPrice": 222,

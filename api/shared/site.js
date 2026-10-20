@@ -116,7 +116,13 @@ async function loadSite(projectId) {
       const product = publicProduct(sol);
       pins.push({
         id: pinKey(ds.id, fid), ds: ds.id, fid, idx,
-        tag: str(row.schedule) || fid, poleId: str(row["pole id"]),
+        /* The DESIGN's tag (sol.tag: S13, FCW2, FL3, as on the photometric
+           sheet's luminaire schedule) is the one the installer works by
+           (Dino, 2026-10-20: "use this tag names"); the audit's own tag
+           (row.schedule: CK1, WP, A2) stays as auditTag for reference, and
+           is the fallback for a head with no design tag. */
+        tag: str(sol && sol.tag) || str(row.schedule) || fid, auditTag: str(row.schedule),
+        poleId: str(row["pole id"]),
         lat, lng,
         existing: {
           type: str(row["fixture type"]), tech: str(row["tech type"]), watts: existingWatts(row),
@@ -129,15 +135,19 @@ async function loadSite(projectId) {
       if (product && !off) {
         const b = bomMap[key] || (bomMap[key] = { key, name: shortProduct(sol, key), sku: product.sku, fam: product.fam,
           watt: product.watt, cct: product.cct, volt: product.volt, specific: product.specific, cat: product.cat,
-          prodId: product.prodId, specSheetUrl: product.specSheetUrl, qty: 0, tags: [] });
+          prodId: product.prodId, specSheetUrl: product.specSheetUrl, qty: 0, tags: [], tagCounts: {} });
         b.qty++;
-        const t = str(row.schedule);
-        if (t && !b.tags.includes(t)) b.tags.push(t);
+        /* Heads per design tag inside this product: one box type can serve
+           several tags (A-05: S13 + S14 + S15 are all the XL1 TY5SW head). */
+        const t = str(sol && sol.tag) || str(row.schedule);
+        if (t) { if (!b.tags.includes(t)) b.tags.push(t); b.tagCounts[t] = (b.tagCounts[t] || 0) + 1; }
       }
     });
   });
 
   const bom = Object.values(bomMap).sort((a, b) => b.qty - a.qty || a.name.localeCompare(b.name));
+  const byNum = (a, b) => a.localeCompare(b, undefined, { numeric: true });
+  bom.forEach(b => b.tags.sort(byNum));
   nameProducts(bom);
   /* Spec sheet, photo and manuals from the LC catalog by product id; the
      design's own spec sheet link wins when it has one. */

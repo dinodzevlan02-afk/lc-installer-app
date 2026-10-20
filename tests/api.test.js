@@ -152,7 +152,7 @@ async function main() {
   check(jv.body.site.pins.length === 9 && jv.body.site.pins.filter(p => p.off).length === 1, "every head is a pin, the excluded one marked off");
   const moved = jv.body.site.pins.find(p => p.fid === "T-007");
   check(moved && Math.abs(moved.lng - (-115.0300 + 0.0008)) < 1e-9, "a position corrected in the portal wins over the audit's");
-  check(JSON.stringify(jv.body.site.tags) === JSON.stringify([{ tag: "S07", count: 6 }, { tag: "W1", count: 2 }]), "tags with their head counts");
+  check(JSON.stringify(jv.body.site.tags) === JSON.stringify([{ tag: "S07", count: 4 }, { tag: "S08", count: 2 }, { tag: "W1", count: 2 }]), "design tags (not the audit's) with their head counts");
   check(jv.body.contact.phone === "702.847.7680", "the company phone is on the job");
   check(bom[0].catalog && /fixtures\/7\/spec-sheet\/Optimus-Spec\.pdf$/.test(bom[0].specSheetUrl) && bom[0].catalog.docs[0].label === "Installation instructions", "spec sheet and manuals come from the catalog by product id");
   check(bom[1].specSheetUrl === "https://example.com/wp.pdf", "the design's own spec sheet link wins");
