@@ -110,9 +110,13 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   sheet in it") and says the bracket guide is being prepared. The generated page (manual.html) is now called the JOB
   SHEET so it is not confused with the PDF guide. The PDFs are public like
   every file in app/ (catalog spec sheets are public too).
-- Supplier guides: bracket SS = AOK Bracket E, U = AOK Bracket C (lc-skb.js
-  bracket vn). Seven AOK OT guides (A-G) received as links 2026-10-20;
-  ldycdn.com is blocked here, so they still need to be attached.
+- The guides are LED Connection's OWN Optimus installation manuals (DNC1,
+  April 2024, LC branded, no supplier name), one per bracket F / R / SR /
+  SS / T / U, from SharePoint LEDDocuments > LED > Sales > Sales - D&E >
+  Product > Spec Sheet > Active > Optimus; Dino attached them 2026-10-20.
+  All six READY. Replacing one: same file name, then redeploy. The
+  supplier's own bracket guides (AOK A-G) are NOT used; tools/guides on
+  branch feat/install-guides (an LC generator for them) is not needed.
 
 ## Who sees what (Dino, 2026-10-20)
 
