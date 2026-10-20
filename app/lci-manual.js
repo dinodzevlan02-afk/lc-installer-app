@@ -102,7 +102,7 @@
       '<h2>1 · Before you lift</h2><ol>' +
         '<li>Check the box label against this job: ' + (b.partNo ? 'part number <b>' + esc(b.partNo.pn) + '</b>' : 'design label <b>' + esc(b.sku) + '</b> (no part number set yet)') +
           (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different part number, CCT or optic: stop and report it (Material check &rarr; Report a problem).</li>' +
-        (b.partNo && b.partNo.parts ? '<li>This part number means: <b>' + esc([b.partNo.parts.watts + 'W', b.partNo.parts.volt, b.partNo.parts.cct, b.partNo.parts.cri, b.partNo.parts.optic, b.partNo.parts.bracket + ' bracket', b.partNo.parts.color, b.partNo.parts.sensor].join(' · ')) + '</b>.</li>' : '') +
+        (b.partNo && b.partNo.parts ? '<li>This part number means: <b>' + esc(b.partNo.parts.means) + '</b>.</li>' : '') +
         voltageNote(b, pins) +
         '<li>Inspect for shipping damage before installing. A damaged fixture is not installed; photograph it and report it.</li>' +
         '<li>Lift and fall protection for the mounting height, cones around the work area, and the store\'s site rules for working in the lot.</li></ol>' +

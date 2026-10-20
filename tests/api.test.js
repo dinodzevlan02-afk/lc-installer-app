@@ -177,7 +177,10 @@ async function main() {
   check(ob.partNo.guide && ob.partNo.guide.bracket === "SS" && ob.partNo.guide.url === "/guides/optimus/LC-Optimus-Installation-Guide-SS.pdf",
     "the installation guide follows the bracket in the part number (SS)");
   check(ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo.guide === null, "a product with no guide family gets none");
-  check(ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo.checked === false, "a non-Optimus part number is shown as not checked against an order logic");
+  const wp = ij.body.site.bom.find(b => b.sku === "LC-WP-40W-50K");
+  check(wp.partNo.checked === true && wp.name === "Prime Wallpack 40W" && wp.partNo.parts.means === "40W \u00b7 Standard output \u00b7 5000K \u00b7 No accessory",
+    "a Prime Wallpack part number is checked against its order logic and explained");
+  check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { "LC-WP-40W-50K": "LC-WP-45W-H-50K" } })).status === 400, "a wall pack wattage outside the order logic is refused");
   check(!/AOK|SECRET VENDOR/.test(JSON.stringify(ij.body)), "no supplier name or code reaches the installer");
   check((await lc("PUT", "jobs/TEST-SITE-01/parts", { byLabel: { "LC-WP-40W-50K": "" } })).status === 200 &&
         (await inst("GET", "jobs/TEST-SITE-01")).body.site.bom.find(b => b.sku === "LC-WP-40W-50K").partNo === null, "an empty value removes a part number");
