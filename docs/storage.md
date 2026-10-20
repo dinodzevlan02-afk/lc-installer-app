@@ -23,6 +23,10 @@ installer-app/
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
 ```
 
+Every job record (job, material, claim, pin) carries `"v": 1`, the shape it
+was written in. Change a shape: bump SCHEMA in api/shared/jobs.js and make
+the readers handle both, so old records are migrated on purpose.
+
 The site itself (pins, products, quantities) is NOT stored here: it is read
 from the customer portal's container (projects/{id}.json, site.json,
 portal.json) with a read-only SAS, every time, so the two never disagree.
@@ -66,7 +70,7 @@ never stored; a newer link retires the older one.
 ## jobs/{projectId}.json
 
 ```json
-{ "id": "<portal project id>", "name": "...", "address": "...",
+{ "v": 1, "id": "<portal project id>", "name": "...", "address": "...",
   "installers": ["mike.crew"],            // who may see and work the job
   "created": "...", "createdBy": "dino",
   "submitted": { "at": "...", "by": "mike.crew", "byName": "...", "heads": 120 } }   // null until submitted

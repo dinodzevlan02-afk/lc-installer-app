@@ -70,7 +70,7 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     const pid = J.normJob(body.projectId);
     const site = await J.requireSite(pid);
     const job = {
-      id: pid, name: site.project.name || pid, address: site.project.address || "",
+      v: J.SCHEMA, id: pid, name: site.project.name || pid, address: site.project.address || "",
       installers: await cleanInstallers(body.installers || []),
       created: new Date().toISOString(), createdBy: user.username, submitted: null
     };
