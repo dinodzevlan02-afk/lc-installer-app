@@ -14,6 +14,11 @@ const P = require("./app");
 const SITE = require("./site");
 const { A, ApiError } = P;
 
+/* Every job record carries `v`, the shape it was written in (docs/storage.md).
+   Bump it when a record's shape changes, and teach the readers the old
+   shape, so stored jobs are migrated on purpose rather than misread. */
+const SCHEMA = 1;
+
 const RE_PROJECT = /^[A-Za-z0-9][A-Za-z0-9._-]{1,63}$/;
 function normJob(id) {
   const s = String(id == null ? "" : id).trim();
@@ -66,4 +71,4 @@ function contact() {
   };
 }
 
-module.exports = { normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact };
+module.exports = { SCHEMA, normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact };

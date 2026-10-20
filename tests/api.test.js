@@ -1,6 +1,6 @@
-/* LC Installer App - API smoke test. Same approach as lc-customer-portal's.
+/* LC Installer App - API checks. Same approach as lc-customer-portal's smoke test.
 
-     node dev/smoke.js
+     node tests/api.test.js        (or: npm test, which runs every test)
 
    Starts dev/server.js on a spare port with a THROWAWAY store folder, walks
    the whole sign-in and login model through the real HTTP API, and exits
@@ -126,6 +126,7 @@ async function main() {
   check((await lc("POST", "jobs", { projectId: "TEST-SITE-01", installers: ["nobody.here"] })).status === 400, "unknown installer refused");
   const jc = await lc("POST", "jobs", { projectId: "TEST-SITE-01", installers: [] });
   check(jc.status === 201 && jc.body.job.name === "Synthetic test site", "LC admin opens a job on a portal project");
+  check(JSON.parse(fs.readFileSync(path.join(store, "jobs", "TEST-SITE-01.json"), "utf8")).v === 1, "the stored job carries its schema version");
   check((await lc("POST", "jobs", { projectId: "TEST-SITE-01" })).status === 409, "one job per project");
   check((await inst("GET", "jobs/TEST-SITE-01")).status === 404, "an installer not on the job cannot see it");
   check((await inst("GET", "jobs")).body.jobs.length === 0, "an installer's list leaves out jobs that are not theirs");
@@ -204,7 +205,7 @@ async function main() {
   check((await o2("GET", "me")).status === 401, "signed out");
 }
 
-const srv = spawn(process.execPath, [path.join(__dirname, "server.js")], {
+const srv = spawn(process.execPath, [path.join(__dirname, "..", "dev", "server.js")], {
   env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store, INSTALLER_PORTAL_LOCAL_STORE: path.join(__dirname, "fixtures", "portal"), INSTALLER_CATALOG_FILE: path.join(__dirname, "fixtures", "catalog-data.json") }), stdio: ["ignore", "pipe", "inherit"]
 });
 let started = false;

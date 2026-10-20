@@ -23,13 +23,14 @@ a project's site (Walmart 2741) and can never change the portal's records.
 
 Create a resource > Static Web App, resource group `rg_led_dev`, plan Free or
 Standard, source GitHub, repo `dinodzevlan02-afk/lc-installer-app`, branch
-`main`, build preset **Custom**: app location `/`, API location `api`,
+`main`, build preset **Custom**: app location `app`, API location `api`,
 output location empty.
 
 Azure commits its deploy workflow to `.github/workflows/` with the deploy
 token as a repository secret. After that, every push to `main` deploys.
 The workflow was then given `skip_app_build: true` (plain HTML, as in the
-portal) and a smoke-test job that must pass before the deploy.
+portal), app_location `app` (only that folder is published), and a test
+job (`npm test`) that must pass before the deploy.
 
 ## 3. App settings (Static Web App > Environment variables)
 

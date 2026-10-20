@@ -96,7 +96,7 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
   if (action === "material" || action === "approve") {
     if (method !== (action === "material" ? "PUT" : "POST")) throw new ApiError(405, "Method not allowed.");
     const cur = await P.store().get(J.paths.material(id));
-    const mat = cur ? cur.data : { lines: {}, approved: null };
+    const mat = cur ? cur.data : { v: J.SCHEMA, lines: {}, approved: null };
     if (mat.approved) throw new ApiError(409, "The material was already signed off. Ask LED Connection to reopen it.");
     mat.lines = Object.assign({}, mat.lines, cleanLines(body.lines, site));
     mat.updated = new Date().toISOString(); mat.updatedBy = user.username;
@@ -136,7 +136,7 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     if (kind === "damaged" && !photos.length) throw new ApiError(400, "A damage claim needs at least one photo.");
     const now = new Date();
     const ref = "MC-" + now.toISOString().slice(2, 10).replace(/-/g, "") + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();
-    const claim = Object.assign({ ref, kind, kindLabel: CLAIM_KINDS[kind], lines, note, photos, status: "open", at: now.toISOString() }, who(user));
+    const claim = Object.assign({ v: J.SCHEMA, ref, kind, kindLabel: CLAIM_KINDS[kind], lines, note, photos, status: "open", at: now.toISOString() }, who(user));
     await P.store().put(J.paths.claim(id, ref), claim, { ifNoneMatch: "*" });
     await P.audit(req, user.username, "claim.create", "job:" + id, { ref, kind, lines: lines.length, photos: photos.length });
     /* Email to LED Connection comes with mail (see CLAUDE.md); until then
@@ -156,7 +156,7 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     const photos = await cleanPhotos(id, body.photos);
     if (installed && !photos.length) throw new ApiError(400, "Take a photo of the installed fixture first.");
     const rec = Object.assign({
-      pinId: key, fid: pin.fid, tag: pin.tag, poleId: pin.poleId, product: pin.productName, sku: pin.product.sku,
+      v: J.SCHEMA, pinId: key, fid: pin.fid, tag: pin.tag, poleId: pin.poleId, product: pin.productName, sku: pin.product.sku,
       installed, note: P.text(body.note, 1000, "Note"), serial: P.text(body.serial, 100, "Serial"), photos,
       at: new Date().toISOString()
     }, who(user));

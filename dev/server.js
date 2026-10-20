@@ -18,6 +18,9 @@ const path = require("path");
 const crypto = require("crypto");
 
 const ROOT = path.resolve(__dirname, "..");
+/* Only app/ is the website, as on Azure (app_location "app"): the dev server
+   cannot serve anything the live site would not. */
+const SITE = path.join(ROOT, "app");
 const PORT = Number(process.env.PORT || 4310);
 
 /* Local-only settings. These are test values for this dev server, never the
@@ -28,9 +31,9 @@ process.env.INSTALLER_SETUP_KEY = process.env.INSTALLER_SETUP_KEY || "local-dev-
 /* The customer portal's container, read-only. A real site copied from the
    portal (Walmart 2741: projects/{id}.json + projects/{id}/site.json and
    portal.json) goes in dev/.portal, which git ignores; otherwise the
-   synthetic test site in dev/fixtures/portal. */
+   synthetic test site in tests/fixtures/portal. */
 process.env.INSTALLER_PORTAL_LOCAL_STORE = process.env.INSTALLER_PORTAL_LOCAL_STORE ||
-  (fs.existsSync(path.join(__dirname, ".portal")) ? path.join(__dirname, ".portal") : path.join(__dirname, "fixtures", "portal"));
+  (fs.existsSync(path.join(__dirname, ".portal")) ? path.join(__dirname, ".portal") : path.join(ROOT, "tests", "fixtures", "portal"));
 
 const MIME = {
   ".html": "text/html; charset=utf-8", ".js": "text/javascript; charset=utf-8", ".css": "text/css; charset=utf-8",
@@ -96,10 +99,8 @@ async function runApi(req, res, url) {
 function serveStatic(req, res, url) {
   let p = decodeURIComponent(url.pathname);
   if (p.endsWith("/")) p += "index.html";
-  const f = path.join(ROOT, p);
-  if (!f.startsWith(ROOT + path.sep) || /[\\/](dev|api|\.git|docs|tools)([\\/]|$)/.test(path.relative(ROOT, f).replace(/^/, path.sep))) {
-    res.writeHead(404); return res.end("Not found");
-  }
+  const f = path.join(SITE, p);
+  if (!f.startsWith(SITE + path.sep)) { res.writeHead(404); return res.end("Not found"); }
   fs.readFile(f, (err, buf) => {
     if (err) { res.writeHead(404, { "Content-Type": "text/plain" }); return res.end("Not found: " + p); }
     res.writeHead(200, { "Content-Type": MIME[path.extname(f).toLowerCase()] || "application/octet-stream", "Cache-Control": "no-store" });
