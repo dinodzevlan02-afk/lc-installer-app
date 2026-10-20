@@ -85,7 +85,7 @@
   }
 
   function partLine(b) {
-    if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div><div class="psku">Design label ' + esc(b.sku) + '</div>';
+    if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>';
     return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
   }
 
@@ -476,7 +476,7 @@
       return;
     }
     h += '<dl class="kv"><dt>Install</dt><dd><b>' + esc(p.productName || (b && b.name) || '') + '</b>' +
-        (p.partNo ? '<div class="mono pn">Part no. <b>' + esc(p.partNo) + '</b></div><div class="mono muted">Design label ' + esc(sol.sku) + '</div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
+        (p.partNo ? '<div class="mono pn">Part no. <b>' + esc(p.partNo) + '</b></div>' : '<div class="mono muted">' + esc(sol.sku) + '</div>') + '</dd>' +
       (p.partNo && b && b.partNo && b.partNo.parts ? '<dt>Part no. means</dt><dd>' + esc(partMeaning(b.partNo.parts)) + '</dd>'
         : sol.specific && sol.specific !== sol.sku ? '<dt>Options</dt><dd>' + esc(sol.specific) + '</dd>' : '') +
       (p.auditTag && p.auditTag !== p.tag ? '<dt>Audit tag</dt><dd>' + esc(p.auditTag) + '</dd>' : '') +
