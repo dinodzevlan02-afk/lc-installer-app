@@ -15,6 +15,10 @@ FIG = os.path.join(ROOT, "tools", "guides", "content", "figures")
 SRC = {
     "flood": os.path.join(ROOT, "tools", "specs", "sources", "LC-FL-WS-3CCT", "vendor-datasheet.pdf"),
     "wallpack": os.path.join(ROOT, "tools", "specs", "sources", "LC-FWP-WS-3CCT", "fcw-spec-install.pdf"),
+    # downlight: the goof ring instruction's drawings (a spring-clip downlight with its
+    # junction box on a whip, as LC-UDL-8-A) and LC's own Universal Downlight sheet
+    "ring": os.path.join(ROOT, "tools", "guides", "source", "kroger345", "downlight", "litetronics-goof-ring.pdf"),
+    "udl": os.path.join(ROOT, "tools", "specs", "lc-existing", "LC SPEC SHEET_Universal Downlight Series.pdf"),
 }
 # name: (source, page index, clip x0, y0, x1, y1)
 CROPS = {
@@ -46,14 +50,24 @@ CROPS = {
     "FWP-fig-F": ("wallpack", 5, 304, 350, 569, 472),
     "FWP-fig-G": ("wallpack", 5, 62, 508, 292, 613),
     "FWP-set-A": ("wallpack", 4, 140, 174, 352, 288),
+    # downlight with goof ring
+    "UDL-fig-A": ("ring", 1, 100, 131, 218, 238),
+    "UDL-fig-B": ("ring", 1, 100, 274, 218, 382),
+    "UDL-fig-C": ("ring", 1, 368, 48, 506, 141),
+    "UDL-dims": ("udl", 0, 17, 349.6, 245, 418),
 }
+# white-out inside a crop (pixels of the 4x render): a corner of the sheet's photo above the drawing
+WHITE = {"UDL-dims": [(560, 0, 820, 14)]}
 
 
 def main(argv):
     docs = {k: pymupdf.open(v) for k, v in SRC.items() if os.path.exists(v)}
     z = pymupdf.Matrix(4, 4)
     for name, (src, pg, *clip) in CROPS.items():
-        docs[src][pg].get_pixmap(matrix=z, clip=pymupdf.Rect(*clip)).save(os.path.join(FIG, name + ".png"))
+        pix = docs[src][pg].get_pixmap(matrix=z, clip=pymupdf.Rect(*clip))
+        for r in WHITE.get(name, []):
+            pix.set_rect(pymupdf.IRect(*r) + (pix.x, pix.y, pix.x, pix.y), (255, 255, 255))
+        pix.save(os.path.join(FIG, name + ".png"))
         print(name)
     if "--sheet" in argv:                       # contact sheet to check the crops by eye
         out = pymupdf.open()

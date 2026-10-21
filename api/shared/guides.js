@@ -18,18 +18,20 @@ const file = code => "LC-Optimus-Installation-Guide-" + code + ".pdf";
 
 /* Products with no order logic (Kroger 345, Dino 2026-10-21): one guide per
    LC part number, built by the same tools/guides/build_guides.py from the
-   product's own instructions (tools/guides/content/FL-Y, FL-SF, FWP).
+   product's own instructions (tools/guides/content/FL-Y, FL-SF, FWP, UDL).
    PART_READY lists the files committed under app/guides/ (paths below it);
-   tests/guides.test.js keeps it in step with the flood/ and wallpack/ folders. */
+   tests/guides.test.js keeps it in step with the flood/, wallpack/ and downlight/ folders. */
 const BY_PART = {
   "LC-FL-WS-3CCT-Y": { family: "Floodlight", bracket: "Y", bracketName: "Yoke", file: "flood/LC-Floodlight-Installation-Guide-Y.pdf" },
   "LC-FL-WS-3CCT-SF": { family: "Floodlight", bracket: "SF", bracketName: "Slip fitter", file: "flood/LC-Floodlight-Installation-Guide-SF.pdf" },
-  "LC-FWP-WS-3CCT": { family: "NightShade wall pack", bracket: "FWP", bracketName: "Wall mount", file: "wallpack/LC-NightShade-Installation-Guide-FWP.pdf" }
+  "LC-FWP-WS-3CCT": { family: "NightShade wall pack", bracket: "FWP", bracketName: "Wall mount", file: "wallpack/LC-NightShade-Installation-Guide-FWP.pdf" },
+  "LC-UDL-8-A": { family: "Universal downlight", bracket: "UDL", bracketName: "Recessed, with goof ring", file: "downlight/LC-Universal-Downlight-Installation-Guide-8.pdf" }
 };
 const PART_READY = [
   "flood/LC-Floodlight-Installation-Guide-Y.pdf",
   "flood/LC-Floodlight-Installation-Guide-SF.pdf",
-  "wallpack/LC-NightShade-Installation-Guide-FWP.pdf"
+  "wallpack/LC-NightShade-Installation-Guide-FWP.pdf",
+  "downlight/LC-Universal-Downlight-Installation-Guide-8.pdf"
 ];
 
 function byPart(pn) {

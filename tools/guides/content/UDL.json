@@ -1,0 +1,105 @@
+{
+ "code": "UDL",
+ "doc": "LC-IG-UDL",
+ "rev": "A",
+ "source": "LED Connection Universal Downlight LC-UDL-8-A: LC's own sheet (tools/specs/lc-existing/LC SPEC SHEET_Universal Downlight Series.pdf: toggle switches on the back, integrated IC-rated junction box, factory metal-clad whip, retrofit from below, 120-277V 0-10V, dimensions) and tools/specs/LC-UDL-8-A.json. Insertion steps, spring clips and goof ring: tools/guides/source/kroger345/downlight/ (goof ring instruction for a spring-clip downlight with its junction box on a whip, figures UDL-fig-A..C; cross-checked with the 8 in ring sheet and the maker's 8 in spring-clip steps: hold back the clips, push into position). Goof ring size: LC item LC-UDL-8-GR, up to 12 in diameter. Wire colours are not in any source: the guide points to the fixture's label. Never printed.",
+ "product": {
+  "name": "DOWNLIGHT",
+  "line": "Universal downlight, 8 in  ·  LC-UDL-8-A",
+  "pn": [
+   "LC",
+   "UDL",
+   "*8",
+   "A"
+  ],
+  "for": "FOR LC-UDL-8-A, WITH GOOF RING LC-UDL-8-GR",
+  "chip": "RECESSED + GOOF RING",
+  "title": "Universal Downlight Installation Guide (LC-UDL-8-A, goof ring LC-UDL-8-GR)",
+  "file": "downlight/LC-Universal-Downlight-Installation-Guide-8.pdf"
+ },
+ "tools": [
+  "None to mount: spring clips",
+  "Wire connectors for the supply"
+ ],
+ "parts": [],
+ "glance3": "YOU NEED",
+ "inbox": [
+  "Downlight with its junction box on a metal-clad whip",
+  "Goof ring LC-UDL-8-GR where the old opening is larger"
+ ],
+ "glance2": [
+  "SET ON SITE",
+  [
+   "Wattage 12 / 16 / 22W",
+   "CCT 3000 / 3500 / 4000K"
+  ]
+ ],
+ "common": {
+  "warning": [
+   "Installation must be done by a qualified electrician, wired in accordance with the National Electrical Code and all local codes.",
+   "Be certain the power is OFF before and during installation and maintenance.",
+   "Make sure the supply voltage is the same as the rated voltage on the fixture's label: 120-277V AC.",
+   "To prevent wiring damage, do not expose the wiring to sheet-metal edges or sharp objects.",
+   "Read these instructions before installation and keep them for future reference."
+  ],
+  "electrical": "Supply the downlight with 120-277V AC, as on its label. It dims with 0-10V. The driver is built in, with a factory metal-clad whip (15-3/4 in) to its IC-rated junction box.",
+  "grounding": "Connect the ground of the supply in the fixture's junction box, in accordance with the NEC and local codes.",
+  "before": [
+   "Ensure that the supply power is shut off.",
+   "Unpack the downlight and check that nothing is damaged or missing.",
+   "The downlight installs from below the ceiling, into the existing opening. It is IC rated and airtight, and rated for wet locations."
+  ],
+  "toolsNote": ""
+ },
+ "steps": [
+  {
+   "title": "Set the wattage and CCT on the two toggle switches on the back of the fixture, to what the design calls for (the SET UP line on the pin card): 12, 16 or 22W; 3000, 3500 or 4000K.",
+   "figures": []
+  },
+  {
+   "title": "Connect the supply in the fixture's junction box: line, neutral and ground, and the 0-10V dimming leads if used, as marked on the fixture's label. Close the junction box.",
+   "figures": []
+  },
+  {
+   "title": "Where the old opening is larger than the downlight, slide the goof ring LC-UDL-8-GR over the fixture, up against its trim.",
+   "figures": [
+    "UDL-fig-A.png"
+   ]
+  },
+  {
+   "title": "Pass the junction box up through the opening. Squeeze the two spring clips upright and insert the downlight into the opening.",
+   "figures": [
+    "UDL-fig-B.png"
+   ]
+  },
+  {
+   "title": "Once the downlight is inside the opening, release the clips and keep pushing it up until it is held securely and flush with the ceiling, the goof ring held between the trim and the ceiling.",
+   "figures": [
+    "UDL-fig-C.png"
+   ]
+  }
+ ],
+ "wiring": [],
+ "sections": [
+  {
+   "title": "Goof ring LC-UDL-8-GR",
+   "intro": "A goof ring is a flat trim ring that covers a ceiling opening larger than the downlight's own trim, such as the opening left by an older, larger downlight.",
+   "lines": [
+    "LC-UDL-8-GR fits this 8 in downlight and covers an opening up to 12 in in diameter.",
+    "It goes on before the downlight goes into the ceiling (step 3) and needs no tools: the downlight's spring clips hold it against the ceiling.",
+    "Measure the opening first. Over 12 in, the ring will not cover it: flag it on the pin (FLAG A PROBLEM) instead of installing."
+   ]
+  },
+  {
+   "title": "Dimensions, 8 in",
+   "lines": [
+    "A  10-5/16 in, trim diameter   ·   B  7-7/8 in   ·   C  4-7/8 in, height   ·   D  1-1/3 in",
+    "Metal-clad whip 15-3/4 in (400 mm) to the junction box."
+   ],
+   "figures": [
+    "UDL-dims.png"
+   ]
+  }
+ ],
+ "record_note": "Anything not as designed (setting, opening size, goof ring): write it in the pin's note."
+}

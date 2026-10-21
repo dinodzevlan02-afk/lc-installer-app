@@ -287,10 +287,16 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   (guides.js BY_PART + PART_READY, tests/guides.test.js keeps them = folders).
 - The flood guides carry the 480V step-down as a section: no wiring sheet
   exists for the transformer, so it sends the installer to its own label.
-- Not built, no source document anywhere (OneDrive, SharePoint, mail,
-  2026-10-21): downlight LC-UDL-8-A, goof ring LC-UDL-8-GR, Optimus large
-  house-side shield LC-SLOT-LG-SHIELD (only the SMALL shield's dimension
-  drawing exists). Ask RZ Lighting / AOK before writing any steps.
+- Downlight LC-UDL-8-A + goof ring LC-UDL-8-GR (Dino, 2026-10-21: "it's RZ
+  Lighting ... Upshine ... use [the LC Universal Downlight sheet] ... goof
+  ring, find something online"): content/UDL.json from LC's own sheet plus
+  online sources in tools/guides/source/kroger345/downlight/ (no installation
+  sheet exists for the maker's 8 in DL254; steps and drawings from a goof
+  ring instruction for a spring-clip downlight with its box on a whip). Wire
+  colours are in no source: the guide sends the installer to the label.
+  app/guides/downlight/, BY_PART LC-UDL-8-A.
+- Not built, no source anywhere: Optimus large house-side shield
+  LC-SLOT-LG-SHIELD (only the SMALL shield's dimension drawing exists).
 - Open: FCW1 is set to 20W, but this wall pack's DIP gives 45/60/75W only.
 
 ## Who sees what (Dino, 2026-10-20)
