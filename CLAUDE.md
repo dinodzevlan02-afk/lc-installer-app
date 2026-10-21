@@ -71,8 +71,33 @@ the session; if they are not there, say so rather than guessing.
 Server rules (api/jobwork): expected quantities come from the site, never the
 page; pins need the material signed off and a photo; excluded heads cannot
 be installed; a submitted job is locked; only jobs that name the installer
-are visible (404 otherwise). Claim emails are NOT sent yet: the office sees
-claims on the job page. Next: mail like the portal's (Cassie + Dino).
+are visible (404 otherwise).
+
+## Claim email (Dino, 2026-10-21)
+
+"When I press SEND CLAIM, this email needs to go to Cassie, me, with the
+photo inside ... with a note, and also the quantities that are missing",
+the way the customer portal sends through Outlook.
+- POST /api/jobs/{id}/claims saves the claim, then emails it in the same
+  request (api/shared/claimmail.js): To INSTALLER_NOTIFY_TO, default
+  cassieh@ + dinod@ledconnection.com; subject "[MC-...] Material claim:
+  {problem} - {job}"; a table per line (product, part no., tags, expected,
+  received, MISSING = expected - received, damaged), the note, who reported
+  it (name, company, phone), a link to the job, the photos attached. The
+  part number is the saved one, else the decided one; never the supplier's
+  code, no pricing.
+- api/shared/mail.js is the portal's, ported: Graph when INSTALLER_MAIL_*
+  are set, else the Outlook relay once paired, else dev/.data/outbox.
+  Dino BCC'd on anything he is not addressed on. A failed email never fails
+  the claim: claim.mail records how it went, the toast and the job page say
+  "not emailed" with the reason.
+- The relay is this app's own (its own key, folder %USERPROFILE%\
+  .lc-installer-relay, mutex LCInstallerOutlookRelay), not the portal's.
+  Home page EMAIL panel (LC only): status, PAIR OUTLOOK RELAY shows the key
+  once; save it as key.txt in that folder and run tools/outlook-relay.ps1 as
+  a scheduled task on Dino's PC (same as the portal's, docs there).
+  /api/relay/status feeds the panel. Until paired, claims are saved and NOT
+  emailed (on Azure there is no local outbox).
 
 ## UL-listed part numbers (Dino, 2026-10-20)
 
@@ -294,12 +319,12 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 153 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 169 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no
   pricing/vendor/notes, BOM counts, moved pins, material sign-off, claims,
-  photos, pins, submit; uploaded sites (LC only, nothing internal stored,
+  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack); uploaded sites (LC only, nothing internal stored,
   same pin ids on replace). Runs in CI before every deploy.
 
 ## Open items

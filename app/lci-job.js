@@ -165,6 +165,7 @@
   function renderClaims() {
     $('claims').innerHTML = !D.claims.length ? '' : '<h3>Claims</h3>' + D.claims.map(function (c) {
       return '<div class="claim"><span class="ref">' + esc(c.ref) + '</span> · ' + esc(c.kindLabel) + ' · ' + esc(new Date(c.at).toLocaleString()) + ' · ' + esc(c.byName) +
+        (c.mail ? ' · <span class="muted">' + (c.mail.sent ? 'emailed' : 'not emailed') + '</span>' : '') +
         (c.lines.length ? '<div class="muted">' + c.lines.map(function (l) {
           return esc(l.name) + ': expected ' + l.expected + (l.received != null ? ', received ' + l.received : '') + (l.damaged ? ', damaged ' + l.damaged : '');
         }).join('<br>') + '</div>' : '') +
@@ -301,7 +302,9 @@
       D.claims.unshift(r.claim);
       $('ovClaim').hidden = true;
       renderMaterial();
-      toast('Claim ' + r.claim.ref + ' sent to LED Connection.');
+      var n = r.notify || {};
+      toast('Claim ' + r.claim.ref + ' saved' + (n.sent ? ' and emailed to LED Connection' + (n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : '') + '.'
+        : '. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here. Call if the install is held up.'), !n.sent);
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('clSend').disabled = false; });
   });
 

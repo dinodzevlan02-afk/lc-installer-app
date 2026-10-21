@@ -206,6 +206,15 @@ async function main() {
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }] })).status === 400, "a damage claim needs a photo");
   const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }], note: "Lens cracked", photos: [ph.body.name] });
   check(cl.status === 201 && /^MC-\d{6}-[0-9A-F]{4}$/.test(cl.body.claim.ref) && cl.body.claim.lines[0].expected === 6, "claim filed with a reference and the expected quantity from the site");
+  check(cl.body.notify && cl.body.notify.sent && cl.body.notify.local && cl.body.notify.attached === 1 &&
+        JSON.stringify(cl.body.notify.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com"]', "the claim is emailed to Cassie and Dino with its photo (dev: outbox)");
+  const outDir = path.join(store, "outbox");
+  const outJson = fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : [];
+  const mail = outJson.length ? JSON.parse(fs.readFileSync(path.join(outDir, outJson[0]), "utf8")) : {};
+  check(new RegExp("^\\[" + cl.body.claim.ref + "\\] Material claim: Damaged - ").test(mail.subject || "") && /Lens cracked/.test(mail.html) &&
+        /Missing/.test(mail.html) && /Expected/.test(mail.html) && mail.attachments.length === 1 && fs.readdirSync(outDir).some(f => f.endsWith("-photo-1.jpg")),
+        "the email carries the note, the expected / received / missing quantities and the photo");
+  check(!/SECRET|costPrice/.test(mail.html || ""), "no pricing or supplier in the email");
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "shortage", photos: ["0000000000000000.jpg"], note: "x" })).status === 400, "a photo that was never uploaded is refused");
 
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [] })).status === 400, "a pin is not saved as installed without a photo");
@@ -301,6 +310,25 @@ async function main() {
   check(auditFiles.length >= 10, "actions are written to the audit log (" + auditFiles.length + ")");
   const raw = fs.readFileSync(path.join(store, "users", "mike.crew.json"), "utf8");
   check(!raw.includes(token), "the invite token itself is never stored");
+
+  console.log("claim email through the Outlook relay (paired here, its own key)");
+  check((await inst("POST", "relay/pair", {})).status === 403, "an installer cannot pair a mail relay");
+  check((await anon("GET", "relay/outbox")).status === 404, "no outbox before a relay is paired");
+  const pr = await o2("POST", "relay/pair", { from: "dinod@ledconnection.com" });
+  check(pr.status === 200 && /^[a-f0-9]{40}$/.test(pr.body.key), "LC admin pairs a relay; the key comes back once");
+  check(!fs.readFileSync(path.join(store, "system", "relay.json"), "utf8").includes(pr.body.key), "only the key's hash is stored");
+  const st1 = await o2("GET", "relay/status");
+  check(st1.status === 200 && st1.body.relay === true && st1.body.pending === 0, "the home page sees the relay paired");
+  check((await inst("GET", "relay/status")).status === 403, "an installer cannot read the mail status");
+  const c2 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "shortage", lines: [{ key: oj.body.site.bom[0].key, received: 1 }], note: "One short" });
+  check(c2.status === 201 && c2.body.notify.sent && c2.body.notify.queued, "with a relay paired, the claim email is queued for Outlook");
+  check((await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": "x".repeat(40) })).status === 401, "a wrong relay key is refused");
+  const rob = await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key });
+  const qm = rob.body && rob.body.messages && rob.body.messages[0];
+  check(rob.status === 200 && qm && /One short/.test(qm.html) && /<b>1<\/b>/.test(qm.html) && qm.to.includes("cassieh@ledconnection.com"), "the relay fetches it: note and 1 missing");
+  check((await anon("POST", "relay/outbox", { id: qm.id, ok: true }, { "X-Relay-Key": pr.body.key })).status === 200, "the relay reports it sent");
+  const st2 = await o2("GET", "relay/status");
+  check(st2.body.pending === 0 && st2.body.sent === 1, "it moves to sent");
 
   console.log("logout");
   const lo = await o2("POST", "logout");
