@@ -330,6 +330,47 @@ async function main() {
   const st2 = await o2("GET", "relay/status");
   check(st2.body.pending === 0 && st2.body.sent === 1, "it moves to sent");
 
+  console.log("delete a project, keep everything, restore it (LC only)");
+  const filesUnder = d => !fs.existsSync(d) ? [] : fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? filesUnder(path.join(d, e.name)) : [e.name]);
+  const auditOf = action => { const d = path.join(store, "audit"); const out = [];
+    (fs.existsSync(d) ? fs.readdirSync(d) : []).forEach(m => fs.readdirSync(path.join(d, m)).forEach(f => { const r = JSON.parse(fs.readFileSync(path.join(d, m, f), "utf8")); if (r.action === action) out.push(r); }));
+    return out; };
+  check((await inst("GET", "deleted")).status === 403, "an installer cannot list deleted projects");
+  check((await inst("POST", "deleted", { projectId: "TEST-OWN-01", confirm: "TEST-OWN-01" })).status === 403, "an installer cannot delete a project");
+  check((await o2("POST", "deleted", { projectId: "TEST-OWN-01", confirm: "TEST-OWN-01" }, { "X-LCI": "" })).status === 403, "delete needs the CSRF header");
+  const before = await tc("GET", "jobs/TEST-OWN-01");
+  const pv = await o2("GET", "deleted?preview=TEST-OWN-01");
+  check(pv.status === 200 && pv.body.source === "installer" && pv.body.counts.claims === before.body.claims.length && pv.body.counts.site && pv.body.files > 3, "the dialog is told what would go");
+  check((await o2("POST", "deleted", { projectId: "TEST-OWN-01" })).status === 400, "no delete without the confirmation");
+  const del = await o2("POST", "deleted", { projectId: "TEST-OWN-01", confirm: "TEST-OWN-01", reason: "test" });
+  check(del.status === 200 && del.body.deleted.by === "office2" && del.body.deleted.files.length === pv.body.files, "LC admin deletes it; every file is listed in the manifest");
+  const arch = path.join(store, "deleted", del.body.deleted.key, "files");
+  check(fs.existsSync(path.join(arch, "jobs", "TEST-OWN-01.json")) && fs.existsSync(path.join(arch, "sites", "TEST-OWN-01", "site.json")) &&
+        del.body.deleted.files.every(f => fs.existsSync(path.join(arch, f))), "everything is kept in the backend (deleted/{key}/files)");
+  check(!fs.existsSync(path.join(store, "jobs", "TEST-OWN-01.json")) && !filesUnder(path.join(store, "jobs", "TEST-OWN-01")).length && !filesUnder(path.join(store, "sites", "TEST-OWN-01")).length && !fs.existsSync(path.join(store, "sites", "TEST-OWN-01.json")), "the originals are gone");
+  check((await o2("GET", "jobs/TEST-OWN-01")).status === 404 && (await inst("GET", "jobs/TEST-OWN-01")).status === 404, "the job is gone for LC and for its installer");
+  check(!(await o2("GET", "projects")).body.projects.some(p => p.id === "TEST-OWN-01"), "the uploaded site leaves the project list");
+  check(auditOf("job.delete").some(a => a.actor === "office2" && a.target === "job:TEST-OWN-01" && a.detail.archive === del.body.deleted.key), "the delete is in the activity log, with who");
+  const dl = await o2("GET", "deleted");
+  check(dl.status === 200 && dl.body.deleted[0].key === del.body.deleted.key && dl.body.deleted[0].reason === "test", "the home page lists it, with the reason");
+  const rst = await o2("POST", "deleted/" + del.body.deleted.key, { action: "restore" });
+  check(rst.status === 200 && rst.body.restored.restored.length === 1 && rst.body.restored.restored[0].by === "office2", "LC admin restores it; the manifest records who");
+  const after = await tc("GET", "jobs/TEST-OWN-01");
+  check(after.status === 200 && after.body.claims.length === before.body.claims.length &&
+        JSON.stringify(Object.keys(after.body.pins).sort()) === JSON.stringify(Object.keys(before.body.pins).sort()) &&
+        JSON.stringify(after.body.material.lines) === JSON.stringify(before.body.material.lines), "everything is back as it was: claims, installed heads, material counts");
+  check((await inst("GET", "jobs/TEST-OWN-01")).status === 200, "its installer has the job again");
+  check(auditOf("job.restore").some(a => a.target === "job:TEST-OWN-01"), "the restore is in the activity log");
+  check((await o2("POST", "deleted/" + del.body.deleted.key, { action: "restore" })).status === 409, "restoring over a project that is there again is refused");
+  check((await o2("POST", "deleted/not-a-key", { action: "restore" })).status === 404, "an unknown archive answers 404");
+  const portalFix = path.join(__dirname, "fixtures", "portal", "projects", "TEST-SITE-01", "site.json");
+  const portalBefore = fs.existsSync(portalFix) ? fs.readFileSync(portalFix, "utf8") : null;
+  const dp = await o2("POST", "deleted", { projectId: "TEST-SITE-01", confirm: "TEST-SITE-01" });
+  const back = (await o2("GET", "projects")).body.projects.find(p => p.id === "TEST-SITE-01");
+  check(dp.status === 200 && dp.body.deleted.source === "portal" && back && !back.job && back.hasSite, "a portal project's job is deleted; the project goes back to the Add picker");
+  check((fs.existsSync(portalFix) ? fs.readFileSync(portalFix, "utf8") : null) === portalBefore, "the customer portal's data is not touched");
+  check((await o2("POST", "deleted/" + dp.body.deleted.key, { action: "restore" })).status === 200 && (await o2("GET", "jobs/TEST-SITE-01")).status === 200, "and it restores");
+
   console.log("logout");
   const lo = await o2("POST", "logout");
   check(/Max-Age=0/.test(lo.setCookie || ""), "logout clears the cookie");
