@@ -15,7 +15,8 @@ LOCAL-DEV-LOGIN.txt
 # Editor / OS
 .vscode/
 .idea/
-.claude/
+.claude/*
+!.claude/skills/
 .DS_Store
 Thumbs.db
 desktop.ini

@@ -1,0 +1,290 @@
+{
+ "_about": "LC-FWP-WS-3CCT NightShade full cutoff wall pack, Kroger 345 FCW1/FCW2. Sources: supplier wall pack spec sheet + installation instruction (sources/LC-FWP-WS-3CCT/fcw-spec-install.pdf), LED Connection's own 2023 sheet (lc-existing/...TS Quick Ship.pdf), LC item text (Kroger Standard Part Numbers 2026-04-06). Warranty 5 years, rated life 50,000 h: Dino 2026-10-21 (both sheets agree).",
+ "sku": "LC-FWP-WS-3CCT",
+ "family": "NightShade Series",
+ "product_type": "LED Wall Pack",
+ "product_type_label": "Full Cutoff Wallpack",
+ "category": "lighting",
+ "draft": true,
+ "vendor_pdf": "sources/LC-FWP-WS-3CCT/fcw-spec-install.pdf",
+ "out": "preview/LC-FWP-WS-3CCT.pdf",
+ "source_note": "supplier wall pack datasheet + LED Connection's 2023 NightShade sheet",
+ "vendor_words": [
+  "torshare",
+  "ts-wp07",
+  "wp07",
+  "becky",
+  "fosen",
+  "intertek",
+  "5000444"
+ ],
+ "extracted": {
+  "wattage": {
+   "values": [
+    "45W",
+    "60W",
+    "75W"
+   ],
+   "src": "supplier datasheet p3 + LC item text; LC 2023 sheet prints 45/65/75W"
+  },
+  "voltage": {
+   "values": [
+    "120-277VAC"
+   ],
+   "src": "supplier datasheet p2-3; LC sheet NV"
+  },
+  "efficacy": {
+   "values": [
+    "130 lm/W"
+   ],
+   "src": "LC 2023 sheet 'up to 130lm/W'; supplier says 140 lm/W"
+  },
+  "cct": {
+   "values": [
+    "3000K",
+    "4000K",
+    "5000K"
+   ],
+   "src": "both"
+  },
+  "cri": {
+   "values": [
+    "Ra >80"
+   ],
+   "src": "both"
+  },
+  "lifetime": {
+   "values": [
+    "50,000 h"
+   ],
+   "src": "supplier 'Life-span 50000H', LC sheet >50,000 h, Dino 2026-10-21"
+  },
+  "warranty": {
+   "values": [
+    "5 years"
+   ],
+   "src": "LC sheet + Dino 2026-10-21"
+  },
+  "ip_rating": {
+   "values": [
+    "IP65, wet location"
+   ],
+   "src": "LC sheet + supplier p2"
+  },
+  "power_factor": {
+   "values": [
+    ">0.9"
+   ],
+   "src": "supplier p1"
+  },
+  "current": {
+   "values": [
+    "0.41 / 0.55 / 0.69 A at 45 / 60 / 75W"
+   ],
+   "src": "supplier p3 rated current"
+  },
+  "beam": {
+   "values": [
+    "70 x 80 deg"
+   ],
+   "src": "supplier p3 optical properties"
+  },
+  "controls": {
+   "values": [
+    "0-10V dimming (purple DIM+, gray DIM-)"
+   ],
+   "src": "supplier p2 + wiring p4"
+  },
+  "adjustment": {
+   "values": [
+    "Wattage and CCT on internal DIP switches"
+   ],
+   "src": "supplier p4"
+  },
+  "options": {
+   "values": [
+    "Photocell (PC)",
+    "8W emergency battery backup (EM8W)"
+   ],
+   "src": "LC sheet options; supplier PT / EM"
+  },
+  "material": {
+   "values": [
+    "Heavy-duty die-cast aluminium, UV-stabilized powder coat"
+   ],
+   "src": "LC sheet + supplier ADC12"
+  },
+  "finish": {
+   "values": [
+    "Black",
+    "Dark Bronze"
+   ],
+   "src": "LC sheet BL / BR"
+  },
+  "mounting": {
+   "values": [
+    "Wall, over a recessed junction box"
+   ],
+   "src": "supplier installation p6"
+  },
+  "operating_temp": {
+   "values": [
+    "-40 F to +104 F"
+   ],
+   "src": "supplier p3; LC 2023 sheet says -25C to 50C"
+  },
+  "storage_temp": {
+   "values": [
+    "-40 F to +158 F"
+   ],
+   "src": "supplier p3"
+  }
+ },
+ "certifications": {},
+ "cover": {
+  "subtitle": "",
+  "tagline": "SELECTABLE POWER. SELECTABLE CCT. FULL CUTOFF.",
+  "chips": {
+   "WATTAGE": "45/60/75W",
+   "VOLTAGE": "120-277V",
+   "LIFESPAN": "50,000 h",
+   "WARRANTY": "5 years",
+   "CRI": ">80",
+   "CCT": "30/40/50K"
+  },
+  "headline_efficacy": "130 LM/W",
+  "positioning": "A full cutoff wall pack that keeps light on the ground and off the sky. Wattage and colour temperature are set inside the fixture, so one wall pack covers several designs. For custom solutions please contact our sales representative."
+ },
+ "badges": [
+  "3 WATTAGES",
+  "3 CCTS",
+  "IP65",
+  "0-10V"
+ ],
+ "quality_line": "Heavy-duty die-cast aluminium with a UV-stabilized powder coat, IP65 and wet-location rated.",
+ "description": "The NightShade Series Full Cutoff Wallpack is designed to eliminate light pollution and maximize energy savings. Internal switches select the wattage (45, 60 or 75W) and colour temperature (3000, 4000 or 5000K) on site, so one fixture covers several designs. Constructed from heavy-duty die-cast aluminium with a UV-stabilized powder coat, it mounts over a recessed junction box, runs on 120-277VAC with 0-10V dimming, and is IP65 and wet-location rated. Photocell and 8W emergency battery backup are available.",
+ "overview_drop": [
+  "Current",
+  "Adjustment",
+  "Options",
+  "Mounting"
+ ],
+ "overview_max": 10,
+ "overview_add": [
+  "Options: photocell, 8W emergency battery backup"
+ ],
+ "order_logic": {
+  "sample_code": "LC - FWP - WS - 3CCT - NV - BR - PC",
+  "segments": [
+   {
+    "n": "01",
+    "name": "BRAND",
+    "options": [
+     [
+      "LC",
+      "LED Connection - fixed, every SKU"
+     ]
+    ]
+   },
+   {
+    "n": "02",
+    "name": "SERIES",
+    "options": [
+     [
+      "FWP",
+      "Full Cutoff Wallpack"
+     ]
+    ]
+   },
+   {
+    "n": "03",
+    "name": "WATTAGE",
+    "options": [
+     [
+      "WS",
+      "45/60/75W selectable"
+     ]
+    ]
+   },
+   {
+    "n": "04",
+    "name": "CCT",
+    "options": [
+     [
+      "3CCT",
+      "3000/4000/5000K"
+     ]
+    ]
+   },
+   {
+    "n": "05",
+    "name": "VOLTAGE",
+    "options": [
+     [
+      "NV",
+      "120-277V"
+     ]
+    ]
+   },
+   {
+    "n": "06",
+    "name": "FINISH",
+    "options": [
+     [
+      "BL",
+      "Black"
+     ],
+     [
+      "BR",
+      "Dark Bronze"
+     ]
+    ]
+   },
+   {
+    "n": "07",
+    "name": "OPTIONS",
+    "options": [
+     [
+      "PC",
+      "Photocell"
+     ],
+     [
+      "EM8W",
+      "8W emergency backup"
+     ]
+    ]
+   }
+  ]
+ },
+ "hero": {
+  "page": 0,
+  "clip": [
+   205,
+   262,
+   386,
+   440
+  ]
+ },
+ "dims_panel": {
+  "drawing": {
+   "page": 1,
+   "clip": [
+    90,
+    395,
+    530,
+    590
+   ]
+  },
+  "text": "W x H x D\n12.61 x 6.86 x 5.1 in\n(320 x 174 x 130 mm)\n\nMOUNTING\nOver a recessed\njunction box"
+ },
+ "electrical_note": "Wattage and CCT are set on internal DIP switches. Set them before the fixture is powered.",
+ "callout_body": "",
+ "_open_items": [
+  "Wattage: supplier datasheet and LC item 45/60/75W; LED Connection's 2023 sheet prints 45/65/75W. Printed 45/60/75W.",
+  "Kroger 345 FCW1 runs at 20W: not a setting of this fixture. The only LC sheet with 20W is LC-WP07-20W (SharePoint _vaughan > Spec Sheets, 2025-04-23), a different SKU. Decide how FCW1 is documented.",
+  "HV 347/480V is on the 2023 LC sheet but not in the supplier datasheet: left off the order logic.",
+  "Efficacy: LC sheet up to 130 lm/W, supplier 140 lm/W. Printed 130.",
+  "Operating temperature: supplier -40F to +104F (printed); LC 2023 sheet -25C to 50C.",
+  "UL listed, Dark Sky, DLC logos on the 2023 sheet: not printed until verified under LED Connection."
+ ]
+}

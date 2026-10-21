@@ -1,0 +1,131 @@
+{
+ "code": "FL-SF",
+ "doc": "LC-IG-FL-SF",
+ "rev": "A",
+ "source": "LED Connection flood LC-FL-WS-3CCT: supplier 9th Gen flood datasheet installation pages (tools/specs/sources/LC-FL-WS-3CCT/vendor-datasheet.pdf, pages 4-7); step-down from LC's SO636 set-up note (api/shared/parts.js SETUP). Never printed.",
+ "product": {
+  "name": "FLOODLIGHT",
+  "line": "Selectable flood light  ·  LC-FL-WS-3CCT",
+  "pn": [
+   "LC",
+   "FL",
+   "WS",
+   "3CCT",
+   "*SF"
+  ],
+  "for": "FOR LC-FL-WS-3CCT-SF (SLIP-FITTER)",
+  "chip": "SLIP-FITTER MOUNT",
+  "title": "Floodlight Installation Guide - slip-fitter (LC-FL-WS-3CCT-SF)",
+  "file": "flood/LC-Floodlight-Installation-Guide-SF.pdf"
+ },
+ "tools": [
+  "Hexagon (Allen) wrench",
+  "Cross (Phillips) screwdriver"
+ ],
+ "parts": [],
+ "inbox": [
+  "Floodlight with slip-fitter",
+  "Fits a pole or tenon up to 60 mm (2-3/8 in) diameter"
+ ],
+ "glance2": [
+  "SET ON SITE",
+  [
+   "Wattage 40 / 60 / 80W",
+   "CCT 3000 / 4000 / 5000K"
+  ]
+ ],
+ "common": {
+  "warning": [
+   "Only persons qualified for electrical work should carry out the electrical work.",
+   "Turn off the power supply before installation, and cut it off at once in any abnormal situation.",
+   "Be sure to ground the fixture.",
+   "The fixture runs on 120-277V only. Never connect it directly to a 480V circuit.",
+   "Do not wipe the fixture with water or caustic solution, and avoid high pressure.",
+   "Be careful when handling and storing the fixture."
+  ],
+  "electrical": "Supply the fixture with the voltage on its label (120-277V AC). On a 480V circuit it must be fed through the 480V-to-277V step-down transformer: see the last section of this guide.",
+  "grounding": "Connect the green wire to the ground of the supply, in accordance with the NEC and local codes.",
+  "before": [
+   "Ensure that the supply power is shut off.",
+   "Unpack the fixture and check that nothing is damaged or missing.",
+   "Check the part number on the label: -Y is the yoke bracket, -SF the slip-fitter."
+  ],
+  "toolsNote": ""
+ },
+ "steps": [
+  {
+   "title": "Before mounting, set the wattage and CCT. Lay the fixture face down and unscrew the selector cover on the back with a cross (Phillips) screwdriver.",
+   "figures": [
+    "FL-set-A.png"
+   ]
+  },
+  {
+   "title": "Take out the cover and put it aside.",
+   "figures": [
+    "FL-set-B.png"
+   ]
+  },
+  {
+   "title": "Turn the POWER and CCT selectors to the setting the design calls for.",
+   "figures": [
+    "FL-set-C.png"
+   ]
+  },
+  {
+   "title": "Screw the cover back into the fixture.",
+   "figures": [
+    "FL-set-D.png"
+   ]
+  },
+  {
+   "title": "Loosen the screw that holds the upper and lower mount at the pivot, with the hexagon wrench.",
+   "figures": [
+    "FLS-fig-A.png"
+   ]
+  },
+  {
+   "title": "Rotate the bracket to the angle the design calls for (0 to 90 degrees).",
+   "figures": [
+    "FLS-fig-B.png"
+   ]
+  },
+  {
+   "title": "Lock the upper and lower brackets with the hexagon wrench.",
+   "figures": [
+    "FLS-fig-C.png"
+   ]
+  },
+  {
+   "title": "Connect the wires: black to line (L), white to neutral (N), green to ground. For 0-10V dimming, purple to DIM+ and pink to DIM-. Cap the dimming wires if they are not used.",
+   "figures": [
+    "FLS-fig-D.png"
+   ]
+  },
+  {
+   "title": "Fix the slip-fitter on the pole with the hexagon wrench. The pole can be up to 60 mm (2-3/8 in) in diameter.",
+   "figures": [
+    "FLS-fig-E.png"
+   ]
+  }
+ ],
+ "wiring": [],
+ "sections": [
+  {
+   "title": "480V circuit: the step-down transformer",
+   "intro": "This flood runs on 120-277V. Where the circuit is 480V, a 480V-to-277V step-down transformer feeds it. On Kroger 345 it ships with the flood and sits in the flood's junction box.",
+   "lines": [
+    "Mount the transformer in the junction box before connecting the flood.",
+    "Connect the transformer's 480V input to the supply circuit and its 277V output to the flood's black (L) and white (N) wires; green to ground.",
+    "Use the wiring diagram printed on the transformer's own label for its lead colours and taps. They are not repeated here because they differ between transformer models.",
+    "Check the label's input voltage against the circuit before switching on."
+   ],
+   "box": {
+    "title": "NEVER",
+    "lines": [
+     "Never connect the flood straight to 480V. It is rated 120-277V and will be damaged."
+    ]
+   }
+  }
+ ],
+ "record_note": "Anything not as designed (mounting, height, aim, setting): write it in the pin's note."
+}

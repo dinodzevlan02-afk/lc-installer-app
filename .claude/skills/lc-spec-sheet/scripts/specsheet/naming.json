@@ -1,0 +1,36 @@
+{
+ "_note": "LED Connection catalogue naming rules. Dino's decisions, recorded so the spec-sheet builder applies them without asking twice. The SKU prefix is determined by the PRODUCT CLASS; the series name is always Dino's to choose. Rule given 2026-09-15: 'for every troffer always start with LC-CBT-<name of the series>'. He will define the other product classes the same way as they come up.",
+ "_how_it_is_used": "project-sheet.py matches the product class against 'match' (case-insensitive, on the vendor sheet's product type, the request spec and the project name). A match supplies the prefix; the full SKU is <prefix>-<SERIES>. The builder still refuses to invent the series name.",
+ "classes": [
+  {
+   "class": "troffer",
+   "prefix": "LC-CBT",
+   "family_suffix": "Series",
+   "product_type": "Recessed Troffer",
+   "match": [
+    "troffer",
+    "2x2 panel",
+    "2x4 panel",
+    "back-lit panel",
+    "backlit panel",
+    "center basket",
+    "centre basket"
+   ],
+   "note": "CBT = Center-Basket Troffer. Covers recessed and surface-mount troffers, 2x2 and 2x4. Precedent: 'Center-Basket Troffer Series' / LC-CBT on the Tommy the Great project, set by Dino 2026-09-11."
+  },
+  {
+   "class": "bullet flood",
+   "prefix": "LC-BFL",
+   "family_suffix": "Series",
+   "product_type": "LED Bullet Flood",
+   "match": [
+    "bullet flood",
+    "bullet floodlight",
+    "bullet flood light",
+    "beam spread adjustable bullet"
+   ],
+   "note": "BFL = Bullet Flood. Dino, 2026-10-01 (email 'Haber: architectural flood light'): 'make LC spec sheet out of the torshare product ... the name will start LC-BFL-(Vendor order logic)'. The order-logic SEGMENTS follow the vendor's order (wattage, beam, CCT, sensor) but are written in LC's own codes, never the vendor's (AGENT.md 1.1)."
+  }
+ ],
+ "_pending": "Other product classes - area light, wallpack, highbay, linear, transparent display - have no rule yet. Dino defines each one; until then those projects fall back to a PLACEHOLDER family that is banner-flagged on the sheet."
+}

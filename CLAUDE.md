@@ -278,6 +278,21 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   R=B, SR=F, SS=E, T=G): the LC guides say "the bracket holder". Rebuild:
   extract_figures.py, then build_guides.py; check with --preview first.
 
+## Kroger 345 installation guides (Dino, 2026-10-21: "push the guides")
+- Same builder and LC look as the Optimus guides (build_guides.py takes a
+  `product` block): flood yoke FL-Y, flood slip fitter FL-SF, NightShade
+  wall pack FWP, from each product's own instructions in tools/specs/sources/
+  (figures: tools/guides/kroger345/extract_figures.py). Published in
+  app/guides/flood/ and app/guides/wallpack/, picked by LC part number
+  (guides.js BY_PART + PART_READY, tests/guides.test.js keeps them = folders).
+- The flood guides carry the 480V step-down as a section: no wiring sheet
+  exists for the transformer, so it sends the installer to its own label.
+- Not built, no source document anywhere (OneDrive, SharePoint, mail,
+  2026-10-21): downlight LC-UDL-8-A, goof ring LC-UDL-8-GR, Optimus large
+  house-side shield LC-SLOT-LG-SHIELD (only the SMALL shield's dimension
+  drawing exists). Ask RZ Lighting / AOK before writing any steps.
+- Open: FCW1 is set to 20W, but this wall pack's DIP gives 45/60/75W only.
+
 ## Who sees what (Dino, 2026-10-20)
 
 - LED Connection admins: PROJECTS on the home page = the customer-portal
