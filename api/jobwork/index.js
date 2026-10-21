@@ -65,6 +65,13 @@ async function cleanPhotos(id, list) {
 
 const who = u => ({ by: u.username, byName: u.name || u.username });
 
+/* The part number the job shows for a design label: saved, else decided. */
+async function partOfJob(id) {
+  const rec = await P.store().get(J.paths.parts(id));
+  const saved = (rec && rec.data.byLabel) || {};
+  return sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null;
+}
+
 module.exports = P.handler(async ({ req, method, body, params, send, context }) => {
   const { user } = await P.requireSession(req);
   const id = J.normJob(params.id);
@@ -118,7 +125,7 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     return send(200, { byLabel: rec.byLabel });
   }
 
-  if (job.submitted && action !== "claims") throw new ApiError(409, "This job was submitted on " + job.submitted.at.slice(0, 10) + ". Ask LED Connection to reopen it.");
+  if (job.submitted && action !== "claims" && action !== "flags") throw new ApiError(409, "This job was submitted on " + job.submitted.at.slice(0, 10) + ". Ask LED Connection to reopen it.");
   const site = await J.requireSite(id);
 
   /* ── Material check ─────────────────────────────────────────────────── */
@@ -143,9 +150,14 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
         over: summary.reduce((s, x) => s + x.over, 0), summary }, who(user));
     }
     const etag = await P.store().put(J.paths.material(id), mat, cur ? { ifMatch: cur.etag } : { ifNoneMatch: "*" });
-    if (action === "approve") await P.audit(req, user.username, "material.approve", "job:" + id,
+    if (action !== "approve") return send(200, { material: mat, materialEtag: etag });
+    await P.audit(req, user.username, "material.approve", "job:" + id,
       { short: mat.approved.short, damaged: mat.approved.damaged, over: mat.approved.over });
-    return send(200, { material: mat, materialEtag: etag });
+    /* Emailed to the same list as a claim; the sign-off is saved first. */
+    const notify = await CLAIMMAIL.notifySignoff(req, id, job, site, mat.approved, user, await partOfJob(id));
+    mat.approved.mail = CLAIMMAIL.mailRecord(notify);
+    const etag2 = await P.store().put(J.paths.material(id), mat, { ifMatch: etag }).catch(() => etag);
+    return send(200, { material: Object.assign({}, mat, { approved: J.withMail(mat.approved, user) }), materialEtag: etag2, notify: J.forViewer(notify, user) });
   }
 
   /* ── Claims ─────────────────────────────────────────────────────────── */
@@ -171,12 +183,35 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     /* Emailed to LED Connection (Cassie + Dino) with the photos; the claim
        is saved first, so a failed email never loses it. The part number on
        each line is the one the job shows (saved, else decided). */
-    const partsRec = await P.store().get(J.paths.parts(id));
-    const saved = (partsRec && partsRec.data.byLabel) || {};
-    const notify = await CLAIMMAIL.notifyClaim(req, id, job, site, claim, user, sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null);
+    const notify = await CLAIMMAIL.notifyClaim(req, id, job, site, claim, user, await partOfJob(id));
     claim.mail = { sent: notify.sent, queued: !!notify.queued, to: notify.to, cc: notify.cc || [], attached: notify.attached, at: new Date().toISOString(), reason: notify.reason || null };
     await P.store().put(J.paths.claim(id, ref), claim).catch(() => null);
-    return send(201, { claim, notify });
+    return send(201, { claim: J.withMail(claim, user), notify: J.forViewer(notify, user) });
+  }
+
+  /* ── A problem flagged on one fixture (Dino, 2026-10-21) ─────────────
+     Any head on the site, at any point of the install (also after submit,
+     like a claim). Saved first, then emailed to the claim list. */
+  if (action === "flags") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    const kind = String(body.kind || "");
+    if (!CLAIMMAIL.FLAG_KINDS[kind]) throw new ApiError(400, "Pick what the problem is.");
+    const pin = site.pins.find(p => p.id === String(body.pinId || ""));
+    if (!pin) throw new ApiError(400, "Pick the fixture the problem is on.");
+    const note = P.text(body.note, 2000, "Note");
+    const photos = await cleanPhotos(id, body.photos);
+    if (!note && !photos.length) throw new ApiError(400, "Describe the problem or add a photo.");
+    const now = new Date();
+    const ref = "FL-" + now.toISOString().slice(2, 10).replace(/-/g, "") + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();
+    const partNo = pin.product ? (await partOfJob(id))(pin.product.sku) : null;
+    const flag = Object.assign({ v: J.SCHEMA, ref, kind, kindLabel: CLAIMMAIL.FLAG_KINDS[kind], pinId: pin.id, fid: pin.fid, tag: pin.tag, poleId: pin.poleId || null,
+      product: pin.productName || null, partNo, note, photos, status: "open", at: now.toISOString() }, who(user));
+    await P.store().put(J.paths.flag(id, ref), flag, { ifNoneMatch: "*" });
+    await P.audit(req, user.username, "flag.create", "job:" + id, { ref, kind, pin: pin.id, tag: pin.tag, photos: photos.length });
+    const notify = await CLAIMMAIL.notifyFlag(req, id, job, site, flag, user);
+    flag.mail = CLAIMMAIL.mailRecord(notify);
+    await P.store().put(J.paths.flag(id, ref), flag).catch(() => null);
+    return send(201, { flag: J.withMail(flag, user), notify: J.forViewer(notify, user) });
   }
 
   /* ── Installed heads ────────────────────────────────────────────────── */
@@ -209,9 +244,13 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     const left = todo.filter(p => !done.has(p.id)).length;
     if (left) throw new ApiError(400, left + " fixture" + (left === 1 ? " is" : "s are") + " not saved as installed yet.");
     job.submitted = Object.assign({ at: new Date().toISOString(), heads: todo.length }, who(user));
-    await P.store().put(J.paths.job(id), job, { ifMatch: jobEtag });
+    const je = await P.store().put(J.paths.job(id), job, { ifMatch: jobEtag });
     await P.audit(req, user.username, "job.submit", "job:" + id, { heads: todo.length });
-    return send(200, { job: J.publicJob(job, user) });
+    const openOf = async pre => (await Promise.all((await P.store().list(pre)).map(n => P.store().get(n)))).filter(r => r && r.data.status === "open").length;
+    const notify = await CLAIMMAIL.notifySubmit(req, id, job, site, job.submitted, user, { claims: await openOf(J.paths.claims(id)), flags: await openOf(J.paths.flags(id)) });
+    job.submitted.mail = CLAIMMAIL.mailRecord(notify);
+    await P.store().put(J.paths.job(id), job, { ifMatch: je }).catch(() => null);
+    return send(200, { job: J.publicJob(job, user), notify: J.forViewer(notify, user) });
   }
 
   throw new ApiError(404, "No such action.");

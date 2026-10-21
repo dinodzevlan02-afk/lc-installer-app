@@ -56,14 +56,17 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
   if (method === "GET") {
     const { job } = await J.requireJob(user, id);
     let site = await J.requireSite(id);
-    const [mat, pinNames, claimNames] = await Promise.all([
+    const [mat, pinNames, claimNames, flagNames] = await Promise.all([
       P.store().get(J.paths.material(id)),
       P.store().list(J.paths.pins(id)),
-      P.store().list(J.paths.claims(id))
+      P.store().list(J.paths.claims(id)),
+      P.store().list(J.paths.flags(id))
     ]);
     const pins = {};
     (await Promise.all(pinNames.map(n => P.store().get(n)))).forEach(r => { if (r) pins[r.data.pinId] = r.data; });
-    const claims = (await Promise.all(claimNames.map(n => P.store().get(n)))).filter(Boolean).map(r => r.data)
+    const claims = (await Promise.all(claimNames.map(n => P.store().get(n)))).filter(Boolean).map(r => J.withMail(r.data, user))
+      .sort((a, b) => String(b.at).localeCompare(String(a.at)));
+    const flags = (await Promise.all(flagNames.map(n => P.store().get(n)))).filter(Boolean).map(r => J.withMail(r.data, user))
       .sort((a, b) => String(b.at).localeCompare(String(a.at)));
     /* UL-listed part numbers saved for this job, on each material line and
        pin. The cached site is shared, so it is copied, never written to. */
@@ -110,9 +113,9 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     }));
     return send(200, {
       job: J.publicJob(job, user), site, parts,
-      material: mat ? mat.data : { lines: {}, approved: null },
+      material: mat ? Object.assign({}, mat.data, { approved: J.withMail(mat.data.approved, user) }) : { lines: {}, approved: null },
       materialEtag: mat ? mat.etag : null,
-      pins, claims, contact: J.contact()
+      pins, claims, flags, contact: J.contact()
     });
   }
 

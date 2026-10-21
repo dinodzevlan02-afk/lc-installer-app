@@ -36,6 +36,8 @@ const paths = {
   claim: (id, ref) => "jobs/" + id + "/claims/" + ref + ".json",
   pins: id => "jobs/" + id + "/pins/",
   pin: (id, pin) => "jobs/" + id + "/pins/" + pin + ".json",
+  flags: id => "jobs/" + id + "/flags/",
+  flag: (id, ref) => "jobs/" + id + "/flags/" + ref + ".json",
   photos: id => "jobs/" + id + "/photos/",
   photo: (id, name) => "jobs/" + id + "/photos/" + name
 };
@@ -55,10 +57,19 @@ async function requireSite(id) {
   return s;
 }
 
+/* Who an email went to is LED Connection's business: an installer sees only
+   that it went out (and to how many), never the addresses. */
+function forViewer(mail, user) {
+  if (!mail || A.isLc(user)) return mail;
+  const n = (mail.to || []).length + (mail.cc || []).length;
+  return { sent: mail.sent, queued: !!mail.queued, local: !!mail.local, attached: mail.attached || 0, reason: mail.reason || null, at: mail.at, recipients: n, others: (mail.cc || []).length };
+}
+const withMail = (rec, user) => rec && rec.mail ? Object.assign({}, rec, { mail: forViewer(rec.mail, user) }) : rec;
+
 function publicJob(j, user) {
   const out = {
     id: j.id, name: j.name || j.id, address: j.address || "", installers: j.installers || [],
-    created: j.created, submitted: j.submitted || null
+    created: j.created, submitted: withMail(j.submitted || null, user)
   };
   if (A.isLc(user)) out.notify = { installersOff: (j.notify && j.notify.installersOff) || [], client: (j.notify && j.notify.client) || [] };
   else delete out.installers;
@@ -75,4 +86,4 @@ function contact() {
   };
 }
 
-module.exports = { SCHEMA, normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact };
+module.exports = { SCHEMA, normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact, forViewer, withMail };

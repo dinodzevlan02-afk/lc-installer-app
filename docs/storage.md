@@ -157,6 +157,13 @@ hash is read from the portal's own system/relay.json (read-only), and its
 script polls this app with the same key, so one relay on Dino's PC sends
 both apps' emails.
 
+## jobs/{projectId}/flags/{ref}.json
+
+A problem flagged on one fixture during the install (ref FL-yymmdd-XXXX):
+`{ ref, kind: pole|power|access|fit|other, kindLabel, pinId, fid, tag, poleId, product, partNo, note, photos: [name], status: "open", at, by, byName, mail }`.
+material.json `approved.mail` and jobs/{projectId}.json `submitted.mail`
+record the sign-off and submit emails the same way.
+
 ## jobs/{projectId}/pins/{pinId}.json
 
 `pinId` = first 20 hex of sha1(datasetId + NUL + fixture id).

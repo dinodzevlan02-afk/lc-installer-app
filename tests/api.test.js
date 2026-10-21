@@ -204,21 +204,26 @@ async function main() {
   check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 5, damaged: 1 } } })).status === 200, "counts saved as they go");
   check((await inst("POST", "jobs/TEST-SITE-01/approve", { confirm: true })).status === 400, "cannot sign off with a line not counted");
   check((await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } } })).status === 400, "sign-off needs the confirm box");
+  const outDir = path.join(store, "outbox");
+  const outbox = () => (fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : []).map(f => JSON.parse(fs.readFileSync(path.join(outDir, f), "utf8")));
   const ap = await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true });
   check(ap.status === 200 && ap.body.material.approved.short === 1 && ap.body.material.approved.damaged === 1, "installer signs off; one short and one damaged recorded against the site's own quantities");
+  const som = outbox().find(m => /\] Material signed off: 1 short, 1 damaged$/.test(m.subject || "")) || {};
+  check(ap.body.notify.sent && JSON.stringify(som.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Expected/.test(som.html) && /Short/.test(som.html) && /Mike Crew/.test(som.html),
+        "the sign-off is emailed to the same list: expected, received, short, damaged, who signed");
+  check(ap.body.notify.to === undefined && ap.body.material.approved.mail.to === undefined, "the installer does not see the addresses");
   check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 6 } } })).status === 409, "signed-off counts are locked");
 
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }] })).status === 400, "a damage claim needs a photo");
   const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }], note: "Lens cracked", photos: [ph.body.name] });
   check(cl.status === 201 && /^MC-\d{6}-[0-9A-F]{4}$/.test(cl.body.claim.ref) && cl.body.claim.lines[0].expected === 6, "claim filed with a reference and the expected quantity from the site");
+  const mail = outbox().find(m => (m.subject || "").includes(cl.body.claim.ref)) || {};
   check(cl.body.notify && cl.body.notify.sent && cl.body.notify.local && cl.body.notify.attached === 1 &&
-        JSON.stringify(cl.body.notify.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]',
+        JSON.stringify(mail.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]',
         "the claim is emailed to Cassie, Dino, David and Sergei with its photo (dev: outbox)");
-  const outDir = path.join(store, "outbox");
-  const outJson = fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : [];
-  const mail = outJson.length ? JSON.parse(fs.readFileSync(path.join(outDir, outJson[0]), "utf8")) : {};
+  check(cl.body.notify.to === undefined && cl.body.notify.recipients === 4 && cl.body.claim.mail.to === undefined, "the installer sees that it was emailed, never the addresses");
   check(new RegExp("^\\[" + cl.body.claim.ref + "\\] Material claim: Damaged - ").test(mail.subject || "") && /Lens cracked/.test(mail.html) &&
-        /Missing/.test(mail.html) && /Expected/.test(mail.html) && mail.attachments.length === 1 && fs.readdirSync(outDir).some(f => f.endsWith("-photo-1.jpg")),
+        /Missing/.test(mail.html) && /Expected/.test(mail.html) && (mail.attachments || []).length === 1 && fs.readdirSync(outDir).some(f => f.endsWith("-photo-1.jpg")),
         "the email carries the note, the expected / received / missing quantities and the photo");
   check(!/SECRET|costPrice/.test(mail.html || ""), "no pricing or supplier in the email");
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "shortage", photos: ["0000000000000000.jpg"], note: "x" })).status === 400, "a photo that was never uploaded is refused");
@@ -227,6 +232,15 @@ async function main() {
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinOff.id, { photos: [ph.body.name] })).status === 404, "an excluded head cannot be installed");
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "ok", serial: "SN1" })).status === 200, "installer saves a pin with its photo");
   check((await inst("POST", "jobs/TEST-SITE-01/submit")).status === 400, "cannot submit with heads left");
+  check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "nonsense", note: "x" })).status === 400, "a flag needs a known problem");
+  check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: "nope", kind: "pole", note: "x" })).status === 400, "a flag needs a fixture on this site");
+  check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "pole" })).status === 400, "a flag needs a note or a photo");
+  const fl = await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "pole", note: "Arm cracked at the weld", photos: [ph.body.name] });
+  const flm = outbox().find(m => fl.body.flag && (m.subject || "").startsWith("[" + fl.body.flag.ref + "] Install problem: Pole or arm damaged")) || {};
+  check(fl.status === 201 && /^FL-\d{6}-[0-9A-F]{4}$/.test(fl.body.flag.ref) && fl.body.flag.tag === pinA.tag && fl.body.notify.sent,
+        "the installer flags a problem on a fixture; it is saved with a reference");
+  check(JSON.stringify(flm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Arm cracked at the weld/.test(flm.html) && new RegExp(pinA.tag).test(flm.html) && flm.attachments.length === 1,
+        "the flag is emailed to the same list with the fixture, the note and the photo");
   for (const p of jv.body.site.pins) if (!p.off && p.id !== pinA.id) await inst("PUT", "jobs/TEST-SITE-01/pins/" + p.id, { photos: [ph.body.name] });
   const js = await inst("GET", "jobs/TEST-SITE-01");
   check(Object.values(js.body.pins).filter(p => p.installed).length === 8 && js.body.claims.length === 1, "the job shows every saved pin and the claim");
@@ -234,6 +248,10 @@ async function main() {
   check((await anon("GET", "jobs/TEST-SITE-01/photos/" + ph.body.name)).status === 401, "photos need a session");
   const sb = await inst("POST", "jobs/TEST-SITE-01/submit");
   check(sb.status === 200 && sb.body.job.submitted.heads === 8, "job submitted with every head installed");
+  const sbm = outbox().find(m => /\] Install submitted: 8 fixtures$/.test(m.subject || "")) || {};
+  check(sb.body.notify.sent && JSON.stringify(sbm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Still open/.test(sbm.html), "the submit is emailed to the same list, with what is still open");
+  check((await inst("GET", "jobs/TEST-SITE-01")).body.flags.length >= 1, "the job shows its flags");
+  check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "power", note: "No power after submit" })).status === 201, "a problem can still be flagged after submit");
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name] })).status === 409, "a submitted job is locked");
   const lst = await lc("GET", "jobs");
   check(lst.body.jobs[0].heads === 8 && lst.body.jobs[0].pinsSaved === 8 && lst.body.jobs[0].materialApproved, "LC admin's list shows progress");
@@ -353,14 +371,13 @@ async function main() {
   check(jn.status === 200 && jn.body.job.notify.client[0].email === "jim.green@client.example", "LC admin adds the client contact to the project");
   check((await inst("GET", "jobs/TEST-OWN-01")).body.job.notify === undefined, "installers never see who else is emailed");
   const c3 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "shortage", lines: [{ key: oj.body.site.bom[0].key, received: 2 }], note: "Two short" });
-  check(c3.status === 201 && c3.body.notify.to.includes("ops@ledconnection.com") &&
-        JSON.stringify(c3.body.notify.cc) === '["mike@crew-a.example","jim.green@client.example"]', "the claim goes to LED Connection, CC the installer and the client");
+  check(c3.status === 201 && c3.body.notify.others === 2, "the claim goes to LED Connection, CC the installer and the client");
   const q3 = await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key });
   const m3 = q3.body.messages.find(m => /Two short/.test(m.html));
-  check(m3 && m3.cc.includes("jim.green@client.example") && m3.to.includes("ops@ledconnection.com"), "the queued email carries them");
+  check(m3 && JSON.stringify(m3.cc) === '["mike@crew-a.example","jim.green@client.example"]' && m3.to.includes("ops@ledconnection.com"), "the queued email carries them");
   check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: ["mike.crew"], client: [] } })).status === 200, "an installer can be unticked");
   const c4 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "other", lines: [], note: "Wrong bracket" });
-  check(c4.status === 201 && c4.body.notify.cc.length === 0, "then only LED Connection gets it");
+  check(c4.status === 201 && c4.body.notify.others === 0, "then only LED Connection gets it");
   for (const m of (await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key })).body.messages)
     await anon("POST", "relay/outbox", { id: m.id, ok: true }, { "X-Relay-Key": pr.body.key });
 

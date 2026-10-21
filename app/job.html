@@ -83,6 +83,7 @@
   .partsbox td input { min-width: 330px; font-size: 12.5px; padding: 8px 10px; }
   .partsbox .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .claims h3 { font-family: var(--display); font-size: 13px; letter-spacing: .14em; margin: 26px 0 10px; text-transform: uppercase; }
+  .claim.flag { border-color: rgba(248,113,113,.45); }
   .claim { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--panel); font-size: 14px; }
   .claim .ref { font-family: var(--mono); color: var(--orange); font-weight: 800; }
 
@@ -217,6 +218,7 @@
       </div>
       <div class="filters" id="filters"></div>
       <div class="card" id="card"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
+      <div class="claims" id="flags"></div>
     </aside>
   </section>
 </main>
@@ -242,6 +244,31 @@
     <div class="actions">
       <button type="button" id="clCancel">Cancel</button>
       <button type="button" class="primary" id="clSend">Send claim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Flag a problem on one fixture during the install -->
+<div class="ov" id="ovFlag" hidden>
+  <div class="dlg" role="dialog" aria-labelledby="flTitle">
+    <h3 id="flTitle">Flag a problem</h3>
+    <p class="muted" style="margin:0" id="flSub"></p>
+    <div class="kinds" id="flKinds">
+      <button type="button" data-k="pole">Pole or arm damaged</button>
+      <button type="button" data-k="power">No power / wiring</button>
+      <button type="button" data-k="access">Cannot reach it</button>
+      <button type="button" data-k="fit">Does not fit</button>
+      <button type="button" data-k="other">Other</button>
+    </div>
+    <label for="flNote">What is wrong</label>
+    <textarea id="flNote" rows="3" maxlength="2000"></textarea>
+    <label>Photos (up to 6)</label>
+    <div class="shots" id="flShots"></div>
+    <button type="button" id="flPhotoBtn">Take / add photo</button>
+    <input type="file" accept="image/*" capture="environment" class="hidden-file" id="flPhoto" multiple>
+    <div class="actions">
+      <button type="button" id="flCancel">Cancel</button>
+      <button type="button" class="primary" id="flSend">Send to LED Connection</button>
     </div>
   </div>
 </div>

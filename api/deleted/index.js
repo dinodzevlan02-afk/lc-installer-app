@@ -39,7 +39,7 @@ const typeOf = (p, t) => /\.json$/i.test(p) ? "application/json; charset=utf-8" 
    sign-off, claims, installed heads, photos, and the submitted state. Same
    rules as a delete: archived first (with a copy of the job record, for the
    submitted state), logged, restorable while no new work has been saved. */
-const workPrefixes = id => [J.paths.claims(id), J.paths.pins(id), J.paths.photos(id)];
+const workPrefixes = id => [J.paths.claims(id), J.paths.flags(id), J.paths.pins(id), J.paths.photos(id)];
 async function workOf(id) {
   const s = P.store();
   const [mat, ...lists] = await Promise.all([s.get(J.paths.material(id))].concat(workPrefixes(id).map(p => s.list(p))));
