@@ -74,4 +74,8 @@ res = Image.composite(big, white, bmask)
 bbox = bmask.point(lambda v: 255 if v > 20 else 0).getbbox()
 pad = 24 if S > 1 else 40
 res = res.crop((max(0,bbox[0]-pad), max(0,bbox[1]-pad), min(W*S,bbox[2]+pad), min(H*S,bbox[3]+pad)))
+# trim to what is not white, so the sheet's hero box frames the fixture itself
+ink = res.convert("L").point(lambda v: 255 if v < 238 else 0).getbbox()
+if ink:
+    res = res.crop((max(0, ink[0] - pad), max(0, ink[1] - pad), min(res.width, ink[2] + pad), min(res.height, ink[3] + pad)))
 res.save(out); print(res.size)

@@ -257,13 +257,18 @@
   ]
  },
  "hero": {
-  "page": 0,
-  "clip": [
-   205,
-   262,
-   386,
-   440
-  ]
+  "png": "sources/LC-FWP-WS-3CCT/hero.png",
+  "from": {
+   "page": 0,
+   "xrefs": [
+    339,
+    340,
+    341,
+    342,
+    343
+   ],
+   "how": "clean_photo.py on esrgan_np.py x4 output (Real-ESRGAN x4plus)"
+  }
  },
  "dims_panel": {
   "drawing": {
