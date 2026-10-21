@@ -50,8 +50,9 @@ def main(argv):
     cv = sheet["cover"]
     for k, v in p.get("cover", {}).items():
         cv[k] = v
-    for k in ("badges", "quality_line", "description", "order_logic"):
-        if k in p:
+    for k in ("badges", "quality_line", "description", "order_logic",
+              "lumen_maintenance", "callout_title", "callout_body"):
+        if k in p:            # "" is meaningful: an empty lumen_maintenance skips its box
             sheet[k] = p[k]
     if "overview" in p:
         sheet["overview"] = p["overview"]
@@ -125,6 +126,8 @@ def main(argv):
         os.remove(out)
         sys.exit("refused after render: supplier words in the PDF text: %s" % found)
     print("built:", out)
+    for line in p.get("_open_items", []):     # for the report to Dino, never printed on the sheet
+        print("  open:", line)
 
 
 if __name__ == "__main__":

@@ -26,14 +26,18 @@ session; the rules below are the short form, not a replacement.
 5. **Order logic lists only options LC actually buys**, not the factory's full catalogue.
 6. **Nothing from memory.** Every value comes from a document (supplier datasheet, quote,
    LC item text, test report). Each `extracted` field carries `src`.
-7. **Conflicts are listed, not resolved by guessing.** They go in `conflicts` (page 3 box)
-   and in your report to Dino.
+7. **Conflicts are listed, not resolved by guessing**, in the product file's `_open_items`
+   and in your report to Dino. They are never printed on the sheet.
 8. **No IES file = no photometric page.** Never trace a curve or borrow a sibling's.
-9. **No red PRE-RELEASE banner** (Dino, 2026-10-21: "remove this red banner"). A draft
-   shows as the cover subtitle "DRAFT - ... REQUIRES DINO'S APPROVAL" plus the DRAFT
-   CONFLICTS box. `"banner": [...]` brings the band back only if Dino asks for it.
-10. **Draft until Dino approves.** Without a UL/ETL listing under LC the sheet is a draft
-    (`"draft": true` waives the UL gate for the build only); it is never published.
+9. **The sheet looks final** (Dino, 2026-10-21: "remove this red banner", "remove also
+   draft comments ... act like this is a picture that will go out there"). No banner, no
+   DRAFT subtitle, no "pending" or "before publication" text, no conflicts box: set
+   `cover.subtitle` "" (the tagline shows), a real customer `electrical_note`, and
+   `callout_body` "" to skip the lumen box until LM-80 / TM-21 is on file.
+   `"banner"` / `"conflicts"` keys still work if Dino ever asks for them back.
+10. **Approval is Dino's, outside the sheet.** It is not published (app/specs, catalog)
+    until he says so, and certifications stay off until verified under LC. `"draft": true`
+    only waives the UL gate for the build.
 11. **Warranty 5 years, rated life 50,000 h** on LC sheets (Dino, 2026-10-21), as `extracted.warranty` / `extracted.lifetime` and the WARRANTY / LIFESPAN chips. Where the supplier states less, list it in `conflicts`.
 
 ## How to build one
@@ -56,7 +60,7 @@ Product file keys (paths relative to the file): `sku`, `family`, `product_type`,
 `quality_line`, `description`, `overview` or `overview_drop` / `overview_max` /
 `overview_add`, `order_logic` {sample_code, segments [{n, name, options [[code, text]]}]},
 `hero` {page, clip}, `dims_panel` {drawing {page, clip}, text}, `electrical_note`,
-`conflicts` [lines], optional `banner`.
+`_open_items` [lines, report only], optional `conflicts` / `banner` (printed).
 
 Display products (LED screens): chips PITCH · BRIGHTNESS · TRANSPARENCY · REFRESH · IP ·
 WARRANTY; no CRI/CCT/efficacy/DLC/IES/lumen maintenance. See rulebook 5a.

@@ -11,8 +11,8 @@ template pipeline, moved here 2026-10-21). Read its SKILL.md first.
 
 ## LC-FL-WS-3CCT (Kroger 345 FL1), DRAFT
 
-Dino 2026-10-21: no red banner, warranty 5 years, rated life 50,000 h.
-Open before release (also in the sheet's DRAFT CONFLICTS box):
+Dino 2026-10-21: no red banner, no draft text on the sheet, warranty 5 years, rated life 50,000 h.
+Open items (kept here and in the product file _open_items, never printed):
 1. Wattage: supplier sheet 50/60/80 W, quote and LC item 40/60/80 W; FL1 is set at 40 W. Confirm with the supplier.
 2. CRI: Ra > 70 (table) vs Ra > 80 (cover badge). Efficacy: 120 lm/W (sheet) vs > 140 lm/W (quote).
 3. Rated life: supplier says 30,000 h; LC rates 50,000 h, needs LM-80 / TM-21.

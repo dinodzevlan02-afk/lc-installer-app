@@ -132,7 +132,7 @@
  },
  "certifications": {},
  "cover": {
-  "subtitle": "DRAFT - PLACEHOLDER FAMILY NAME - REQUIRES DINO'S APPROVAL",
+  "subtitle": "",
   "tagline": "SELECTABLE POWER. SELECTABLE CCT. YOKE OR SLIP-FITTER.",
   "chips": {
    "WATTAGE": "40/60/80W",
@@ -241,12 +241,14 @@
   },
   "text": "YOKE (E x F x D)\n9.61 x 10.07 x 3.23 in\n(244 mm x 256 mm x 82 mm)\n\nSLIP-FITTER (A x B x D)\n9.42 x 14.35 x 3.23 in\n(239 mm x 364 mm x 82 mm)\n\nWEIGHT  4.96 lb (2.25 kg)"
  },
- "electrical_note": "Draft: the supplier documents disagree on wattage, CRI and efficacy. See DRAFT CONFLICTS below.",
- "conflicts": [
+ "electrical_note": "Wattage and colour temperature are field selectable. Set them before the fixture is powered.",
+ "_open_items": [
   "Wattage: supplier sheet 50/60/80W; supplier quote and LC item 40/60/80W; Kroger 345 FL1 is set at 40W. Printed 40/60/80W, confirm the 40W setting with the supplier.",
   "CRI: parameter table Ra >70, cover badge Ra >80. Printed >70.",
   "Efficacy: supplier sheet 120 lm/W, supplier quote >140 lm/W. Printed 120 lm/W.",
   "Photocell: mentioned in the supplier's feature text, not in its table or our part number. Not on this sheet.",
   "Rated life: supplier datasheet 30,000 h; LED Connection rates it 50,000 h (Dino, 2026-10-21). Needs LM-80 / TM-21 backing before release."
- ]
+ ],
+ "electrical_note_src": "supplier datasheet, power adjustment steps 1-4",
+ "callout_body": ""
 }
