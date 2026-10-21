@@ -8,10 +8,13 @@ on:
     types: [opened, synchronize, reopened, closed]
     branches:
       - main
+  # Deploy main by hand (Actions > Run workflow). Added 2026-10-21 after
+  # GitHub dropped the push events for two merges and nothing deployed.
+  workflow_dispatch:
 
 jobs:
   smoke_test_job:
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: API smoke test
     steps:
@@ -24,7 +27,7 @@ jobs:
 
   build_and_deploy_job:
     needs: smoke_test_job
-    if: github.event_name == 'push' || (github.event_name == 'pull_request' && github.event.action != 'closed')
+    if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
     runs-on: ubuntu-latest
     name: Build and Deploy Job
     steps:
