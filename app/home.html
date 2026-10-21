@@ -126,7 +126,7 @@
       <summary id="delSum">Deleted projects</summary>
       <div class="table-wrap">
         <table>
-          <thead><tr><th>Project</th><th>Deleted</th><th>What was kept</th><th></th></tr></thead>
+          <thead><tr><th>Project</th><th>What, who, when</th><th>What was kept</th><th></th></tr></thead>
           <tbody id="deleted"></tbody>
         </table>
       </div>
@@ -138,10 +138,10 @@
       <h2 id="dlTitle">Delete project?</h2>
       <div class="sub" id="dlSub"></div>
       <ul class="what" id="dlWhat"></ul>
-      <div class="keep">Nothing is lost: every file is kept in the backend, and the project can be restored from DELETED PROJECTS below. The delete is written to the activity log with your name.</div>
+      <div class="keep" id="dlKeep"></div>
       <label for="dlReason">Why (optional)</label>
       <input id="dlReason" maxlength="500" placeholder="e.g. started by mistake">
-      <label for="dlConfirm">Type DELETE to confirm</label>
+      <label for="dlConfirm" id="dlConfirmLbl">Type DELETE to confirm</label>
       <input id="dlConfirm" autocomplete="off" autocapitalize="characters" spellcheck="false">
       <div class="row-actions">
         <button type="button" id="dlCancel">Cancel</button>
@@ -364,6 +364,7 @@
       var act = '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' +
         '<button type="button" class="small" data-assign="' + x.i + '">Installers</button> ' +
         '<button type="button" class="small" data-notify="' + x.i + '">Emails</button> ' +
+        '<button type="button" class="small danger" data-reset="' + x.i + '">Reset</button> ' +
         '<button type="button" class="small danger" data-del="' + x.i + '">Delete</button>';
       return '<tr><td><b>' + esc(p.name) + '</b><div class="small-text">' + esc(p.address || p.id) + '</div>' +
           (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') +
@@ -440,43 +441,64 @@
     var nb = e.target.closest('button[data-notify]');
     if (nb) openNotify(PROJECTS[+nb.getAttribute('data-notify')]);
     var d = e.target.closest('button[data-del]');
-    if (d) openDelete(PROJECTS[+d.getAttribute('data-del')]);
+    if (d) openDelete(PROJECTS[+d.getAttribute('data-del')], 'delete');
+    var rb = e.target.closest('button[data-reset]');
+    if (rb) openDelete(PROJECTS[+rb.getAttribute('data-reset')], 'reset');
   });
 
   /* ── Delete a project, and restore it ────────────────────────────────
      Dino, 2026-10-21: LED Connection only, "are you sure?" first, logged,
      and everything kept so it can come back. The server copies every file
      to deleted/ before it removes anything (api/deleted). */
-  var deleting = null;
-  function openDelete(p) {
-    deleting = p;
-    $('dlTitle').textContent = 'Delete ' + p.name + '?';
-    $('dlSub').textContent = p.id + (p.address ? ' · ' + p.address : '');
+  var deleting = null, dlMode = 'delete';
+  function dlWord() { return dlMode === 'reset' ? 'RESET' : 'DELETE'; }
+  /* One dialog for both. DELETE takes the whole project out of the app;
+     RESET (Dino, 2026-10-21: "make a clean project") keeps the job, its
+     installers, site, part numbers and claim emails, and clears the work. */
+  function openDelete(p, mode) {
+    deleting = p; dlMode = mode || 'delete';
+    var reset = dlMode === 'reset';
+    $('dlTitle').textContent = (reset ? 'Reset ' : 'Delete ') + p.name + '?';
+    $('dlSub').textContent = p.id + (p.address ? ' · ' + p.address : '') + (reset ? ' · a clean start for the installers' : '');
+    $('dlKeep').textContent = (reset
+      ? 'Stays: the job, its installers, the site, part numbers and claim emails. '
+      : '') + 'Nothing is lost: every file is kept in the backend and can be restored from the activity log below. This is written to the log with your name.';
+    $('dlConfirmLbl').textContent = 'Type ' + dlWord() + ' to confirm';
+    $('dlGo').textContent = reset ? 'Reset project' : 'Delete project';
     $('dlWhat').innerHTML = '<li>Reading what is stored…</li>';
     $('dlReason').value = ''; $('dlConfirm').value = ''; $('dlGo').disabled = true;
     $('ovDelete').hidden = false;
     $('dlConfirm').focus();
     LCI.api('GET', 'deleted?preview=' + encodeURIComponent(p.id)).then(function (r) {
       var c = r.counts, n = function (k, one, many) { return k + ' ' + (k === 1 ? one : many); };
-      $('dlWhat').innerHTML = [
+      var items = reset ? [
+        c.material ? 'The material counts and their sign-off (the installer counts again)' : 'No material counts yet',
+        n(c.claims, 'material claim', 'material claims'),
+        n(c.pins, 'installed head', 'installed heads') + ' (every pin back to orange), ' + n(c.photos, 'photo', 'photos'),
+        p.job && p.job.submitted ? 'The submitted state: the job opens again' : null
+      ] : [
         p.job && p.job.installers.length ? 'The install job: ' + esc(p.job.installers.join(', ')) + ' lose it at once' : 'The install job (no installers on it)',
         c.material ? 'The material check and its sign-off' : 'No material counts yet',
         n(c.claims, 'material claim', 'material claims'),
         n(c.pins, 'installed head', 'installed heads') + ', ' + n(c.photos, 'photo', 'photos'),
         c.parts ? 'The part numbers saved for this job' : null,
         r.source === 'installer' ? 'The site uploaded to this app (pins, products, quantities)' : 'The customer portal project is not touched: it goes back to Add a project'
-      ].filter(Boolean).map(function (t) { return '<li>' + t + '</li>'; }).join('') + '<li class="mono" style="list-style:none;margin-left:-18px;font-size:11px;color:var(--text-3)">' + n(r.files, 'file', 'files') + ' in all</li>';
+      ];
+      $('dlWhat').innerHTML = items.filter(Boolean).map(function (t) { return '<li>' + t + '</li>'; }).join('') +
+        (reset ? '' : '<li class="mono" style="list-style:none;margin-left:-18px;font-size:11px;color:var(--text-3)">' + n(r.files, 'file', 'files') + ' in all</li>');
     }, function (e) { $('dlWhat').innerHTML = '<li>' + esc(e.message) + '</li>'; });
   }
-  $('dlConfirm').addEventListener('input', function () { $('dlGo').disabled = this.value.trim().toUpperCase() !== 'DELETE'; });
+  $('dlConfirm').addEventListener('input', function () { $('dlGo').disabled = this.value.trim().toUpperCase() !== dlWord(); });
   $('dlCancel').addEventListener('click', function () { $('ovDelete').hidden = true; });
   $('dlGo').addEventListener('click', function () {
-    if ($('dlConfirm').value.trim().toUpperCase() !== 'DELETE') return;
+    if ($('dlConfirm').value.trim().toUpperCase() !== dlWord()) return;
     $('dlGo').disabled = true;
-    LCI.api('POST', 'deleted', { projectId: deleting.id, confirm: deleting.id, reason: $('dlReason').value })
+    LCI.api('POST', 'deleted', { projectId: deleting.id, confirm: deleting.id, reason: $('dlReason').value, mode: dlMode === 'reset' ? 'reset' : undefined })
       .then(function (r) {
         $('ovDelete').hidden = true;
-        say(r.deleted.name + ' deleted. ' + r.deleted.files.length + (r.deleted.files.length === 1 ? ' file' : ' files') + ' kept; restore it from Deleted projects.', true);
+        var nf = r.deleted.files.length + (r.deleted.files.length === 1 ? ' file' : ' files');
+        say(dlMode === 'reset' ? r.deleted.name + ' reset: a clean start. ' + nf + ' kept; restore them from the activity log.'
+                               : r.deleted.name + ' deleted. ' + nf + ' kept; restore it from the activity log.', true);
         return Promise.all([loadProjects(), loadDeleted()]);
       }, function (e) { say(e.message); $('dlGo').disabled = false; });
   });
@@ -484,10 +506,10 @@
     return LCI.api('GET', 'deleted').then(function (r) {
       var list = r.deleted;
       $('delSec').hidden = !list.length;
-      $('delSum').textContent = 'Deleted projects (' + list.length + ') · activity log';
+      $('delSum').textContent = 'Deleted and reset (' + list.length + ') · activity log';
       $('deleted').innerHTML = list.map(function (m) {
         var c = m.counts || {}, rs = m.restored || [];
-        var log = 'by ' + esc(m.byName || m.by) + '<div class="small-text">' + esc(new Date(m.at).toLocaleString()) + '</div>' +
+        var log = '<b>' + (m.kind === 'reset' ? 'Reset' : 'Deleted') + '</b> by ' + esc(m.byName || m.by) + '<div class="small-text">' + esc(new Date(m.at).toLocaleString()) + '</div>' +
           (m.reason ? '<div class="small-text">"' + esc(m.reason) + '"</div>' : '') +
           rs.map(function (x) { return '<div class="small-text restored">restored by ' + esc(x.byName || x.by) + ' · ' + esc(new Date(x.at).toLocaleString()) + '</div>'; }).join('') +
           (m.state === 'archiving' ? '<div class="small-text" style="color:#fca5a5">delete did not finish</div>' : '');
@@ -496,17 +518,19 @@
           '<td>' + log + '</td>' +
           '<td class="small-text">' + (m.files || []).length + ((m.files || []).length === 1 ? ' file · ' : ' files · ') + (c.claims || 0) + ' claims · ' + (c.pins || 0) + ' heads · ' + (c.photos || 0) + ' photos' +
             (c.material ? ' · material check' : '') + '</td>' +
-          '<td><button type="button" class="small" data-restore="' + esc(m.key) + '" data-name="' + esc(m.name) + '">Restore</button></td></tr>';
+          '<td><button type="button" class="small" data-restore="' + esc(m.key) + '" data-name="' + esc(m.name) + '" data-kind="' + (m.kind === 'reset' ? 'reset' : 'delete') + '">Restore</button></td></tr>';
       }).join('');
     }, function (e) { say(e.message); });
   }
   $('deleted').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-restore]');
     if (!b) return;
-    if (!confirm('Restore ' + b.getAttribute('data-name') + '? The job, its counts, claims, installed heads and photos come back as they were when it was deleted.')) return;
+    if (!confirm(b.getAttribute('data-kind') === 'reset'
+      ? 'Undo the reset of ' + b.getAttribute('data-name') + '? Its counts, claims, installed heads and photos come back as they were. Only possible while nothing new was saved on it.'
+      : 'Restore ' + b.getAttribute('data-name') + '? The job, its counts, claims, installed heads and photos come back as they were when it was deleted.')) return;
     b.disabled = true;
     LCI.api('POST', 'deleted/' + encodeURIComponent(b.getAttribute('data-restore')), { action: 'restore' }).then(function (r) {
-      say(r.restored.name + ' restored.', true);
+      say(r.restored.name + (r.restored.kind === 'reset' ? ': the reset is undone.' : ' restored.'), true);
       return Promise.all([loadProjects(), loadDeleted()]);
     }, function (err) { say(err.message); b.disabled = false; });
   });

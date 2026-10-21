@@ -170,6 +170,11 @@ everything under jobs/{id}/, and for a site uploaded here sites/{id}.json and
 sites/{id}/) is COPIED to files/{its own path} and checked there before any
 original is removed. Manifest:
 `{ v, key, id, name, address, customer, source: installer|portal, installers, at, by, byName, reason, files: [path], counts: { claims, pins, photos, material, parts, site }, restored: [{ at, by, byName }] }`.
+A RESET (a clean start, the job stays) uses the same layout with
+`kind: "reset"`: files/ holds the job's work (material.json, claims/, pins/,
+photos/) plus a copy of jobs/{projectId}.json for its submitted state; the
+live job gets `reset: { at, by, archive }` and `submitted: null`. Keys made
+since 2026-10-21 carry milliseconds (`20261021T140512345Z-{id}`).
 `state: "archiving"` means the delete stopped half way; it can still be
 restored. A restore copies the files back (the job record last) and keeps
 the archive. Nothing here is ever removed by the app.

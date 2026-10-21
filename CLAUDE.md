@@ -131,6 +131,24 @@ back."
 - RESTORE puts it all back as it was (job record last) and keeps the
   archive; refused while a project with that id is there again.
 
+## Resetting a project: a clean start (Dino, 2026-10-21)
+
+"Besides deleting the project ... deleting all the work on the pins ...
+make a clean project ... only LED Connection accounts."
+- RESET on each Projects row (LC only), the same dialog as DELETE in reset
+  mode: type RESET, optional reason. Clears the WORK: material counts and
+  sign-off, claims, installed heads, photos, and "submitted". Keeps the job,
+  its installers, the site, part numbers and claim emails. Judgment call:
+  "the work on the pins" taken as all installer work, so the installer
+  starts again from the material check.
+- api/deleted mode "reset": archives the work AND a copy of the job record
+  to deleted/{key}/files/ (key now has milliseconds, so a delete and a reset
+  in the same second never collide), checks the copy, removes the work,
+  archives and removes anything saved meanwhile, then clears submitted
+  (job.reset records who/when/archive). Audit job.reset.
+- The activity log lists it as Reset. RESTORE undoes it (work and submitted
+  state back) only while nobody has saved new work since: never overwrites.
+
 ## UL-listed part numbers (Dino, 2026-10-20)
 
 "Change all the codes that are on the design ... apply these codes first."
@@ -351,12 +369,12 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 208 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 221 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no
   pricing/vendor/notes, BOM counts, moved pins, material sign-off, claims,
-  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack; the portal relay's key; LC list @ledconnection.com only; per-project installers and client on CC); delete and restore (LC only, confirmation, archive complete before removal, audit, portal untouched); uploaded sites (LC only, nothing internal stored,
+  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack; the portal relay's key; LC list @ledconnection.com only; per-project installers and client on CC); delete and restore (LC only, confirmation, archive complete before removal, audit, portal untouched); reset (job, installers and site stay; undo refused after new work); uploaded sites (LC only, nothing internal stored,
   same pin ids on replace). Runs in CI before every deploy.
 
 ## Open items
