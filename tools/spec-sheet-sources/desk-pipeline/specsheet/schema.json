@@ -1,0 +1,214 @@
+{
+  "_schema": {
+    "version": 1,
+    "note": "Data contract for a spec sheet. build.py reads one of these and renders it. Every field is either verified or absent - there is no 'estimated' state, because this document is published under LC's name to inspectors and utilities.",
+    "provenance": "Each entry in `verified` names the document a number came from. A field listed in `published` but missing from `verified` is a build error, not a warning.",
+    "hard_rules": [
+      "NO CONFIRMED UL/ETL LISTING = NO SHEET. Both domains. Needs ul_file_number AND ul_standard. Both examples below deliberately carry null certifications, so both BLOCK on this rule - that is the contract being documented, not a broken example.",
+      "No supplier name, model number, part-number scheme, marketing copy or branded photography anywhere.",
+      "No cost, landed cost, margin, MOQ or incoterm.",
+      "A certification appears only if verified. dlc_verified:false means the DLC line is omitted entirely.",
+      "No photometric page without a real IES file.",
+      "NEVER put a lighting field on a display sheet. No DLC line, no IES, no LM-79/LM-80/TM-21, no efficacy, no CRI, no CCT, no photometric page. A display emits content, not a distribution - see skills.json display.never_ask_for. A DLC line on a screen sheet marks us as someone who has never bought one."
+    ],
+    "categories": "Two shapes, one template. `example_lighting` and `example_display` below are both rendered by overlay.py onto assets/template_LC-TP.pdf - Dino's call, 2026-09-11. The renderer is category-neutral: cover.chips takes any six label/value pairs, and `electrical` is a generic columns/rows table. Only three keys differ by category - cover.headline, electrical.title, and callout_title/callout_body."
+  },
+  "example_lighting": {
+    "family": "Omnitron Series",
+    "product_type": "Linear High Bay Selectable",
+    "lc_sku_prefix": "LC-LHB-OLH",
+    "assigned_by": "Dino - family name and SKU prefix are catalogue decisions, never generated",
+    "source_request": "lighting/REQ-0001",
+    "source_supplier_id": "REDACTED-IN-OUTPUT",
+    "cover": {
+      "tagline": "SELECTABLE POWER. CLEAN INSTALLATION.",
+      "chips": {
+        "WATTAGE": "35-420W",
+        "VOLTAGE": "120-277V / 277-480V",
+        "L70": "50,000h",
+        "WARRANTY": "5 year",
+        "CRI": "80+",
+        "CCT": "40-50K"
+      },
+      "positioning": "Field-adjustable wattage and CCT support flexible stocking, fast project matching, and simplified site configuration.",
+      "headline": "<=170 LM/W"
+    },
+    "description": "The Omnitron Series Linear High Bay delivers high performance in a compact die-cast body built for clean installs and lower shipping cost.",
+    "overview": [
+      "Adjustable wattage and 4000K/5000K CCT for project customization.",
+      "0-10V sensor port supports plug-and-play sensor upgrades.",
+      "Available for 120-277V and 277-480V applications.",
+      "10kV surge protection."
+    ],
+    "badges": [
+      "wattage selectable",
+      "1-10V dimming",
+      "5 years",
+      "50000h lifespan",
+      "color selectable"
+    ],
+    "electrical": {
+      "columns": [
+        "Model",
+        "Wattage",
+        "Lumens",
+        "Efficacy",
+        "Voltage"
+      ],
+      "rows": [
+        [
+          "120WS",
+          "120W",
+          "20,400 lm",
+          "170 lm/W",
+          "120-277V"
+        ],
+        [
+          "160WS",
+          "160W",
+          "27,200 lm",
+          "170 lm/W",
+          "120-277V"
+        ]
+      ],
+      "note": "WATTAGE AVAILABILITY VARIES BY FIXTURE SIZE.",
+      "title": "ELECTRICAL DATA"
+    },
+    "order_logic": {
+      "sample_code": "LC-LHB-OLH - 120 - W",
+      "segments": [
+        {
+          "n": "02",
+          "name": "POWER",
+          "options": [
+            [
+              "120",
+              "120W"
+            ],
+            [
+              "160",
+              "160W"
+            ],
+            [
+              "210",
+              "210W"
+            ]
+          ]
+        },
+        {
+          "n": "03",
+          "name": "CCT",
+          "options": [
+            [
+              "W",
+              "4000K"
+            ],
+            [
+              "P",
+              "5000K"
+            ]
+          ]
+        }
+      ],
+      "note": "Options must be what we actually agreed to buy, not what the factory's catalogue lists."
+    },
+    "certifications": {
+      "dlc_product_id": null,
+      "dlc_verified": false,
+      "ul_etl": null,
+      "ul_standard": null,
+      "ul_file_number": null,
+      "fcc_id": null,
+      "_comment": "All null here on purpose. Nothing in this block reaches the sheet until it is verified - see AGENT.md 1.2."
+    },
+    "photometrics": {
+      "ies_files": [],
+      "_comment": "Empty means the photometric page is omitted and the summary says why. Never trace a curve from a supplier PDF and never reuse a sibling SKU."
+    },
+    "footer": {
+      "phone": "702.847.7680",
+      "web": "www.ledconnection.com",
+      "email": "bids@ledconnection.com",
+      "address": "915 E Dale Ave Ste 110 Henderson, NV 89044",
+      "_comment": "bids@, not an individual. Matches both reference sheets."
+    },
+    "verified": {
+      "chips.WATTAGE": "supplier test report, 2026-09-10",
+      "electrical.rows": "supplier LM-79 summary"
+    },
+    "callout_title": "LUMEN MAINTENANCE",
+    "callout_body": "Calculated L70 @25C ambient: 50,000 hours. Lumen maintenance data is based on LED testing per IES LM-80 and projected per IES TM-21."
+  },
+  "example_display": {
+    "family": "<<ASSIGNED BY DINO - no display family name exists yet>>",
+    "product_type": "Transparent LED Display",
+    "lc_sku_prefix": "<<ASSIGNED BY DINO - segment 01 is always LC>>",
+    "assigned_by": "Dino - family name and SKU prefix are catalogue decisions, never generated. A display sheet does NOT ship until both are assigned.",
+    "source_request": "display/REQ-D-0001",
+    "source_supplier_id": "REDACTED-IN-OUTPUT",
+    "cover": {
+      "headline": "6,000 NITS",
+      "tagline": "SEE THROUGH IT. NOT PAST IT.",
+      "chips": {
+        "PITCH": "3.9 x 7.8 mm",
+        "BRIGHTNESS": "6,000 nits",
+        "TRANSPARENCY": "50%",
+        "REFRESH": "3840 Hz",
+        "IP": "IP65 front / IP54 rear",
+        "WARRANTY": "5 year"
+      },
+      "positioning": "Rail-mounted transparent display for glazed facades, specified on working brightness in direct sun rather than peak laboratory output."
+    },
+    "description": "A transparent LED display for glazed facades, mounted on rails behind the glass line so the storefront reads as glass when the screen is dark.",
+    "overview": [
+      "Asymmetric pixel pitch - state horizontal and vertical separately, never a single 'P3.9'.",
+      "Transparency measured on the assembled panel, not the bare mesh.",
+      "Front-serviceable modules; spare ratio supplied with the order.",
+      "Control system named on the order - it is a lock-in decision for the customer."
+    ],
+    "badges": [
+      "transparent",
+      "front service",
+      "5 years",
+      "rail mount"
+    ],
+    "electrical": {
+      "title": "TECHNICAL DATA",
+      "columns": [
+        "Model",
+        "Pitch (H x V)",
+        "Brightness",
+        "Transparency",
+        "Refresh",
+        "Power avg / max"
+      ],
+      "rows": [],
+      "note": "BRIGHTNESS IS STATED AS WORKING OUTPUT, NOT PEAK. IF A SUPPLIER DERATES, THE DERATED FIGURE IS THE ONE THAT SHIPS."
+    },
+    "order_logic": {
+      "sample_code": "<<pending family + SKU prefix>>",
+      "segments": [],
+      "note": "Options must be what we actually agreed to buy, not what the factory's catalogue lists."
+    },
+    "certifications": {
+      "ul_etl": null,
+      "ul_standard": null,
+      "ul_file_number": null,
+      "fcc_id": null,
+      "control_system": null,
+      "_comment": "NO dlc_product_id and NO dlc_verified key on a display sheet - DLC does not apply and its presence would invite someone to fill it in. ul_standard must be NAMED (UL 48 is the likely one), not just 'UL certified'. fcc_id is the one cert here that is genuinely verifiable in a public database, so it is the one to insist on. control_system is published because Novastar / Colorlight / proprietary is a lock-in fact the customer needs - it is technical, not commercial."
+    },
+    "_no_photometrics": "Deliberately absent. A display has no light distribution, so there is no IES file, no polar plot and no page 4. Do not add one.",
+    "footer": {
+      "phone": "702.847.7680",
+      "web": "www.ledconnection.com",
+      "email": "bids@ledconnection.com",
+      "address": "915 E Dale Ave Ste 110 Henderson, NV 89044",
+      "_comment": "bids@, not an individual. Matches both reference sheets."
+    },
+    "verified": {
+      "chips.BRIGHTNESS": "supplier catalogue C0715 + written confirmation of derate",
+      "certifications.fcc_id": "FCC public database lookup"
+    }
+  }
+}

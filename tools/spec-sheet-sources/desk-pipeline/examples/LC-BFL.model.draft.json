@@ -1,0 +1,96 @@
+{
+  "_status": "DRAFT - nothing here is verified. Confirm each field, then set verified:true.",
+  "_source_document": {
+    "file": "2026-10-01_0930-0255_Spec sheet for angle adjustable bullet flood light.pdf",
+    "vendor": "Torshare",
+    "models": [
+      "TS-BFL0215-15W-X-XXX(XX)",
+      "TS-BFL0225-25W-X-XXX(XX)"
+    ]
+  },
+  "_source_note": "This file carries the VENDOR'S identity. It is provenance, not content - the spec sheet cites it and never reproduces it.",
+  "family": "",
+  "product_type": "LED Beam Spread Adjustable Bullet Flood Light",
+  "lc_sku_prefix": "",
+  "_naming_note": "Family name and LC SKU prefix are catalogue decisions Dino makes. The builder refuses to generate them - Type ID is the join key into the Master Project Tool.",
+  "_category": "lighting",
+  "_category_note": "Drives which fields may appear. A display sheet carries no wattage, CCT, CRI, efficacy, rated life, DLC line, IES file or photometric page - see AGENT.md 5a.",
+  "_matrix": null,
+  "_selected_model": null,
+  "_selected_model_note": "Which COLUMN of the vendor's spec table this sheet is built from. The quotation decides it. Null means no model was chosen and the extracted values are low-trust regex guesses rather than that model's real specification.",
+  "extracted": {
+    "wattage": {
+      "candidates": [
+        "9W/12W/15W (TS-BFL0215-15W series)",
+        "15W/20W/25W (TS-BFL0225-25W series)"
+      ],
+      "confirm": "wattage range per model series",
+      "verified": false,
+      "source": "p02 Specification table and p03 Lighting Parameters table"
+    },
+    "voltage": {
+      "candidates": [
+        "AC120-277V/120-347V"
+      ],
+      "confirm": "input voltage",
+      "verified": false,
+      "source": "p02 Specification table / p02 Features & Benefits / p03 Lighting Parameters table"
+    },
+    "efficacy": {
+      "candidates": [
+        "≥120LM/W"
+      ],
+      "confirm": "efficacy",
+      "verified": false,
+      "source": "p02 Specification table and p03 Lighting Parameters table"
+    },
+    "cct": {
+      "candidates": [
+        "3000K",
+        "3500K",
+        "4000K",
+        "5000K",
+        "5700K",
+        "3000K/4000K/5000K (tunable)"
+      ],
+      "confirm": "CCT options",
+      "verified": false,
+      "source": "p03 Lighting Parameters table (Color Temperature row)"
+    },
+    "cri": {
+      "candidates": [
+        "Ra>70"
+      ],
+      "confirm": "CRI (written as Ra)",
+      "verified": false,
+      "source": "p01 icon and p03 Lighting Parameters table (Color Rendering Index row)"
+    },
+    "warranty": {
+      "candidates": [
+        "5 Years"
+      ],
+      "confirm": "warranty term",
+      "verified": false,
+      "source": "p01 icon and p02 Specification table"
+    },
+    "lifetime": {
+      "candidates": [
+        "≥50000H"
+      ],
+      "confirm": "rated life",
+      "verified": false,
+      "source": "p03 Lighting Parameters table (Life-span row)"
+    }
+  },
+  "possible_certifications": {
+    "ETL": {
+      "candidates": [
+        "ETL Listed (C US), Intertek file number 5000444"
+      ],
+      "confirm": "ETL/Intertek listing number",
+      "verified": false,
+      "source": "p01 certification icon block"
+    }
+  },
+  "_cert_warning": "NOTHING above reaches a spec sheet until verified. A DLC ID or UL file number on a published sheet is a claim LC makes to a utility and an inspector."
+}
