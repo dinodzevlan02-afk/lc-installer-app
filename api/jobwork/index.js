@@ -22,6 +22,7 @@ const crypto = require("crypto");
 const P = require("../shared/app");
 const J = require("../shared/jobs");
 const PARTS = require("../shared/parts");
+const CLAIMMAIL = require("../shared/claimmail");
 const { ApiError } = P;
 
 const MAX_PHOTO = 3 * 1024 * 1024, MAX_PHOTOS = 6, MAX_QTY = 100000;
@@ -167,9 +168,15 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     const claim = Object.assign({ v: J.SCHEMA, ref, kind, kindLabel: CLAIM_KINDS[kind], lines, note, photos, status: "open", at: now.toISOString() }, who(user));
     await P.store().put(J.paths.claim(id, ref), claim, { ifNoneMatch: "*" });
     await P.audit(req, user.username, "claim.create", "job:" + id, { ref, kind, lines: lines.length, photos: photos.length });
-    /* Email to LED Connection comes with mail (see CLAUDE.md); until then
-       the office sees claims on the job page and the installer calls. */
-    return send(201, { claim });
+    /* Emailed to LED Connection (Cassie + Dino) with the photos; the claim
+       is saved first, so a failed email never loses it. The part number on
+       each line is the one the job shows (saved, else decided). */
+    const partsRec = await P.store().get(J.paths.parts(id));
+    const saved = (partsRec && partsRec.data.byLabel) || {};
+    const notify = await CLAIMMAIL.notifyClaim(req, id, job, site, claim, user, sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null);
+    claim.mail = { sent: notify.sent, queued: !!notify.queued, to: notify.to, attached: notify.attached, at: new Date().toISOString(), reason: notify.reason || null };
+    await P.store().put(J.paths.claim(id, ref), claim).catch(() => null);
+    return send(201, { claim, notify });
   }
 
   /* ── Installed heads ────────────────────────────────────────────────── */

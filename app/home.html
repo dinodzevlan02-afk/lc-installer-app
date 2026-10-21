@@ -122,6 +122,17 @@
     </div>
   </div>
 
+  <section class="panel" id="pMail" hidden>
+    <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
+    <h2>Email</h2>
+    <div class="sub">» Material claims go to LED Connection · LED Connection only «</div>
+    <div id="mailStatus" class="small-text">Loading…</div>
+    <div class="addline" style="margin-top:10px">
+      <button type="button" class="small" id="btnPair">Pair Outlook relay</button>
+    </div>
+    <div id="pairKey" hidden></div>
+  </section>
+
   <section class="panel" id="pLogins" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
     <h2>Logins</h2>
@@ -370,6 +381,32 @@
       .catch(function (err) { say(err.message); }).then(function () { $('asSave').disabled = false; });
   });
 
+  /* ── Email: how claims reach LED Connection ──────────────────────────
+     As in the customer portal: Dino's Outlook sends the queued emails
+     (tools/outlook-relay.ps1 on his PC), paired once with a key shown here
+     ONCE. This app's key is its own; the portal's relay is not touched. */
+  function loadMail() {
+    return LCI.api('GET', 'relay/status').then(function (m) {
+      var how = m.graph ? 'Sent directly from Microsoft 365.'
+        : m.relay ? 'Sent through Dino\'s Outlook (relay paired ' + (m.pairedAt ? new Date(m.pairedAt).toLocaleDateString() : '') + (m.pairedBy ? ' by ' + esc(m.pairedBy) : '') + ').'
+        : '<span style="color:#fca5a5">Not set up: claims are saved and shown on the job page, but no email goes out. Pair the Outlook relay.</span>';
+      $('mailStatus').innerHTML = how + '<br>To: ' + esc(m.notifyTo.join(', ')) + ' · waiting ' + m.pending + ' · sent ' + m.sent +
+        (m.lastSent ? ' (last ' + esc(new Date(m.lastSent).toLocaleString()) + ')' : '') + (m.failed ? ' · <span style="color:#fca5a5">failed ' + m.failed + '</span>' : '') +
+        (m.relay && m.pending && !m.sent ? '<br><span style="color:#fca5a5">Waiting for the relay on Dino\'s PC: is it running?</span>' : '');
+      $('btnPair').textContent = m.relay ? 'Pair again (new key)' : 'Pair Outlook relay';
+    }, function (e) { $('mailStatus').textContent = e.message; });
+  }
+  $('btnPair').addEventListener('click', function () {
+    if ($('btnPair').textContent.indexOf('again') >= 0 && !confirm('Make a new relay key? The relay running now stops until it gets the new key.')) return;
+    LCI.api('POST', 'relay/pair', { from: 'dinod@ledconnection.com' }).then(function (r) {
+      $('pairKey').hidden = false;
+      $('pairKey').innerHTML = '<div class="msg ok" style="margin-top:10px">Relay key, shown once. On Dino\'s PC save it as <b>%USERPROFILE%\\.lc-installer-relay\\key.txt</b>, ' +
+        'then run <b>tools/outlook-relay.ps1</b> from the lc-installer-app repo (scheduled task at logon, like the portal\'s relay).' +
+        '<div class="mono" style="margin-top:8px;user-select:all;word-break:break-all">' + esc(r.key) + '</div></div>';
+      loadMail();
+    }, function (e) { say(e.message); });
+  });
+
   $('btnOut').addEventListener('click', LCI.signOut);
 
   LCI.me().then(function (me) {
@@ -379,8 +416,8 @@
     $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role);
     if (me.can.manageUsers) {
       /* LED Connection: every portal project; the server refuses this list to installers anyway. */
-      $('pProjects').hidden = false; $('pLogins').hidden = false;
-      loadUsers(); loadProjects();
+      $('pProjects').hidden = false; $('pLogins').hidden = false; $('pMail').hidden = false;
+      loadUsers(); loadProjects(); loadMail();
     } else {
       $('pJobs').hidden = false; loadJobs();
     }

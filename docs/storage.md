@@ -24,6 +24,10 @@ installer-app/
   jobs/{projectId}/claims/{ref}.json    one material claim (ref MC-yymmdd-XXXX)
   jobs/{projectId}/pins/{pinId}.json    one installed head
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
+  system/relay.json                 the paired Outlook relay: SHA-256 of its key, who paired it, when
+  mailqueue/pending/{id}.json       an email waiting for the Outlook relay (photos inside, base64)
+  mailqueue/sent/{id}.json          sent by the relay (attachments dropped, sentAt)
+  mailqueue/failed/{id}.json        given up after 5 tries (error)
 ```
 
 Every job record (job, material, claim, pin) carries `"v": 1`, the shape it
@@ -121,7 +125,21 @@ An Optimus `pn` always passes the order logic (api/shared/parts.js).
 
 ## jobs/{projectId}/claims/{ref}.json
 
-`{ ref, kind: shortage|damaged|wrong|other, kindLabel, lines: [{ key, name, sku, expected, received, damaged }], note, photos: [name], status: "open", at, by, byName }`
+`{ ref, kind: shortage|damaged|wrong|other, kindLabel, lines: [{ key, name, sku, expected, received, damaged }], note, photos: [name], status: "open", at, by, byName, mail: { sent, queued, to, attached, at, reason } }`
+
+`mail` is how the claim email went: `sent` true = handed to Graph or queued
+for the Outlook relay (`queued`), false with a `reason` = not emailed (the
+claim is saved anyway and the job page shows "not emailed").
+
+## mailqueue/ and system/relay.json
+
+Ported from the customer portal (its docs/email-setup.md). With no Graph
+settings, an email is queued in mailqueue/pending/ once a relay is paired;
+tools/outlook-relay.ps1 on Dino's PC fetches it (GET /api/relay/outbox, header
+X-Relay-Key), sends it through Outlook and acks it (POST, `{ id, ok, error }`),
+which moves it to sent/ or, after 5 failures, failed/. system/relay.json is
+`{ keyHash, pairedAt, pairedBy }`: the key itself is shown once on the home
+page and never stored.
 
 ## jobs/{projectId}/pins/{pinId}.json
 
