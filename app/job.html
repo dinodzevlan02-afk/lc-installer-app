@@ -46,7 +46,11 @@
   .view[hidden] { display: none; }
 
   /* ── Material ───────────────────────────────────────────────────── */
-  #vMaterial { overflow-y: auto; padding: 16px 16px 150px; }
+  /* The list scrolls; the action bar is a footer under it, never on top of
+     a product (Dino, 2026-10-21: it sat over "Wall pack 45W" mid-screen,
+     because an absolute bar inside the scrolling list scrolled with it). */
+  #vMaterial:not([hidden]) { display: flex; flex-direction: column; }
+  .mscroll { flex: 1; min-height: 0; overflow-y: auto; padding: 16px 16px 24px; }
   .wrap { max-width: 1100px; margin: 0 auto; }
   .lead { color: var(--text-2); margin: 0 0 14px; font-size: 15px; }
   .signed { padding: 12px 14px; border-radius: 10px; border: 1px solid rgba(34,197,94,.4); background: rgba(34,197,94,.07); margin-bottom: 14px; font-size: 14px; }
@@ -87,7 +91,7 @@
   .claim { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--panel); font-size: 14px; }
   .claim .ref { font-family: var(--mono); color: var(--orange); font-weight: 800; }
 
-  .bar { position: absolute; left: 0; right: 0; bottom: 0; z-index: 900; border-top: 1px solid var(--border-2);
+  .bar { flex-shrink: 0; position: relative; z-index: 900; border-top: 1px solid var(--border-2);
          background: linear-gradient(180deg, rgba(13,19,34,.97), rgba(8,11,21,.99)); padding: 10px 16px calc(10px + env(safe-area-inset-bottom, 0px)); }
   .bar .row { max-width: 1100px; margin: 0 auto; display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .bar .sum { flex: 1; min-width: 200px; font-family: var(--mono); font-size: 12px; color: var(--text-2); }
@@ -191,13 +195,13 @@
   <div class="loading" id="vLoading">Loading the job…</div>
 
   <section class="view" id="vMaterial" hidden>
-    <div class="wrap">
+    <div class="mscroll" id="mScroll"><div class="wrap">
       <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged, then sign off the quantities to start the install.</p>
       <div id="partsBox"></div>
       <div id="matSigned"></div>
       <div id="lines"></div>
       <div class="claims" id="claims"></div>
-    </div>
+    </div></div>
     <div class="bar">
       <div class="row">
         <div class="sum" id="matSum"></div>
