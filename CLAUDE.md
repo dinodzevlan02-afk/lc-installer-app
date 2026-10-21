@@ -64,7 +64,8 @@ the session; if they are not there, say so rather than guessing.
    in the customer portal (Dino, 2026-10-20). Per tablet, in its browser:
    localStorage lc_installer_pin_size / lc_installer_map_wash.
 3. **Job sheet** (app/manual.html?job=&p=; was "install guide"). Generated per product from the
-   design and catalog. LC DRAFT until Dino approves the wording: product-
+   design and catalog. No DRAFT note on the page (Dino, 2026-10-21:
+   "removed completely from every pin on every site"). Product-
    specific details (wire colours, torque) always point to the fixture's own
    label and instructions, never guessed.
 
