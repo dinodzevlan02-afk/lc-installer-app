@@ -1,0 +1,252 @@
+{
+  "_sources": {
+    "gen9": "Supplier's 9th Gen LED Flood Light spec sheet, sent 31 Oct 2025 (Dino's mail, 'Urgent RFQ - Bullet floodlight and Yoke-Mount floodlight'). Kept outside the repo: supplier document.",
+    "quote": "Supplier's 'Quotation for 9th Gen LED Flood Light' xlsx, same thread, model 80W row.",
+    "lc": "LC item description, Anthony Berlanga's Kroger Standard Part Numbers list (2026-04-06): 'LED Flood 40W-60W-80W, 30-40-50K, 120LM/W, 120-277V, with slip-fitter / Yoke mount bracket'.",
+    "_rule": "Nothing on the sheet that is not in one of these. Never print the supplier's name or model code. 'src' on each line is for review only, never printed."
+  },
+  "part": "LC-FL-WS-3CCT",
+  "name": "Selectable Floodlight",
+  "family": "LC-FL",
+  "doc": "LC-SS-FL-WS-3CCT",
+  "rev": "DRAFT 1",
+  "draft": true,
+  "description": [
+    {
+      "t": "A die-cast floodlight with field-selectable wattage and colour temperature: one fixture covers 40, 60 and 80 W and 3000, 4000 and 5000 K, set on site.",
+      "src": "lc + gen9 'CCT & Wattage Adjustable'"
+    },
+    {
+      "t": "Ships with a slipfitter (-SF) or a yoke (-Y) bracket; the head aims from 0 to 90 degrees.",
+      "src": "lc (SF / Y) + gen9 'Multiple Installation & Bracket Options', 'adjustable angle 0-90'"
+    }
+  ],
+  "overview": [
+    {
+      "t": "Die-cast ADC12 aluminium housing with integrated heat-dissipation fins",
+      "src": "gen9 'Excellent Heat Dissipation', 'Materials ADC12'"
+    },
+    {
+      "t": "IP65, wet location; drainage groove keeps water off the housing",
+      "src": "gen9 'Strong Waterproof Performance', 'Environment Location Wet Location'"
+    },
+    {
+      "t": "Field-selectable wattage: 40 / 60 / 80 W",
+      "src": "quote 80W row '40-60-80W' + lc"
+    },
+    {
+      "t": "Field-selectable CCT: 3000 / 4000 / 5000 K",
+      "src": "gen9 + quote + lc"
+    },
+    {
+      "t": "0-10 V dimming",
+      "src": "quote 'AC120-277V 0-10V Dimming' + gen9 wiring 'DIM+ / DIM-'"
+    },
+    {
+      "t": "Interchangeable yoke and slipfitter brackets",
+      "src": "gen9 'The Yoke, Slip-fitter and Knuckle can be interchangeable for 80W-120W'"
+    }
+  ],
+  "specs": [
+    [
+      "Wattage",
+      "40 / 60 / 80 W, field selectable",
+      "quote + lc"
+    ],
+    [
+      "Colour temperature",
+      "3000 / 4000 / 5000 K, field selectable",
+      "gen9 + quote + lc"
+    ],
+    [
+      "Efficacy",
+      "120 lm/W",
+      "gen9 'lamp's Luminous Efficiency 120LM/W' + lc '120LM/W'"
+    ],
+    [
+      "CRI",
+      "Ra > 70",
+      "gen9 table 'Color Rendering Index Ra>70'"
+    ],
+    [
+      "Input voltage",
+      "120-277 V AC",
+      "gen9 'Working Voltage AC120-277V'"
+    ],
+    [
+      "Dimming",
+      "0-10 V",
+      "quote + gen9 wiring"
+    ],
+    [
+      "Ingress / location",
+      "IP65, wet location",
+      "gen9"
+    ],
+    [
+      "Operating temperature",
+      "-40 to 104 °F (-40 to 40 °C)",
+      "gen9 'Operating Temperature -40F ~ +104F'"
+    ],
+    [
+      "Storage temperature",
+      "-40 to 158 °F (-40 to 70 °C)",
+      "gen9 'Storage Temperature -40F ~ +158F'"
+    ],
+    [
+      "Rated life",
+      "30,000 hours",
+      "gen9 'Life-span 30000H'"
+    ],
+    [
+      "Housing",
+      "Die-cast ADC12 aluminium",
+      "gen9"
+    ],
+    [
+      "Finish",
+      "Gray-brown or black",
+      "gen9 'Black and gray-brown finishes are for choices'"
+    ],
+    [
+      "Weight",
+      "2.25 kg (5.0 lb)",
+      "gen9 80W column 'weight 2250g'"
+    ],
+    [
+      "Dimensions",
+      "9.61 × 10.07 × 3.23 in",
+      "quote 80W row 'Product dimension 9.61 x 10.07 x 3.23'"
+    ],
+    [
+      "Aiming",
+      "0-90°, locked with a hex key",
+      "gen9 installation notice + steps 1-3"
+    ],
+    [
+      "Slipfitter",
+      "For a pole up to Ø60 mm (2.36 in)",
+      "gen9 'The maximum diameter of lamp pole is Ø60'"
+    ]
+  ],
+  "ordering": {
+    "columns": [
+      {
+        "h": "Series",
+        "rows": [
+          [
+            "LC-FL",
+            "LED Flood"
+          ]
+        ]
+      },
+      {
+        "h": "Wattage",
+        "rows": [
+          [
+            "WS",
+            "40 / 60 / 80 W selectable"
+          ]
+        ]
+      },
+      {
+        "h": "CCT",
+        "rows": [
+          [
+            "3CCT",
+            "30K / 40K / 50K selectable"
+          ]
+        ]
+      },
+      {
+        "h": "Voltage",
+        "rows": [
+          [
+            "",
+            "120-277 V"
+          ]
+        ]
+      },
+      {
+        "h": "Mounting",
+        "rows": [
+          [
+            "SF",
+            "Slipfitter"
+          ],
+          [
+            "Y",
+            "Yoke"
+          ]
+        ]
+      }
+    ],
+    "example": "LC-FL-WS-3CCT-Y",
+    "parts": [
+      [
+        "LC-FL-WS-3CCT-SF",
+        "40/60/80 W, 30/40/50 K, 120-277 V, slipfitter bracket"
+      ],
+      [
+        "LC-FL-WS-3CCT-Y",
+        "40/60/80 W, 30/40/50 K, 120-277 V, yoke bracket"
+      ]
+    ],
+    "src": "lc (part numbers and descriptions as LED Connection sells them)"
+  },
+  "wiring": [
+    [
+      "Black",
+      "Line (L)"
+    ],
+    [
+      "White",
+      "Neutral (N)"
+    ],
+    [
+      "Green",
+      "Ground"
+    ],
+    [
+      "Purple",
+      "Dimming + (0-10 V)"
+    ],
+    [
+      "Pink",
+      "Dimming - (0-10 V)"
+    ]
+  ],
+  "wiring_src": "gen9 installation instruction wiring labels",
+  "setup": [
+    {
+      "t": "Turn the power off. Lay the fixture face down.",
+      "src": "gen9 NOTE 2 + 'Step 1: Put the front of fixture downward'"
+    },
+    {
+      "t": "Unscrew the selector cover on the back with a cross (Phillips) screwdriver and set it aside.",
+      "src": "gen9 'Step of adjusting Power' steps 1-2"
+    },
+    {
+      "t": "Set the wattage and CCT switches to the setting the design calls for.",
+      "src": "gen9 step 3"
+    },
+    {
+      "t": "Screw the cover back on before the fixture is powered.",
+      "src": "gen9 step 4"
+    }
+  ],
+  "notes": [
+    {
+      "t": "Electrical work by qualified persons only. Ground the fixture.",
+      "src": "gen9 NOTE 1 and 5"
+    },
+    {
+      "t": "Rated 120-277 V: a 480 V circuit needs a step-down transformer ahead of the fixture.",
+      "src": "follows from the voltage rating; Kroger 345 FL1 ships with one"
+    },
+    {
+      "t": "Do not wipe with water or caustic solutions, and avoid high-pressure washing.",
+      "src": "gen9 NOTE 4 and 7"
+    }
+  ]
+}
