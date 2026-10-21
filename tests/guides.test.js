@@ -26,12 +26,12 @@ test("Kroger 345 flood and wall pack get their guide by part number", () => {
   assert.strictEqual(G.forPart(PARTS.check("lc-fl-ws-3cct-sf")).url, "/guides/flood/LC-Floodlight-Installation-Guide-SF.pdf");
   assert.strictEqual(G.forPart(PARTS.check("LC-FWP-WS-3CCT")).url, "/guides/wallpack/LC-NightShade-Installation-Guide-FWP.pdf");
   assert.strictEqual(G.forPart(PARTS.check(PARTS.DECIDED["LC-FL32A-40-480-40"])).bracket, "SF");
-  assert.strictEqual(G.forPart(PARTS.check("LC-UDL-8-A")), null);
+  assert.strictEqual(G.forPart(PARTS.check(PARTS.DECIDED["LC-UDL-10-16W-277-40-GR"])).url, "/guides/downlight/LC-Universal-Downlight-Installation-Guide-8.pdf");
 });
 
-test("PART_READY matches the PDFs in app/guides/flood and app/guides/wallpack", () => {
+test("PART_READY matches the PDFs in app/guides/flood, wallpack and downlight", () => {
   const root = path.join(__dirname, "..", "app", "guides");
-  const files = ["flood", "wallpack"].flatMap(d => fs.existsSync(path.join(root, d))
+  const files = ["flood", "wallpack", "downlight"].flatMap(d => fs.existsSync(path.join(root, d))
     ? fs.readdirSync(path.join(root, d)).filter(f => f.endsWith(".pdf")).map(f => d + "/" + f) : []).sort();
   assert.deepStrictEqual(files, G.PART_READY.slice().sort());
   for (const g of Object.values(G.BY_PART)) assert.ok(G.PART_READY.includes(g.file), "guide named but not ready: " + g.file);
