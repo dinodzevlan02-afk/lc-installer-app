@@ -59,15 +59,23 @@ async function main() {
   check((await anon("GET", "setup")).body.needed === false, "setup no longer needed");
 
   console.log("logins (LC admin)");
-  const add = await lc("POST", "users", { username: "mike.crew", name: "Mike Crew", phone: "+1 555 010 2030", company: "Crew A" });
+  console.log("installer companies (Dino, 2026-10-21: a company, then its people)");
+  const coA = await lc("POST", "companies", { name: "Crew A", phone: "702 555 0100", email: "office@crew-a.example" });
+  check(coA.status === 201 && coA.body.id === "crew-a" && coA.body.status === "active", "LC admin adds an installer company");
+  check((await lc("POST", "companies", { name: "Crew A" })).status === 409, "the same company twice is refused");
+  check((await lc("POST", "companies", { name: "Crew B" })).status === 201, "a second company");
+  check((await lc("POST", "users", { username: "no.company", name: "Nobody" })).status === 400, "an installer needs a company");
+  check((await lc("POST", "users", { username: "no.company", companyId: "made-up" })).status === 400, "only a company that exists");
+  const add = await lc("POST", "users", { username: "mike.crew", name: "Mike Crew", phone: "+1 555 010 2030", companyId: "crew-a" });
+  check(add.body.user && add.body.user.companyId === "crew-a" && add.body.user.company === "Crew A", "the installer joins the company and carries its name");
   check(add.status === 201 && add.body.user.role === "installer", "LC admin adds an installer (role defaults to installer)");
   check(add.body.invite && /index\.html\?invite=/.test(add.body.invite.link), "a one-time set-password link comes back once");
   check(!JSON.stringify(add.body.user).includes("hash"), "the new login carries no invite or password hash");
-  check((await lc("POST", "users", { username: "mike.crew" })).status === 409, "duplicate username refused");
+  check((await lc("POST", "users", { username: "mike.crew", companyId: "crew-a" })).status === 409, "duplicate username refused");
   check((await lc("POST", "users", { username: "bad", role: "customer-user" })).status === 403, "unknown role refused");
   check((await lc("POST", "users", { username: "x y" })).status === 400, "bad username refused");
-  check((await lc("POST", "users", { username: "bad.mail", email: "not-an-email" })).status === 400, "bad email refused");
-  check((await lc("POST", "users", { username: "temp.crew", password: PW })).status === 201, "LC admin adds a login with a temporary password");
+  check((await lc("POST", "users", { username: "bad.mail", email: "not-an-email", companyId: "crew-a" })).status === 400, "bad email refused");
+  check((await lc("POST", "users", { username: "temp.crew", password: PW, companyId: "crew-b" })).status === 201, "LC admin adds a login with a temporary password");
 
   console.log("invite link");
   const token = new URL(add.body.invite.link).searchParams.get("invite");
@@ -95,6 +103,22 @@ async function main() {
   check((await inst("POST", "users", { username: "sneaky", role: "lc-admin" })).status === 403, "installer cannot create logins");
   check((await inst("PATCH", "users/mike.crew", { role: "lc-admin" })).status === 403, "installer cannot promote themselves");
   check((await inst("PATCH", "users/temp.crew", { disabled: true })).status === 403, "installer cannot switch others off");
+
+  console.log("installer companies: who manages them, switching one off");
+  check((await inst("GET", "companies")).status === 403 && (await inst("POST", "companies", { name: "Mine" })).status === 403, "an installer cannot see or add companies");
+  const coList = (await lc("GET", "companies")).body.companies;
+  check(coList.length === 2 && coList.find(c => c.id === "crew-a").people === 1 && coList.find(c => c.id === "crew-b").people === 1, "the list counts each company's people");
+  check((await lc("PATCH", "companies/crew-a", { status: "suspended" })).status === 200, "LC admin switches a company off");
+  check((await inst("GET", "me")).status === 401, "its people are signed out at once");
+  check((await anon("POST", "login", { username: "mike.crew", password: PW })).status === 403, "and cannot sign in");
+  check((await lc("POST", "users", { username: "late.crew", companyId: "crew-a" })).status === 400, "nobody new joins a switched-off company");
+  await lc("PATCH", "companies/crew-a", { status: "active" });
+  check((await inst("POST", "login", { username: "mike.crew", password: PW })).status === 200, "switched back on, they sign in again");
+  const ren = await lc("PATCH", "companies/crew-b", { name: "Crew B Electric" });
+  check(ren.status === 200 && (await lc("GET", "users/temp.crew")).body.company === "Crew B Electric", "renaming a company renames it on its people");
+  const mv = await lc("PATCH", "users/temp.crew", { companyId: "crew-a" });
+  check(mv.status === 200 && mv.body.user.companyId === "crew-a" && mv.body.user.company === "Crew A", "an installer moves to another company");
+  check((await lc("PATCH", "users/dino", { companyId: "crew-a" })).status === 400, "an LED Connection admin is in no installer company");
 
   console.log("session rules");
   check((await anon("GET", "me")).status === 401, "no cookie, no session");
@@ -208,16 +232,16 @@ async function main() {
   const outbox = () => (fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : []).map(f => JSON.parse(fs.readFileSync(path.join(outDir, f), "utf8")));
 
   console.log("a new login is emailed its invite (Dino, 2026-10-21: same as the customer portal)");
-  const nv = await lc("POST", "users", { username: "dave.test", name: "Dave Test", email: "Dave.Test@crew-b.example", company: "Crew B" });
+  const nv = await lc("POST", "users", { username: "dave.test", name: "Dave Test", email: "Dave.Test@crew-b.example", companyId: "crew-b" });
   const nvm = outbox().find(m => m.subject === "Your LED Connection Installer App access" && [].concat(m.to).includes("dave.test@crew-b.example")) || {};
   check(nv.status === 201 && nv.body.invite.emailSent === true && nv.body.invite.link === undefined, "with an email on the login, the invite is emailed and the link is not shown");
-  check(/as <b>installer<\/b> \(Crew B\)/.test(nvm.html || "") && /dave\.test/.test(nvm.html) && /index\.html\?invite=/.test(nvm.html), "the email names the role, company and username, with the set-password link");
+  check(/as <b>installer<\/b> \(Crew B Electric\)/.test(nvm.html || "") && /dave\.test/.test(nvm.html) && /index\.html\?invite=/.test(nvm.html), "the email names the role, company and username, with the set-password link");
   const nvTok = ((nvm.html || "").match(/invite=([A-Za-z0-9_-]+)/) || [])[1];
   check((await anon("GET", "invite?token=" + encodeURIComponent(nvTok))).body.username === "dave.test", "the emailed link opens that login");
   const na = await lc("POST", "users", { username: "ops.admin", name: "Ops Admin", email: "ops.admin@ledconnection.com", role: "lc-admin" });
   check(na.status === 201 && /as <b>LED Connection admin<\/b>/.test((outbox().find(m => [].concat(m.to).includes("ops.admin@ledconnection.com")) || {}).html || ""), "an LED Connection admin's invite says so");
   const obN = outbox().length;
-  check((await lc("POST", "users", { username: "dave.test", email: "someone@else.example" })).status === 409 && outbox().length === obN, "a refused duplicate emails nobody");
+  check((await lc("POST", "users", { username: "dave.test", email: "someone@else.example", companyId: "crew-b" })).status === 409 && outbox().length === obN, "a refused duplicate emails nobody");
   const nr = await lc("PATCH", "users/dave.test", { sendInvite: true });
   check(nr.status === 200 && nr.body.invite.emailSent && outbox().length === obN + 1, "NEW LINK emails a fresh invite");
   const onJob = (await lc("GET", "jobs/TEST-SITE-01")).body.job.installers;
@@ -303,7 +327,7 @@ async function main() {
   check((await lc("PATCH", "jobs/TEST-SITE-01", { reopenMaterial: true })).status === 200, "LC admin can reopen the material check");
 
   console.log("changing the installer on a job: LED Connection only");
-  check((await lc("POST", "users", { username: "anna.crew", name: "Anna Crew", password: PW })).status === 201, "a second installer login");
+  check((await lc("POST", "users", { username: "anna.crew", name: "Anna Crew", password: PW, companyId: "crew-b" })).status === 201, "a second installer login");
   const anna = browser();
   await anna("POST", "login", { username: "anna.crew", password: PW });
   await anna("POST", "password", { current: PW, next: PW + "-a" });

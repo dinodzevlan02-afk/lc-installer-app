@@ -26,6 +26,7 @@ installer-app/
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
   system/relay.json                 the paired Outlook relay: SHA-256 of its key, who paired it, when
   system/relay-seen.json            when a relay last came for mail, and which (installer | portal | setting)
+  companies/{id}.json               installer company { id, name, status active|suspended, phone, email, notes, created, createdBy }
   system/notify.json                LED Connection's list for every claim email (@ledconnection.com only)
   mailqueue/pending/{id}.json       an email waiting for the Outlook relay (photos inside, base64)
   mailqueue/sent/{id}.json          sent by the relay (attachments dropped, sentAt)
