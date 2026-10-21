@@ -59,6 +59,9 @@
   .addline select { flex: 1; min-width: 240px; width: auto; }
   .upline { margin-top: 10px; align-items: center; }
   .upline .small-text { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: 1; min-width: 200px; }
+  .upask { margin-top: 10px; padding: .65rem .85rem; border: 1px solid rgba(243,112,33,.45); border-radius: 8px; background: rgba(243,112,33,.08); font-family: var(--mono); font-size: 11.5px; line-height: 1.55; }
+  .upask .addline { margin-top: 8px; }
+  #upMsg { margin-top: 10px; }
   .src { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--cyan); text-transform: uppercase; }
   .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
   .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--mono); font-size: 12px; }
@@ -115,6 +118,11 @@
         <input type="file" id="siteFile" accept=".json,application/json" hidden>
         <span class="small-text">A site kept in this app only (not in the customer portal), built with tools/sites from the audit export and the approved design.</span>
       </div>
+      <div class="upask" id="upAsk" hidden>
+        <div id="upAskText"></div>
+        <div class="addline"><button type="button" class="primary" id="upYes">Replace site</button><button type="button" class="small" id="upNo">Cancel</button></div>
+      </div>
+      <div id="upMsg" class="msg" hidden role="status" aria-live="polite"></div>
     </div>
     <div class="table-wrap">
       <table>
@@ -418,26 +426,55 @@
   /* A site kept in this app only (Kroger 345 first): the file names its own
      project id; replacing one keeps every saved pin, because pins are keyed
      by the audit row id, not by the upload. */
+  /* Its answer shows right under the button (the page-wide message sits at
+     the very bottom, out of sight: Dino, 2026-10-21, "I click open and
+     nothing is happening"), and the replace question is in the page, not a
+     browser confirm() that Edge can silence. */
+  var upPending = null;
+  function upSay(text, ok) {
+    var m = $('upMsg');
+    m.textContent = text || '';
+    m.className = 'msg ' + (ok ? 'ok' : 'err');
+    m.hidden = !text;
+    if (text) m.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+  function upSend(j) {
+    var id = j.project.id;
+    $('upAsk').hidden = true; upPending = null;
+    $('btnUpload').disabled = true;
+    upSay('Uploading ' + (j.project.name || id) + '…', true);
+    return LCI.api('PUT', 'sites/' + encodeURIComponent(id), j).then(function (r) {
+      upSay((r.replaced ? 'Site replaced: ' : 'Site added: ') + r.site.name + ' · ' + r.site.fixtures + ' fixtures.' +
+        (PROJECTS.some(function (p) { return p.id === id && p.job; }) ? ' Its job, saved counts and pins are kept.' : ' Start its job from the list.'), true);
+      addOpen = true;
+      return loadProjects().then(function () { upSay($('upMsg').textContent, true); });
+    }).catch(function (err) { upSay('Upload failed: ' + err.message); })
+      .then(function () { $('btnUpload').disabled = false; });
+  }
   $('btnUpload').addEventListener('click', function () { $('siteFile').value = ''; $('siteFile').click(); });
   $('siteFile').addEventListener('change', function () {
     var f = this.files && this.files[0];
     if (!f) return;
+    $('upAsk').hidden = true; upPending = null; say('');
+    upSay('Reading ' + f.name + '…', true);
     f.text().then(function (t) {
       var j;
-      try { j = JSON.parse(t); } catch (e) { throw new Error('That file is not a site file (not JSON).'); }
+      try { j = JSON.parse(t); } catch (e) { throw new Error(f.name + ' is not a site file (not JSON).'); }
       var id = j && j.project && j.project.id;
-      if (!id || j.format !== 'lc-site') throw new Error('That file is not a site file (format "lc-site" with a project id).');
+      if (!id || j.format !== 'lc-site') throw new Error(f.name + ' is not a site file (format "lc-site" with a project id).');
       var known = PROJECTS.filter(function (p) { return p.id === id; })[0];
-      if (known && known.source === 'installer' &&
-          !confirm('Replace the site of ' + (known.name || id) + '? Saved counts, claims and installed pins stay.')) return null;
-      say('Uploading ' + (j.project.name || id) + '…', true);
-      return LCI.api('PUT', 'sites/' + encodeURIComponent(id), j).then(function (r) {
-        say((r.replaced ? 'Site replaced: ' : 'Site added: ') + r.site.name + ' · ' + r.site.fixtures + ' fixtures. Start its job from the list.', true);
-        addOpen = true;
-        return loadProjects();
-      });
-    }).catch(function (err) { say(err.message); });
+      if (known && known.source === 'installer') {
+        upPending = j;
+        $('upAskText').textContent = 'Replace the site of ' + (known.name || id) + ' with ' + f.name + '? Saved counts, claims and installed pins stay.';
+        $('upAsk').hidden = false; upSay('');
+        $('upAsk').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+        return;
+      }
+      return upSend(j);
+    }).catch(function (err) { upSay(err.message); });
   });
+  $('upYes').addEventListener('click', function () { if (upPending) upSend(upPending); });
+  $('upNo').addEventListener('click', function () { upPending = null; $('upAsk').hidden = true; upSay('Not uploaded: the site is unchanged.', true); });
   function loadProjects() {
     return LCI.api('GET', 'projects').then(function (r) { PROJECTS = r.projects; renderProjects(); },
       function (e) { $('projects').innerHTML = '<tr><td colspan="5" class="msg err">' + esc(e.message) + '</td></tr>'; });
