@@ -96,8 +96,22 @@ the way the customer portal sends through Outlook.
   Home page EMAIL panel (LC only): status, PAIR OUTLOOK RELAY shows the key
   once; save it as key.txt in that folder and run tools/outlook-relay.ps1 as
   a scheduled task on Dino's PC (same as the portal's, docs there).
-  /api/relay/status feeds the panel. Until paired, claims are saved and NOT
-  emailed (on Azure there is no local outbox).
+  /api/relay/status feeds the panel.
+- No second pairing (Dino, 2026-10-21: "don't ask ... just do it. I need
+  these emails"): the CUSTOMER PORTAL'S relay, already running on his PC,
+  is accepted here (mail.js relayHashes reads the portal's system/relay.json
+  key hash, read-only) and its script (lc-customer-portal
+  tools/outlook-relay.ps1) polls this app's outbox too with the same key
+  (ledger ids "lci:"). His PC needs that script pulled and the task
+  restarted once. Claims queue meanwhile and go out when it next polls.
+- Who gets it (Dino, same day: "who do we want to report this ... add new
+  email ... all from LED Connection ... and who I assigned as installer and
+  who is going to be client"): To = LED Connection's list, edited on the
+  EMAIL panel (system/notify.json, @ledconnection.com only). CC per project
+  (EMAILS on its row, job.notify): the job's installers by their login
+  email (on unless unticked, so one added later hears too) and the client
+  contacts typed there. There are no client logins in this app; installers
+  never see who else is emailed.
 
 ## Deleting a project (Dino, 2026-10-21)
 
@@ -337,12 +351,12 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 190 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 208 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no
   pricing/vendor/notes, BOM counts, moved pins, material sign-off, claims,
-  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack); delete and restore (LC only, confirmation, archive complete before removal, audit, portal untouched); uploaded sites (LC only, nothing internal stored,
+  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack; the portal relay's key; LC list @ledconnection.com only; per-project installers and client on CC); delete and restore (LC only, confirmation, archive complete before removal, audit, portal untouched); uploaded sites (LC only, nothing internal stored,
   same pin ids on replace). Runs in CI before every deploy.
 
 ## Open items

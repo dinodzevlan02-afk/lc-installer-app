@@ -4,7 +4,7 @@
    over a portal project with the same id, as in site.js.
 
    { projects: [{ id, name, address, customer, kind, installDate, heads, source,
-                  job: null | { installers, materialApproved, pinsSaved, submitted } }] }
+                  job: null | { installers, materialApproved, pinsSaved, submitted, notify } }] }
 
    Read from the portal's container through the read-only portalStore,
    WHITELISTED like site.js: never the NetSuite number, notes or who
@@ -37,7 +37,8 @@ module.exports = P.handler(async ({ req, send }) => {
     const j = jobOf[id];
     if (!j) return null;
     const [mat, pins] = await Promise.all([P.store().get(J.paths.material(j.id)), P.store().list(J.paths.pins(j.id))]);
-    return { installers: j.installers || [], materialApproved: !!(mat && mat.data.approved), pinsSaved: pins.length, submitted: j.submitted || null };
+    return { installers: j.installers || [], materialApproved: !!(mat && mat.data.approved), pinsSaved: pins.length, submitted: j.submitted || null,
+             notify: { installersOff: (j.notify && j.notify.installersOff) || [], client: (j.notify && j.notify.client) || [] } };
   }
   const fromPortal = metas.filter(m => !ownIds.has(m.id)).map(async m => {
     const site = m.site || {};

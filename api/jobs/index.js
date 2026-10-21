@@ -13,6 +13,7 @@ const J = require("../shared/jobs");
 const PARTS = require("../shared/parts");
 const GUIDES = require("../shared/guides");
 const SPECS = require("../shared/specs");
+const CLAIMMAIL = require("../shared/claimmail");
 const { A, ApiError } = P;
 
 /* Installer logins only: an LC admin already sees every job, so naming one
@@ -143,6 +144,14 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       job.installers = await cleanInstallers(body.installers, before);
       logged.added = job.installers.filter(u => !before.includes(u));
       logged.removed = before.filter(u => !job.installers.includes(u));
+      if (job.notify) job.notify.installersOff = (job.notify.installersOff || []).filter(u => job.installers.includes(u));
+    }
+    /* Who else gets this job's claim emails (Dino, 2026-10-21): its
+       installers (by their login email; untick any) and the client's
+       contacts. LED Connection's own list is on the home page. */
+    if (body.notify !== undefined) {
+      job.notify = CLAIMMAIL.cleanJobNotify(body.notify, job);
+      logged.notify = { installersOff: job.notify.installersOff, client: job.notify.client.map(c => c.email) };
     }
     if (body.reopenMaterial) {
       const mat = await P.store().get(J.paths.material(id));

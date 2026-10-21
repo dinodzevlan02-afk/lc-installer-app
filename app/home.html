@@ -60,6 +60,15 @@
   .upline { margin-top: 10px; align-items: center; }
   .upline .small-text { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: 1; min-width: 200px; }
   .src { font-family: var(--mono); font-size: 9.5px; letter-spacing: .08em; color: var(--cyan); text-transform: uppercase; }
+  .chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 8px 0; }
+  .chip { display: inline-flex; align-items: center; gap: 6px; padding: 5px 6px 5px 10px; border: 1px solid var(--border-2); border-radius: 999px; font-family: var(--mono); font-size: 12px; }
+  .chip button { min-height: 0; padding: 0 7px; border: 0; background: none; color: var(--text-3); font-size: 14px; line-height: 1; }
+  .chip.ro { padding-right: 10px; }
+  .dlg h3 { margin: 16px 0 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
+  .dlg .pick label .em { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+  .crow { display: flex; gap: 8px; margin-bottom: 6px; }
+  .crow input { flex: 1; min-width: 0; }
+  @media (pointer: coarse) { .chip button { min-width: 44px; min-height: 44px; } }
   .delsec { margin-top: 16px; }
   .delsec summary { cursor: pointer; font-family: var(--mono); font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--text-3); padding: 8px 0; }
   .delsec .restored { color: var(--green); }
@@ -153,13 +162,38 @@
     </div>
   </div>
 
+  <div class="ov" id="ovNotify" hidden>
+    <div class="dlg" role="dialog" aria-labelledby="ntTitle">
+      <h2 id="ntTitle">Claim emails</h2>
+      <div class="sub">Who gets this project's material claim emails, the moment an installer sends one. Photos, note and missing quantities included.</div>
+      <h3>LED Connection (every project)</h3>
+      <div class="chips" id="ntLc"></div>
+      <h3>Installers on this job</h3>
+      <div class="pick" id="ntInst"></div>
+      <h3>Client</h3>
+      <div id="ntClient"></div>
+      <button type="button" class="small" id="ntAddClient">+ Add a client contact</button>
+      <div class="row-actions">
+        <button type="button" id="ntCancel">Cancel</button>
+        <button type="button" class="primary" id="ntSave">Save</button>
+      </div>
+    </div>
+  </div>
+
   <section class="panel" id="pMail" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
     <h2>Email</h2>
     <div class="sub">» Material claims go to LED Connection · LED Connection only «</div>
     <div id="mailStatus" class="small-text">Loading…</div>
-    <div class="addline" style="margin-top:10px">
-      <button type="button" class="small" id="btnPair">Pair Outlook relay</button>
+    <label for="lcAdd" style="margin-top:14px">LED Connection: gets every claim email, on every project</label>
+    <div class="chips" id="lcList"></div>
+    <div class="addline">
+      <input id="lcAdd" type="email" placeholder="name@ledconnection.com" style="flex:1;min-width:220px;width:auto">
+      <button type="button" class="small" id="btnLcAdd">Add</button>
+    </div>
+    <div class="small-text" style="margin-top:6px">Installers and the client are added per project: EMAILS on its row above.</div>
+    <div class="addline" style="margin-top:12px">
+      <button type="button" class="small" id="btnPair">Pair a separate relay</button>
     </div>
     <div id="pairKey" hidden></div>
   </section>
@@ -329,6 +363,7 @@
         (j.installers.length ? esc(j.installers.join(', ')) : 'no installer') + '</div>';
       var act = '<a class="btn small" href="./job.html?id=' + encodeURIComponent(p.id) + '">Open</a> ' +
         '<button type="button" class="small" data-assign="' + x.i + '">Installers</button> ' +
+        '<button type="button" class="small" data-notify="' + x.i + '">Emails</button> ' +
         '<button type="button" class="small danger" data-del="' + x.i + '">Delete</button>';
       return '<tr><td><b>' + esc(p.name) + '</b><div class="small-text">' + esc(p.address || p.id) + '</div>' +
           (p.kind ? '<div class="kind">' + esc(p.kind === 'interior' ? 'Interior · floor plan' : 'Exterior · map') + '</div>' : '') +
@@ -402,6 +437,8 @@
   $('projects').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-assign]');
     if (b) openAssign(+b.getAttribute('data-assign'));
+    var nb = e.target.closest('button[data-notify]');
+    if (nb) openNotify(PROJECTS[+nb.getAttribute('data-notify')]);
     var d = e.target.closest('button[data-del]');
     if (d) openDelete(PROJECTS[+d.getAttribute('data-del')]);
   });
@@ -487,19 +524,86 @@
      As in the customer portal: Dino's Outlook sends the queued emails
      (tools/outlook-relay.ps1 on his PC), paired once with a key shown here
      ONCE. This app's key is its own; the portal's relay is not touched. */
+  var LC_LIST = [];
+  function ago(t) { var m = Math.round((Date.now() - t) / 60000); return m < 2 ? 'just now' : m < 120 ? m + ' min ago' : Math.round(m / 60) + ' h ago'; }
   function loadMail() {
     return LCI.api('GET', 'relay/status').then(function (m) {
+      var seen = m.seenAt ? ', last checked in ' + ago(m.seenAt) : ', not checked in yet';
       var how = m.graph ? 'Sent directly from Microsoft 365.'
-        : m.relay ? 'Sent through Dino\'s Outlook (relay paired ' + (m.pairedAt ? new Date(m.pairedAt).toLocaleDateString() : '') + (m.pairedBy ? ' by ' + esc(m.pairedBy) : '') + ').'
-        : '<span style="color:#fca5a5">Not set up: claims are saved and shown on the job page, but no email goes out. Pair the Outlook relay.</span>';
-      $('mailStatus').innerHTML = how + '<br>To: ' + esc(m.notifyTo.join(', ')) + ' · waiting ' + m.pending + ' · sent ' + m.sent +
+        : m.relay ? 'Sent through Dino\'s Outlook from dinod@' + (m.portalRelay ? ' (the customer portal\'s relay, same key)' : '') + seen + '.'
+        : '<span style="color:#fca5a5">Not set up: claims are saved and shown on the job page, but no email goes out.</span>';
+      $('mailStatus').innerHTML = how + '<br>Waiting ' + m.pending + ' · sent ' + m.sent +
         (m.lastSent ? ' (last ' + esc(new Date(m.lastSent).toLocaleString()) + ')' : '') + (m.failed ? ' · <span style="color:#fca5a5">failed ' + m.failed + '</span>' : '') +
-        (m.relay && m.pending && !m.sent ? '<br><span style="color:#fca5a5">Waiting for the relay on Dino\'s PC: is it running?</span>' : '');
-      $('btnPair').textContent = m.relay ? 'Pair again (new key)' : 'Pair Outlook relay';
+        (m.relay && m.pending && (!m.seenAt || Date.now() - m.seenAt > 15 * 60000)
+          ? '<br><span style="color:#fca5a5">Waiting for the relay on Dino\'s PC: update and restart it (see the note in the customer portal repo, tools/outlook-relay.ps1).</span>' : '');
+      LC_LIST = m.notifyTo.slice();
+      renderLcList();
     }, function (e) { $('mailStatus').textContent = e.message; });
   }
+  function renderLcList() {
+    $('lcList').innerHTML = LC_LIST.map(function (a, i) {
+      return '<span class="chip">' + esc(a) + (LC_LIST.length > 1 ? '<button type="button" data-lcdel="' + i + '" aria-label="Remove ' + esc(a) + '">&times;</button>' : '') + '</span>';
+    }).join('');
+  }
+  function saveLcList(next) {
+    return LCI.api('POST', 'relay/notify', { to: next }).then(function (r) { LC_LIST = r.notifyTo; renderLcList(); say('LED Connection list saved.', true); },
+      function (e) { say(e.message); });
+  }
+  $('btnLcAdd').addEventListener('click', function () {
+    var a = $('lcAdd').value.trim().toLowerCase();
+    if (!a) return;
+    if (!/@ledconnection\.com$/.test(a)) { say('Only @ledconnection.com addresses here. Installers and the client go on the project (EMAILS).'); return; }
+    saveLcList(LC_LIST.concat([a])).then(function () { $('lcAdd').value = ''; });
+  });
+  $('lcAdd').addEventListener('keydown', function (e) { if (e.key === 'Enter') $('btnLcAdd').click(); });
+  $('lcList').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-lcdel]');
+    if (!b) return;
+    var a = LC_LIST[+b.getAttribute('data-lcdel')];
+    if (!confirm('Stop sending claim emails to ' + a + '?')) return;
+    saveLcList(LC_LIST.filter(function (x) { return x !== a; }));
+  });
+
+  /* ── A project's claim emails: its installers and its client ──────── */
+  var notifying = null;
+  function clientRow(c) {
+    return '<div class="crow"><input placeholder="Name" maxlength="80" value="' + esc(c.name || '') + '" data-cn>' +
+      '<input type="email" placeholder="email@client.com" value="' + esc(c.email || '') + '" data-ce>' +
+      '<button type="button" class="small" data-cdel aria-label="Remove">&times;</button></div>';
+  }
+  function openNotify(p) {
+    notifying = p;
+    var n = (p.job && p.job.notify) || { installersOff: [], client: [] };
+    $('ntTitle').textContent = 'Claim emails · ' + p.name;
+    $('ntLc').innerHTML = LC_LIST.map(function (a) { return '<span class="chip ro">' + esc(a) + '</span>'; }).join('') || '<span class="small-text">Set on the EMAIL panel.</span>';
+    var inst = (p.job && p.job.installers) || [];
+    $('ntInst').innerHTML = inst.map(function (u) {
+      var rec = USERS.filter(function (x) { return x.username === u; })[0] || { username: u };
+      var ok = !!rec.email && !rec.disabled;
+      return '<label><input type="checkbox" value="' + esc(u) + '"' + (ok && n.installersOff.indexOf(u) < 0 ? ' checked' : '') + (ok ? '' : ' disabled') + '>' +
+        esc(rec.name || u) + ' <span class="em">' + (rec.disabled ? 'switched off' : ok ? esc(rec.email) : 'no email on the login: add it under Logins') + '</span></label>';
+    }).join('') || '<span class="small-text">No installers on this job yet (INSTALLERS on its row).</span>';
+    $('ntClient').innerHTML = (n.client || []).map(clientRow).join('');
+    $('ovNotify').hidden = false;
+  }
+  $('ntAddClient').addEventListener('click', function () {
+    $('ntClient').insertAdjacentHTML('beforeend', clientRow({}));
+    var ins = $('ntClient').querySelectorAll('input[data-cn]'); ins[ins.length - 1].focus();
+  });
+  $('ntClient').addEventListener('click', function (e) { var b = e.target.closest('button[data-cdel]'); if (b) b.parentNode.remove(); });
+  $('ntCancel').addEventListener('click', function () { $('ovNotify').hidden = true; });
+  $('ntSave').addEventListener('click', function () {
+    var off = Array.prototype.filter.call($('ntInst').querySelectorAll('input[type=checkbox]:not(:disabled)'), function (c) { return !c.checked; }).map(function (c) { return c.value; });
+    var client = Array.prototype.map.call($('ntClient').querySelectorAll('.crow'), function (r) {
+      return { name: r.querySelector('[data-cn]').value.trim(), email: r.querySelector('[data-ce]').value.trim() };
+    }).filter(function (c) { return c.name || c.email; });
+    $('ntSave').disabled = true;
+    LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { installersOff: off, client: client } })
+      .then(function () { $('ovNotify').hidden = true; say('Claim emails saved for ' + notifying.name + '.', true); return loadProjects(); }, function (e) { say(e.message); })
+      .then(function () { $('ntSave').disabled = false; });
+  });
   $('btnPair').addEventListener('click', function () {
-    if ($('btnPair').textContent.indexOf('again') >= 0 && !confirm('Make a new relay key? The relay running now stops until it gets the new key.')) return;
+    if (!confirm('Pair a separate relay with its own key? Not needed while the customer portal\'s relay sends these emails.')) return;
     LCI.api('POST', 'relay/pair', { from: 'dinod@ledconnection.com' }).then(function (r) {
       $('pairKey').hidden = false;
       $('pairKey').innerHTML = '<div class="msg ok" style="margin-top:10px">Relay key, shown once. On Dino\'s PC save it as <b>%USERPROFILE%\\.lc-installer-relay\\key.txt</b>, ' +

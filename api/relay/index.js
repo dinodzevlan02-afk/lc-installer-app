@@ -1,7 +1,8 @@
 /* The Outlook relay's side of this app's mail queue. Ported from
    lc-customer-portal api/relay (Dino, 2026-10-14 there; 2026-10-21 here for
-   material claims). See mail.js. This app has its own key: pairing here
-   never touches the portal's relay.
+   material claims). See mail.js. The portal's own relay (already running on
+   Dino's PC) is accepted too, so no second pairing is needed; pairing here
+   never touches the portal.
 
    GET  /api/relay/outbox                -> { messages: [...] }  oldest first,
                                            up to 5, attachments base64
@@ -34,17 +35,25 @@ const { A, ApiError } = P;
 const PENDING = "mailqueue/pending/", SENT = "mailqueue/sent/", FAILED = "mailqueue/failed/";
 const RE_ID = /^[0-9TZ-]{20,40}-[a-f0-9]{8}$/;
 const MAX_TRIES = 5;
+const SEEN = "system/relay-seen.json";
 
 const sha = v => crypto.createHash("sha256").update(String(v)).digest();
 
+/* Any accepted relay key (mail.js relayHashes: this app's own, or the
+   customer portal's relay, which polls this app too). */
 async function checkKey(req) {
-  const env = String(process.env.INSTALLER_RELAY_KEY || "");
-  const paired = await P.store().get("system/relay.json").catch(() => null);
-  const wantHash = env.length >= 24 ? sha(env) : (paired && paired.data.keyHash ? Buffer.from(paired.data.keyHash, "hex") : null);
-  if (!wantHash) throw new ApiError(404, "Not found.");
+  const want = await MAIL.relayHashes();
+  if (!want.length) throw new ApiError(404, "Not found.");
   const h = req.headers || {};
   const got = String(h["x-relay-key"] || h["X-Relay-Key"] || "");
-  if (!got || !crypto.timingSafeEqual(sha(got), wantHash)) throw new ApiError(401, "Bad relay key.");
+  const gh = sha(got);
+  const hit = got && want.find(w => crypto.timingSafeEqual(gh, w.hash));
+  if (!hit) throw new ApiError(401, "Bad relay key.");
+  /* When a relay last came for mail, for the home page (written at most
+     every 5 minutes, the relay asks every 15 seconds). */
+  const seen = await P.store().get(SEEN).catch(() => null);
+  if (!seen || Date.now() - (seen.data.at || 0) > 5 * 60000)
+    await P.store().put(SEEN, { at: Date.now(), via: hit.via }).catch(() => null);
 }
 
 module.exports = P.handler(async ({ req, method, body, params, send }) => {
@@ -68,21 +77,40 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     await P.audit(req, user.username, "relay.pair", "system:relay", { from: body.from || null, byHash: !!given });
     return send(200, given ? { paired: true } : { key });
   }
-  /* GET /api/relay/status  LC admin: how mail goes out, for the home page. */
+  /* GET /api/relay/status  LC admin: how mail goes out and to whom, for the
+     home page EMAIL panel. relay: which relay may fetch the queue (this
+     app's own pairing, or the customer portal's relay); seenAt: when one
+     last came for mail. */
   if (action === "status") {
     if (method !== "GET") throw new ApiError(405, "Method not allowed.");
     await P.requireLc(req);
-    const paired = await st.get("system/relay.json").catch(() => null);
+    const CM = require("../shared/claimmail");
+    const [hashes, seen, list] = await Promise.all([MAIL.relayHashes(), st.get(SEEN).catch(() => null), CM.lcList()]);
     const [pending, sent, failed] = await Promise.all([PENDING, SENT, FAILED].map(p => st.list(p).then(n => n.filter(x => x.endsWith(".json"))).catch(() => [])));
     const last = sent.sort().slice(-1)[0];
+    const own = hashes.find(h => h.via !== "portal"), portal = hashes.find(h => h.via === "portal");
     return send(200, {
       graph: MAIL.mailConfigured(),
-      relay: !!(paired && paired.data.keyHash) || String(process.env.INSTALLER_RELAY_KEY || "").length >= 24,
-      pairedAt: paired ? paired.data.pairedAt : null, pairedBy: paired ? paired.data.pairedBy : null,
+      relay: hashes.length > 0, via: hashes.map(h => h.via),
+      pairedAt: own ? own.pairedAt || null : null, pairedBy: own ? own.pairedBy || null : null,
+      portalRelay: !!portal, seenAt: seen ? seen.data.at : null, seenVia: seen ? seen.data.via : null,
       pending: pending.length, failed: failed.length, sent: sent.length,
       lastSent: last ? ((await st.get(last).catch(() => null)) || { data: {} }).data.sentAt || null : null,
-      notifyTo: require("../shared/claimmail").notifyList()
+      notifyTo: list.to, notifySaved: list.saved, notifyAt: list.at || null, notifyBy: list.by || null
     });
+  }
+  /* POST /api/relay/notify { to: [address] }  LC admin: LED Connection's
+     list for every claim email. @ledconnection.com only; installers and
+     the client are set per project. */
+  if (action === "notify") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    const { user } = await P.requireLc(req);
+    const CM = require("../shared/claimmail");
+    const to = CM.cleanLcList(body.to);
+    const before = (await CM.lcList()).to;
+    await st.put(CM.NOTIFY_PATH, { to, at: new Date().toISOString(), by: user.username });
+    await P.audit(req, user.username, "notify.update", "system:notify", { added: to.filter(a => !before.includes(a)), removed: before.filter(a => !to.includes(a)) });
+    return send(200, { notifyTo: to });
   }
   if (action !== "outbox") throw new ApiError(404, "Not found.");
   await checkKey(req);

@@ -52,16 +52,31 @@ function bccFor(to, cc) {
   const me = SENDER();
   return [].concat(to, cc || []).some(a => String(a).toLowerCase() === me) ? [] : [me];
 }
-/* The relay is on when INSTALLER_RELAY_KEY is set, or when an LC admin paired
-   one from the app (api/relay "pair": system/relay.json holds the key's
-   SHA-256, never the key). Read at most once a minute. */
+/* Who may fetch the queue: a relay key whose SHA-256 is one of these.
+   - INSTALLER_RELAY_KEY (app setting), or a relay paired from this app's home
+     page (system/relay.json holds the key's SHA-256, never the key);
+   - THE CUSTOMER PORTAL'S RELAY (Dino, 2026-10-21: "don't ask, just do it").
+     It already runs on Dino's PC with its own key; its SHA-256 is in the
+     portal's system/relay.json, which this app can read (read-only SAS). So
+     the same relay sends both apps' emails, with no second pairing: its
+     script (lc-customer-portal tools/outlook-relay.ps1) polls this app too.
+   -> [{ hash: Buffer, via: "setting" | "installer" | "portal", pairedAt, pairedBy }] */
+async function relayHashes() {
+  const out = [];
+  const env = String(process.env.INSTALLER_RELAY_KEY || "");
+  if (env.length >= 24) out.push({ hash: crypto.createHash("sha256").update(env).digest(), via: "setting" });
+  const { store, portalStore } = require("./store");
+  const own = await store().get("system/relay.json").catch(() => null);
+  if (own && /^[a-f0-9]{64}$/.test(own.data.keyHash || "")) out.push({ hash: Buffer.from(own.data.keyHash, "hex"), via: "installer", pairedAt: own.data.pairedAt, pairedBy: own.data.pairedBy });
+  const portal = await portalStore().get("system/relay.json").catch(() => null);
+  if (portal && /^[a-f0-9]{64}$/.test(portal.data.keyHash || "")) out.push({ hash: Buffer.from(portal.data.keyHash, "hex"), via: "portal", pairedAt: portal.data.pairedAt, pairedBy: portal.data.pairedBy });
+  return out;
+}
+/* The relay is on when any of those exists. Read at most once a minute. */
 let relayCache = { at: 0, on: false };
 async function relayConfigured() {
-  if (String(process.env.INSTALLER_RELAY_KEY || "").length >= 24) return true;
   if (Date.now() - relayCache.at < 60000) return relayCache.on;
-  const { store } = require("./store");
-  const r = await store().get("system/relay.json").catch(() => null);
-  relayCache = { at: Date.now(), on: !!(r && r.data && r.data.keyHash) };
+  relayCache = { at: Date.now(), on: (await relayHashes()).length > 0 };
   return relayCache.on;
 }
 function relayForget() { relayCache.at = 0; }
@@ -141,4 +156,4 @@ async function sendMail(msg) {
 
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-module.exports = { relayConfigured, relayForget, sendMail, mailConfigured: configured, esc, ATTACH_BUDGET };
+module.exports = { relayConfigured, relayHashes, relayForget, sendMail, mailConfigured: configured, esc, ATTACH_BUDGET };
