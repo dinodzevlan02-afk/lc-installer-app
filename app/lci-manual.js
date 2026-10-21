@@ -76,7 +76,7 @@
     /* The LED Connection installation guide for this product's bracket,
        from its part number (api/shared/guides.js). */
     var g = b.partNo && b.partNo.guide, guide;
-    if (g && g.ready) guide = '<a class="guide-pdf" target="_blank" rel="noopener" href="' + esc(g.url) + '"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Opens the step-by-step guide for this bracket.</span></a>';
+    if (g && g.ready) guide = '<a class="guide-pdf" target="_blank" rel="noopener" href="' + esc(g.url) + '"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Opens the step-by-step guide for this product and mount.</span></a>';
     /* Until the bracket guide is ready, the card opens the product's spec
        sheet from the LC catalog (Dino, 2026-10-20: "link the spec sheet in
        it"), so the installer has the product's own document now. */
