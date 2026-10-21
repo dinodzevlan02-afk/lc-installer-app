@@ -8,14 +8,21 @@
 
    GET   /api/users                LC admin: everyone.
    GET   /api/users/{username}     LC admin: anyone. Others: themselves only.
-   POST  /api/users                { username, name, email?, phone?, company?, role }
+   POST  /api/users                { username, name, email?, phone?, companyId, role }
+                                   An installer belongs to an installer
+                                   company (api/companies): companyId is
+                                   required for one, and its name is kept on
+                                   the login as `company`. An LED Connection
+                                   admin has none.
                                    Issues a one-time set-password link
                                    (shared/invite.js) and returns it ONCE for
                                    the admin to pass on (text or email) only
                                    when it cannot be emailed: no email on the
                                    login, mail not set up, or the Outlook
                                    relay has not checked in (see deliverLink).
-   PATCH /api/users/{username}     { name?, email?, phone?, company?, role?, disabled?, sendInvite? }
+   PATCH /api/users/{username}     { name?, email?, phone?, companyId?, role?, disabled?, sendInvite? }
+                                   companyId moves an installer to another
+                                   company (their jobs stay as assigned).
                                    sendInvite: a new invite, or for someone who
                                    already has a password, a reset link.
                                    Disabling or a role change signs that person
@@ -82,6 +89,15 @@ async function deliverLink(user, issued, actor) {
   return out;
 }
 
+/* The installer company a login joins: it must exist and be active. */
+async function companyFor(id) {
+  const cid = P.normCompany(id);
+  const co = await P.store().get(P.paths.company(cid));
+  if (!co) throw new ApiError(400, "No installer company \"" + cid + "\". Add it under Installer companies first.");
+  if (co.data.status === "suspended") throw new ApiError(400, co.data.name + " is switched off: switch it on before adding people.");
+  return co.data;
+}
+
 module.exports = P.handler(async ({ req, method, body, params, send }) => {
   const { user: actor } = await P.requireSession(req);
   const uname = params.username ? P.normUser(params.username) : null;
@@ -108,10 +124,15 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     const rec = {
       username, role,
       name: P.text(body.name, 100, "Name"), email: cleanEmail(body.email), phone: cleanPhone(body.phone),
-      company: P.text(body.company, 100, "Company"),
+      company: "", companyId: null,
       password: null, sessionVersion: 1, disabled: false, mustChangePassword: false,
       created: new Date().toISOString(), createdBy: actor.username
     };
+    if (role === "installer") {
+      if (!body.companyId) throw new ApiError(400, "Pick the installer's company.");
+      const co = await companyFor(body.companyId);
+      rec.companyId = co.id; rec.company = co.name;
+    }
     /* A password set directly (API only, not offered in the pages) is a
        temporary one: they must change it on first sign-in. */
     let invite = null, issued = null;
@@ -143,7 +164,11 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     if (body.name !== undefined) changes.name = P.text(body.name, 100, "Name");
     if (body.email !== undefined) changes.email = cleanEmail(body.email);
     if (body.phone !== undefined) changes.phone = cleanPhone(body.phone);
-    if (body.company !== undefined) changes.company = P.text(body.company, 100, "Company");
+    if (body.companyId !== undefined && body.companyId !== t.companyId) {
+      if ((body.role || t.role) !== "installer") throw new ApiError(400, "Only installers belong to an installer company.");
+      const co = await companyFor(body.companyId);
+      changes.companyId = co.id; changes.company = co.name;
+    }
 
     if (body.role !== undefined && body.role !== t.role) {
       if (self) throw new ApiError(400, "You cannot change your own role.");
@@ -151,6 +176,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       if (t.role === "lc-admin" && !(await otherActiveLcAdmins(uname))) throw new ApiError(400, "This is the last LED Connection admin.");
       changes.role = body.role;
       endSessions = true;
+      if (body.role === "installer" && !changes.companyId && !t.companyId) throw new ApiError(400, "Pick the installer's company.");
+      if (body.role !== "installer") { changes.companyId = null; changes.company = ""; }
     }
 
     if (body.disabled !== undefined) {

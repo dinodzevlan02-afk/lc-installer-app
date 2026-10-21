@@ -434,8 +434,22 @@ approach). Keep it in step with the portal when either changes.
 ## Roles (judgment call 2026-10-20, change when the build needs it)
 
 - `lc-admin` - LED Connection office: manages logins, sees everything.
-- `installer` - field crew, LC's own or a subcontractor (`company`).
-  Manages nobody. Email optional, phone allowed.
+- `installer` - field crew, LC's own or a subcontractor. Manages nobody.
+  Email optional, phone allowed.
+- Installer companies (Dino, 2026-10-21: "first a customer, then people
+  inside that customer that will be installers, and we allocate them to a
+  site as we go ... they only see the projects we assign them"): the
+  portal's Customers, for crews. companies/{id}.json (api/companies, LC
+  only: name, office phone / email, status). Every installer login belongs
+  to one (users.companyId, required by the API; its name is kept on the
+  login as `company` and renamed with it). Home page: INSTALLER COMPANIES
+  AND LOGINS, one group per company (+ ADD PERSON presets the add form,
+  SWITCH OFF signs all its people out and refuses their sign-in), then
+  "Not in a company yet" (logins made before this, MOVE TO), then LED
+  Connection admins. The INSTALLERS dialog groups people by company with a
+  "whole crew" tick. Visibility is still per person (a job lists
+  usernames): judgment call, so a big crew can be split across sites.
+  LED Connection's own field people go in a company called LED Connection.
 Logins are LED Connection only, as in the portal.
 
 ## Writing back to the customer portal

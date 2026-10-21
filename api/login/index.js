@@ -38,6 +38,10 @@ module.exports = P.handler(async ({ req, body, send }) => {
   /* Right password. A disabled login is told so plainly: they have proved
      who they are, and "wrong password" would only send them round in circles. */
   if (user.disabled) throw new ApiError(403, "This login has been switched off. Contact LED Connection.");
+  if (user.companyId) {
+    const co = await P.store().get(P.paths.company(user.companyId)).catch(() => null);
+    if (co && co.data.status === "suspended") throw new ApiError(403, "Your company's access is switched off. Contact LED Connection.");
+  }
 
   user.failedLogins = 0;
   delete user.lockedUntil;

@@ -81,6 +81,18 @@
   .ntoff button { min-height: 0; padding: 2px 8px; margin: 0 4px 4px 0; font-size: 10.5px; }
   .ntadd { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
   .ntadd input { flex: 1; min-width: 150px; width: auto; }
+  .cobar { margin: 10px 0 4px; }
+  .coform { margin: 10px 0 0; padding: 12px; border: 1px solid var(--border-2); border-radius: 10px; }
+  .cogroup { margin-top: 16px; border: 1px solid var(--border); border-radius: 10px; overflow: hidden; }
+  .cogroup.off { opacity: .6; }
+  .cohead { display: flex; flex-wrap: wrap; gap: 8px 14px; align-items: center; padding: 10px 12px; background: rgba(243,112,33,.06); border-bottom: 1px solid var(--border); }
+  .cohead .nm { font-family: var(--display, inherit); font-weight: 700; letter-spacing: .04em; font-size: 14px; }
+  .cohead .meta { font-family: var(--mono); font-size: 11px; color: var(--text-3); flex: 1; min-width: 160px; }
+  .cogroup table { margin: 0; }
+  .cogroup .empty { padding: 10px 12px; font-family: var(--mono); font-size: 11px; color: var(--text-3); }
+  .cogroup select.move { width: auto; min-height: 0; padding: 4px 8px; font-size: 11px; }
+  .dlg .asco { margin: 10px 0 4px; font-family: var(--mono); font-size: 11px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-3); }
+  .dlg .pick .asco label { display: inline-flex; gap: 8px; align-items: center; cursor: pointer; border: 0; padding: 0; background: none; }
   /* Page messages float over the page, so an answer is never 1,000 px below
      the button that asked for it (Dino, 2026-10-21). */
   #msg { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; width: max-content; max-width: min(640px, calc(100vw - 32px));
@@ -246,22 +258,29 @@
 
   <section class="panel" id="pLogins" hidden>
     <span class="cnr tl"></span><span class="cnr tr"></span><span class="cnr bl"></span><span class="cnr br"></span>
-    <h2>Logins</h2>
-    <div class="sub">» LED Connection only «</div>
-    <div class="table-wrap">
-      <table>
-        <thead><tr><th>Login</th><th>Role</th><th>Contact</th><th>Status</th><th></th></tr></thead>
-        <tbody id="users"></tbody>
-      </table>
+    <h2>Installer companies and logins</h2>
+    <div class="sub">» LED Connection only · each installer belongs to a company and sees only the jobs you put them on «</div>
+    <div class="cobar">
+      <button type="button" class="small" id="btnNewCo">+ New installer company</button>
     </div>
+    <form id="fCo" class="coform" autocomplete="off" hidden>
+      <div class="grid">
+        <div><label for="coName">Company name</label><input id="coName" maxlength="100" required placeholder="e.g. Desert Electric"></div>
+        <div><label for="coPhone">Office phone</label><input id="coPhone" type="tel"></div>
+        <div><label for="coEmail">Office email</label><input id="coEmail" type="email"></div>
+      </div>
+      <div class="row-actions"><button type="button" id="coCancel">Cancel</button><button class="primary" type="submit">Add company</button></div>
+    </form>
+    <div id="companies"></div>
+    <h3 id="addHead" style="margin-top:22px">Add a login</h3>
     <form id="fAdd" autocomplete="off">
       <div class="grid">
+        <div><label for="adRole">Role</label><select id="adRole"><option value="installer">Installer</option><option value="lc-admin">LED Connection admin</option></select></div>
+        <div id="adCoWrap"><label for="adCo">Installer company</label><select id="adCo"></select></div>
         <div><label for="adUser">Username</label><input id="adUser" autocapitalize="none" spellcheck="false" required></div>
         <div><label for="adName">Full name</label><input id="adName"></div>
         <div><label for="adPhone">Phone</label><input id="adPhone" type="tel"></div>
         <div><label for="adEmail">Email</label><input id="adEmail" type="email" placeholder="the invite is emailed here"></div>
-        <div><label for="adCompany">Company / crew</label><input id="adCompany"></div>
-        <div><label for="adRole">Role</label><select id="adRole"><option value="installer">Installer</option><option value="lc-admin">LED Connection admin</option></select></div>
       </div>
       <div class="row-actions"><button class="primary" type="submit">Add login</button></div>
     </form>
@@ -328,30 +347,95 @@
     $('linkBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
-  function renderUsers(list) {
-    $('users').innerHTML = list.map(function (u) {
-      var status = u.disabled ? '<span class="badge off">Off</span>'
-        : !u.hasPassword ? '<span class="badge">Invited</span>' : '<span class="badge active">Active</span>';
-      var self = ME && u.username === ME.user.username;
-      return '<tr><td><b>' + esc(u.name || u.username) + '</b><div class="small-text">' + esc(u.username) + '</div></td>' +
-        '<td><span class="badge ' + esc(u.role) + '">' + esc(LCI.ROLE_LABEL[u.role] || u.role) + '</span>' +
-          (u.company ? '<div class="small-text">' + esc(u.company) + '</div>' : '') + '</td>' +
-        '<td class="small-text">' + esc(u.phone) + (u.phone && u.email ? '<br>' : '') + esc(u.email) + '</td>' +
-        '<td>' + status + '</td>' +
-        '<td>' + (self ? '' :
-          '<button class="small" data-act="link" data-u="' + esc(u.username) + '"' + (u.disabled ? ' disabled' : '') + '>' + (u.hasPassword ? 'Reset link' : 'New link') + '</button> ' +
-          '<button class="small' + (u.disabled ? '' : ' danger') + '" data-act="toggle" data-off="' + (u.disabled ? '0' : '1') + '" data-u="' + esc(u.username) + '">' + (u.disabled ? 'Switch on' : 'Switch off') + '</button>') +
-        '</td></tr>';
-    }).join('');
+  /* Logins grouped by installer company (Dino, 2026-10-21: "first a
+     customer, then people inside that customer that will be installers"),
+     then installers not in a company yet (older logins: MOVE TO puts them
+     in one), then LED Connection's admins. */
+  var COMPANIES = [];
+  function userRow(u, moveTo) {
+    var status = u.disabled ? '<span class="badge off">Off</span>'
+      : !u.hasPassword ? '<span class="badge">Invited</span>' : '<span class="badge active">Active</span>';
+    var self = ME && u.username === ME.user.username;
+    return '<tr><td><b>' + esc(u.name || u.username) + '</b><div class="small-text">' + esc(u.username) + '</div></td>' +
+      '<td><span class="badge ' + esc(u.role) + '">' + esc(LCI.ROLE_LABEL[u.role] || u.role) + '</span></td>' +
+      '<td class="small-text">' + esc(u.phone) + (u.phone && u.email ? '<br>' : '') + esc(u.email) + '</td>' +
+      '<td>' + status + '</td>' +
+      '<td>' + (moveTo ? '<select class="move" data-move="' + esc(u.username) + '"><option value="">Move to company…</option>' +
+          COMPANIES.filter(function (c) { return c.status !== 'suspended'; }).map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('') + '</select> ' : '') +
+        (self ? '' :
+        '<button class="small" data-act="link" data-u="' + esc(u.username) + '"' + (u.disabled ? ' disabled' : '') + '>' + (u.hasPassword ? 'Reset link' : 'New link') + '</button> ' +
+        '<button class="small' + (u.disabled ? '' : ' danger') + '" data-act="toggle" data-off="' + (u.disabled ? '0' : '1') + '" data-u="' + esc(u.username) + '">' + (u.disabled ? 'Switch on' : 'Switch off') + '</button>') +
+      '</td></tr>';
   }
+  function group(head, rows, cls, empty) {
+    return '<div class="cogroup' + (cls ? ' ' + cls : '') + '">' + head +
+      (rows.length ? '<div class="table-wrap"><table><tbody>' + rows.join('') + '</tbody></table></div>' : '<div class="empty">' + empty + '</div>') + '</div>';
+  }
+  function renderUsers(list) {
+    var html = COMPANIES.map(function (c) {
+      var people = list.filter(function (u) { return u.companyId === c.id; });
+      var off = c.status === 'suspended';
+      var head = '<div class="cohead"><span class="nm">' + esc(c.name) + '</span>' + (off ? '<span class="badge off">Switched off</span>' : '') +
+        '<span class="meta">' + [c.phone, c.email].filter(Boolean).map(esc).join(' · ') + (c.phone || c.email ? ' · ' : '') +
+          people.length + ' ' + (people.length === 1 ? 'person' : 'people') + ' · on ' + c.jobs + ' job' + (c.jobs === 1 ? '' : 's') + '</span>' +
+        (off ? '' : '<button type="button" class="small" data-coadd="' + esc(c.id) + '">+ Add person</button>') +
+        '<button type="button" class="small' + (off ? '' : ' danger') + '" data-costatus="' + esc(c.id) + '" data-to="' + (off ? 'active' : 'suspended') + '">' + (off ? 'Switch on' : 'Switch off') + '</button></div>';
+      return group(head, people.map(function (u) { return userRow(u); }), off ? 'off' : '', 'Nobody yet: + ADD PERSON.');
+    }).join('');
+    var loose = list.filter(function (u) { return u.role === 'installer' && !u.companyId; });
+    if (loose.length) html += group('<div class="cohead"><span class="nm">Not in a company yet</span><span class="meta">Older logins: move each into its company</span></div>',
+      loose.map(function (u) { return userRow(u, true); }), '', '');
+    html += group('<div class="cohead"><span class="nm">LED Connection admins</span><span class="meta">Manage projects, companies, logins and approvals</span></div>',
+      list.filter(function (u) { return u.role === 'lc-admin'; }).map(function (u) { return userRow(u); }), '', '');
+    if (!COMPANIES.length) html = '<p class="small-text" style="margin:10px 0 0">No installer companies yet. Add the first one (+ NEW INSTALLER COMPANY), then its people.</p>' + html;
+    $('companies').innerHTML = html;
+    $('adCo').innerHTML = '<option value="">Choose the company…</option>' + COMPANIES.filter(function (c) { return c.status !== 'suspended'; })
+      .map(function (c) { return '<option value="' + esc(c.id) + '">' + esc(c.name) + '</option>'; }).join('');
+  }
+  function syncRole() { $('adCoWrap').hidden = $('adRole').value !== 'installer'; }
+  $('adRole').addEventListener('change', syncRole);
 
   function loadUsers() {
-    return LCI.api('GET', 'users').then(function (r) { USERS = r.users; renderUsers(r.users); }, function (e) { say(e.message); });
+    return Promise.all([LCI.api('GET', 'users'), LCI.api('GET', 'companies')]).then(function (r) {
+      USERS = r[0].users; COMPANIES = r[1].companies;
+      var keep = $('adCo').value; renderUsers(USERS); $('adCo').value = keep; syncRole();
+    }, function (e) { say(e.message); });
   }
 
-  $('users').addEventListener('click', function (e) {
+  $('btnNewCo').addEventListener('click', function () { $('fCo').hidden = false; $('btnNewCo').hidden = true; $('coName').focus(); });
+  $('coCancel').addEventListener('click', function () { $('fCo').reset(); $('fCo').hidden = true; $('btnNewCo').hidden = false; });
+  $('fCo').addEventListener('submit', function (e) {
+    e.preventDefault();
+    LCI.api('POST', 'companies', { name: $('coName').value, phone: $('coPhone').value, email: $('coEmail').value }).then(function (c) {
+      $('fCo').reset(); $('fCo').hidden = true; $('btnNewCo').hidden = false;
+      say(c.name + ' added. Now add its people: + ADD PERSON.', true);
+      return loadUsers();
+    }).catch(function (err) { say(err.message); });
+  });
+  $('companies').addEventListener('change', function (e) {
+    var sel = e.target.closest('select[data-move]');
+    if (!sel || !sel.value) return;
+    var u = sel.getAttribute('data-move'), co = COMPANIES.filter(function (c) { return c.id === sel.value; })[0];
+    LCI.api('PATCH', 'users/' + encodeURIComponent(u), { companyId: sel.value })
+      .then(function () { say(u + ' is now in ' + co.name + '.', true); return loadUsers(); }, function (err) { say(err.message); sel.value = ''; });
+  });
+  $('companies').addEventListener('click', function (e) {
+    var ca = e.target.closest('button[data-coadd]');
+    if (ca) {
+      $('adRole').value = 'installer'; syncRole(); $('adCo').value = ca.getAttribute('data-coadd');
+      $('addHead').scrollIntoView({ block: 'start', behavior: 'smooth' }); $('adUser').focus();
+      return;
+    }
+    var cs = e.target.closest('button[data-costatus]');
+    if (cs) {
+      var c = COMPANIES.filter(function (x) { return x.id === cs.getAttribute('data-costatus'); })[0], to = cs.getAttribute('data-to');
+      if (to === 'suspended' && !confirm('Switch off ' + c.name + '? Its people are signed out at once and cannot sign in until you switch it back on.')) return;
+      cs.disabled = true;
+      LCI.api('PATCH', 'companies/' + encodeURIComponent(c.id), { status: to })
+        .then(function () { say(c.name + (to === 'suspended' ? ' switched off.' : ' switched on.'), true); return loadUsers(); }, function (err) { say(err.message); cs.disabled = false; });
+      return;
+    }
     var b = e.target.closest('button[data-act]');
-    if (!b) return;
     say('');
     var u = b.getAttribute('data-u');
     var body = b.getAttribute('data-act') === 'link' ? { sendInvite: true } : { disabled: b.getAttribute('data-off') === '1' };
@@ -366,9 +450,10 @@
     say('');
     LCI.api('POST', 'users', {
       username: $('adUser').value, name: $('adName').value, phone: $('adPhone').value,
-      email: $('adEmail').value, company: $('adCompany').value, role: $('adRole').value
+      email: $('adEmail').value, role: $('adRole').value,
+      companyId: $('adRole').value === 'installer' ? $('adCo').value : undefined
     }).then(function (r) {
-      e.target.reset();
+      var co = $('adCo').value; e.target.reset(); $('adCo').value = co; syncRole();
       showLink(r.invite);
       return loadUsers();
     }).catch(function (err) { say(err.message); });
@@ -457,13 +542,32 @@
     $('asSub').textContent = assigning.job
       ? 'Tick who installs this job. Anyone you untick loses it at once; what they already saved stays, with their name on it.'
       : 'Only the installers ticked here will see this job. You can change them later.';
-    $('asPick').innerHTML = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); }).map(function (u) {
-      return '<label><input type="checkbox" value="' + esc(u.username) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
-        esc(u.name || u.username) + (u.company ? ' · ' + esc(u.company) : '') + (u.disabled ? ' (off)' : '') + '</label>';
-    }).join('') || '<span class="muted mono" style="font-size:11px">No installer logins yet: you can start the job now and add one under Logins later.</span>';
+    /* Grouped by installer company: tick the company to put its whole
+       crew on the job, or just the people going to this site. */
+    var cand = USERS.filter(function (u) { return u.role === 'installer' && (!u.disabled || on.indexOf(u.username) >= 0); });
+    var groups = COMPANIES.map(function (c) { return { id: c.id, name: c.name, off: c.status === 'suspended', people: cand.filter(function (u) { return u.companyId === c.id; }) }; })
+      .concat([{ id: '', name: 'Not in a company yet', people: cand.filter(function (u) { return !u.companyId; }) }])
+      .filter(function (g) { return g.people.length; });
+    $('asPick').innerHTML = groups.map(function (g) {
+      var all = g.people.every(function (u) { return on.indexOf(u.username) >= 0; });
+      return '<div class="asco" style="flex-basis:100%">' + (g.id ? '<label><input type="checkbox" data-coall="' + esc(g.id) + '"' + (all ? ' checked' : '') + '> ' + esc(g.name) + ' · whole crew</label>' : esc(g.name)) +
+        (g.off ? ' · switched off' : '') + '</div>' +
+        g.people.map(function (u) {
+          return '<label><input type="checkbox" value="' + esc(u.username) + '" data-co="' + esc(g.id) + '"' + (on.indexOf(u.username) >= 0 ? ' checked' : '') + '>' +
+            esc(u.name || u.username) + (u.disabled ? ' (off)' : '') + '</label>';
+        }).join('');
+    }).join('') || '<span class="muted mono" style="font-size:11px">No installers yet: add an installer company and its people under Installer companies and logins. You can start the job now and add them later.</span>';
     $('asSave').textContent = assigning.job ? 'Save' : 'Start job';
     $('ovAssign').hidden = false;
   }
+  $('asPick').addEventListener('change', function (e) {
+    var all = e.target.closest('input[data-coall]'), one = e.target.closest('input[data-co]');
+    if (all) Array.prototype.forEach.call($('asPick').querySelectorAll('input[data-co="' + all.getAttribute('data-coall') + '"]'), function (c) { c.checked = all.checked; });
+    if (one && one.getAttribute('data-co')) {
+      var id = one.getAttribute('data-co'), mates = $('asPick').querySelectorAll('input[data-co="' + id + '"]');
+      $('asPick').querySelector('input[data-coall="' + id + '"]').checked = Array.prototype.every.call(mates, function (c) { return c.checked; });
+    }
+  });
   $('btnAddProject').addEventListener('click', function () {
     var v = $('addProject').value;
     if (v === '') { say('Choose a project first.'); return; }
@@ -627,7 +731,7 @@
   });
   $('asCancel').addEventListener('click', function () { $('ovAssign').hidden = true; });
   $('asSave').addEventListener('click', function () {
-    var inst = Array.prototype.map.call($('asPick').querySelectorAll('input:checked'), function (c) { return c.value; });
+    var inst = Array.prototype.map.call($('asPick').querySelectorAll('input[value]:checked'), function (c) { return c.value; });
     var call = assigning.job ? LCI.api('PATCH', 'jobs/' + encodeURIComponent(assigning.id), { installers: inst })
                              : LCI.api('POST', 'jobs', { projectId: assigning.id, installers: inst });
     $('asSave').disabled = true;
@@ -829,7 +933,8 @@
     if (!me) { location.replace('./index.html?next=./home.html'); return; }
     if (me.user.mustChangePassword) { location.replace('./index.html?next=./home.html'); return; }
     ME = me;
-    $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role);
+    $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b> · ' + esc(LCI.ROLE_LABEL[me.user.role] || me.user.role) +
+      (me.user.company ? ' · ' + esc(me.user.company) : '');
     if (me.can.manageUsers) {
       /* LED Connection: every portal project; the server refuses this list to installers anyway. */
       $('pProjects').hidden = false; $('pLogins').hidden = false; $('pMail').hidden = false;

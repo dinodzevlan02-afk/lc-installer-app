@@ -27,8 +27,18 @@ function text(v, max, field) {
 }
 
 const paths = {
-  user: u => "users/" + u + ".json"
+  user: u => "users/" + u + ".json",
+  company: c => "companies/" + c + ".json"
 };
+/* Installer company ids: a slug of the name ("crew-a", "led-connection"). */
+function normCompany(c) {
+  const s = String(c || "").trim().toLowerCase();
+  if (!/^[a-z0-9][a-z0-9-]{1,48}$/.test(s)) throw new ApiError(400, "Company id must be 2-49 letters, digits or dashes.");
+  return s;
+}
+function slugify(name) {
+  return String(name || "").toLowerCase().normalize("NFKD").replace(/[^a-z0-9]+/g, "-").replace(/^-+|-+$/g, "").slice(0, 48) || "company";
+}
 
 /* ── Loaders ────────────────────────────────────────────────────────────── */
 /* Direct children only: anything under a record's own folder is its data. */
@@ -42,7 +52,7 @@ async function loadAll(prefix) {
    password hash, never the lockout counters. */
 function publicUser(u) {
   return {
-    username: u.username, name: u.name || "", email: u.email || "", phone: u.phone || "", company: u.company || "",
+    username: u.username, name: u.name || "", email: u.email || "", phone: u.phone || "", company: u.company || "", companyId: u.companyId || null,
     role: u.role, disabled: !!u.disabled, mustChangePassword: !!u.mustChangePassword,
     hasPassword: !!u.password,
     invite: u.invite ? { kind: u.invite.kind, sentAt: u.invite.sentAt, expires: u.invite.expires, expired: Date.parse(u.invite.expires) < Date.now() } : null,
@@ -88,6 +98,12 @@ async function requireSession(req) {
   if (!rec) throw new ApiError(401, "Not signed in.");
   const user = rec.data;
   if (user.disabled || (user.sessionVersion || 0) !== claims.sv) throw new ApiError(401, "Session ended. Sign in again.");
+  /* An installer company switched off by LED Connection signs all its
+     people out on their next request. */
+  if (user.companyId) {
+    const co = await store().get(paths.company(user.companyId)).catch(() => null);
+    if (co && co.data.status === "suspended") throw new ApiError(401, "Your company's access is switched off. Contact LED Connection.");
+  }
   return { user, etag: rec.etag };
 }
 
@@ -136,5 +152,5 @@ function handler(fn) {
 
 module.exports = {
   store, ApiError, A, paths, loadAll, publicUser, describeMe, audit, requireSession, requireLc, handler,
-  normUser, text
+  normUser, normCompany, slugify, text
 };
