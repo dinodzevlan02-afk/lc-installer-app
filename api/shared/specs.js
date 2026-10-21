@@ -2,16 +2,20 @@
    catalog cannot give us (no catalog id, no unique family name), bundled in
    app/specs/ like the installation guides, picked by the part number.
 
-   The PDFs are LED Connection's own published spec sheets (SharePoint
-   LEDDocuments > LED > Sales > Marketing > Marketing-2025 > LED >
-   SpecSheets), public like every catalog spec sheet. READY lists the files
+   The PDFs are LC spec sheets built with the lc-spec-sheet skill
+   (tools/specs/<SKU>.json -> preview/), published for Kroger 345 on
+   2026-10-21 (Dino: a spec sheet beside the installation guide on the pin
+   card). Public like every catalog spec sheet. READY lists the files
    committed in app/specs/ (the API cannot see app/ on Azure);
    tests/specs.test.js fails when READY and the folder disagree. */
 const BY_PART = {
+  "LC-FL-WS-3CCT": "LC-Floodlight-Selectable.pdf",
+  "LC-FL-WS-3CCT-Y": "LC-Floodlight-Selectable.pdf",
+  "LC-FL-WS-3CCT-SF": "LC-Floodlight-Selectable.pdf",
   "LC-FWP-WS-3CCT": "LC-Nightshade-Full-Cutoff-Wallpack.pdf",
   "LC-UDL-8-A": "LC-Universal-Downlight-Series.pdf"
 };
-const READY = [];
+const READY = ["LC-Floodlight-Selectable.pdf", "LC-Nightshade-Full-Cutoff-Wallpack.pdf", "LC-Universal-Downlight-Series.pdf"];
 
 /* -> "/specs/{file}" for a part number whose spec sheet is bundled, else null */
 function forPart(pn) {

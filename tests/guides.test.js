@@ -25,7 +25,7 @@ test("Kroger 345 flood and wall pack get their guide by part number", () => {
   assert.ok(fl.ready);
   assert.strictEqual(G.forPart(PARTS.check("lc-fl-ws-3cct-sf")).url, "/guides/flood/LC-Floodlight-Installation-Guide-SF.pdf");
   assert.strictEqual(G.forPart(PARTS.check("LC-FWP-WS-3CCT")).url, "/guides/wallpack/LC-NightShade-Installation-Guide-FWP.pdf");
-  assert.strictEqual(G.forPart(PARTS.check(PARTS.DECIDED["LC-FL32A-40-480-40"])).bracket, "Y");
+  assert.strictEqual(G.forPart(PARTS.check(PARTS.DECIDED["LC-FL32A-40-480-40"])).bracket, "SF");
   assert.strictEqual(G.forPart(PARTS.check("LC-UDL-8-A")), null);
 });
 

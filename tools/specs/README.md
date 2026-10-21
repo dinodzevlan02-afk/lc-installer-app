@@ -1,5 +1,10 @@
 # LC spec sheets (Installer App)
 
+Published 2026-10-21 (Dino: spec sheet beside the installation guide on the pin card):
+app/specs/LC-Floodlight-Selectable.pdf, LC-Nightshade-Full-Cutoff-Wallpack.pdf,
+LC-Universal-Downlight-Series.pdf, mapped in api/shared/specs.js. Rebuild = copy the
+preview over the app/specs file. The open items below still stand.
+
 Built with the project skill `.claude/skills/lc-spec-sheet` (the sourcing desk's LC
 template pipeline, moved here 2026-10-21). Read its SKILL.md first.
 
@@ -9,7 +14,7 @@ template pipeline, moved here 2026-10-21). Read its SKILL.md first.
 
     python3 .claude/skills/lc-spec-sheet/scripts/make_sheet.py tools/specs/LC-FL-WS-3CCT.json
 
-## LC-FL-WS-3CCT (Kroger 345 FL1), DRAFT
+## LC-FL-WS-3CCT (Kroger 345 FL1, slip fitter -SF)
 
 Dino 2026-10-21: no red banner, no draft text on the sheet, warranty 5 years, rated life 50,000 h.
 Open items (kept here and in the product file _open_items, never printed):

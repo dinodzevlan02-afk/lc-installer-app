@@ -19,3 +19,10 @@ test("a part number gets its spec sheet only when the file is there", () => {
   }
   assert.equal(SPECS.forPart("LC-NOT-A-PART"), null);
 });
+
+test("Kroger 345 flood, wall pack and downlight carry their LC spec sheet", () => {
+  assert.equal(SPECS.forPart("LC-FL-WS-3CCT-SF"), "/specs/LC-Floodlight-Selectable.pdf");
+  assert.equal(SPECS.forPart("lc-fl-ws-3cct-y"), "/specs/LC-Floodlight-Selectable.pdf");
+  assert.equal(SPECS.forPart("LC-FWP-WS-3CCT"), "/specs/LC-Nightshade-Full-Cutoff-Wallpack.pdf");
+  assert.equal(SPECS.forPart("LC-UDL-8-A"), "/specs/LC-Universal-Downlight-Series.pdf");
+});
