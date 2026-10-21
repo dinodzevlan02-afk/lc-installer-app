@@ -411,6 +411,31 @@ async function main() {
   check((fs.existsSync(portalFix) ? fs.readFileSync(portalFix, "utf8") : null) === portalBefore, "the customer portal's data is not touched");
   check((await o2("POST", "deleted/" + dp.body.deleted.key, { action: "restore" })).status === 200 && (await o2("GET", "jobs/TEST-SITE-01")).status === 200, "and it restores");
 
+  console.log("reset a project: a clean start, LC only, restorable");
+  const cur01 = (await o2("GET", "jobs/TEST-SITE-01")).body.job.installers;
+  check((await o2("PATCH", "jobs/TEST-SITE-01", { installers: cur01.concat(["mike.crew"]) })).status === 200, "(mike.crew is back on the test site)");
+  const b4 = await o2("GET", "jobs/TEST-SITE-01");
+  check(Object.keys(b4.body.pins).length > 0 && b4.body.claims.length > 0, "(the test site has installed heads and claims)");
+  check((await inst("POST", "deleted", { projectId: "TEST-SITE-01", confirm: "TEST-SITE-01", mode: "reset" })).status === 403, "an installer cannot reset a project");
+  check((await o2("POST", "deleted", { projectId: "TEST-SITE-01", mode: "reset" })).status === 400, "no reset without the confirmation");
+  const rsx = await o2("POST", "deleted", { projectId: "TEST-SITE-01", confirm: "TEST-SITE-01", mode: "reset", reason: "test reset" });
+  check(rsx.status === 200 && rsx.body.deleted.kind === "reset" && rsx.body.deleted.counts.pins === Object.keys(b4.body.pins).length, "LC admin resets it; the manifest counts what was cleared");
+  const aft = await o2("GET", "jobs/TEST-SITE-01");
+  check(aft.status === 200 && Object.keys(aft.body.pins).length === 0 && aft.body.claims.length === 0 && !aft.body.material.approved && !aft.body.job.submitted,
+        "clean start: no installed heads, claims, counts or submit");
+  check(JSON.stringify(aft.body.job.installers) === JSON.stringify(b4.body.job.installers) && aft.body.site.pins.length === b4.body.site.pins.length, "the job, its installers and its site stay");
+  check((await inst("GET", "jobs/TEST-SITE-01")).status === 200, "the installer still has the job");
+  check(auditOf("job.reset").some(a => a.actor === "office2" && a.target === "job:TEST-SITE-01"), "the reset is in the activity log, with who");
+  check(rsx.body.deleted.files.every(f => fs.existsSync(path.join(store, "deleted", rsx.body.deleted.key, "files", f))), "everything cleared is kept in the backend");
+  const und = await o2("POST", "deleted/" + rsx.body.deleted.key, { action: "restore" });
+  const bk = await o2("GET", "jobs/TEST-SITE-01");
+  check(und.status === 200 && Object.keys(bk.body.pins).length === Object.keys(b4.body.pins).length && bk.body.claims.length === b4.body.claims.length &&
+        JSON.stringify(bk.body.job.submitted) === JSON.stringify(b4.body.job.submitted), "undo puts the work and the submitted state back");
+  const rs2 = await o2("POST", "deleted", { projectId: "TEST-SITE-01", confirm: "TEST-SITE-01", mode: "reset" });
+  const k1r = bk.body.site.bom[0].key;
+  check(rs2.status === 200 && (await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1r]: { received: 1 } } })).status === 200, "after a reset the installer counts again");
+  check((await o2("POST", "deleted/" + rs2.body.deleted.key, { action: "restore" })).status === 409, "once new work is saved, undoing the reset is refused (nothing is overwritten)");
+
   console.log("logout");
   const lo = await o2("POST", "logout");
   check(/Max-Age=0/.test(lo.setCookie || ""), "logout clears the cookie");

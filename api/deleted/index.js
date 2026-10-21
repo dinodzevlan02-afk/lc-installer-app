@@ -3,6 +3,8 @@
    GET  /api/deleted                 every deleted project, newest first: { deleted: [manifest] }
    GET  /api/deleted?preview={id}    what deleting {id} would remove: { id, name, source, counts, files }
    POST /api/deleted                 { projectId, confirm: projectId } -> deletes it, { deleted: manifest }
+   POST /api/deleted                 { projectId, confirm: projectId, mode: "reset" } -> resets the
+                                     job's work (a clean start), { deleted: manifest with kind "reset" }
    POST /api/deleted/{key}           { action: "restore" } -> puts it back, { restored: manifest }
 
    Dino, 2026-10-21: "delete ... only by LED Connection ... asked, are you
@@ -23,10 +25,26 @@ const J = require("../shared/jobs");
 const SITE = require("../shared/site");
 const { ApiError } = P;
 
-const RE_KEY = /^\d{8}T\d{6}Z-[A-Za-z0-9._-]{2,64}$/;
+const RE_KEY = /^\d{8}T\d{6}(\d{3})?Z-[A-Za-z0-9._-]{2,64}$/;
+/* 20261021T140512345Z: milliseconds, so two actions on one project in the
+   same second (a delete and a reset) never share an archive. */
+const stampNow = () => new Date().toISOString().replace(/[-:.]/g, "");
 const manifestPath = key => "deleted/" + key + ".json";
 const archivePath = (key, p) => "deleted/" + key + "/files/" + p;
 const typeOf = (p, t) => /\.json$/i.test(p) ? "application/json; charset=utf-8" : /\.jpe?g$/i.test(p) ? "image/jpeg" : (t || "application/octet-stream");
+
+/* RESET (Dino, 2026-10-21: "deleting all the work on the pins ... make a
+   clean project ... only LED Connection"): the job stays (installers, site,
+   part numbers, claim emails), its WORK goes: the material counts and
+   sign-off, claims, installed heads, photos, and the submitted state. Same
+   rules as a delete: archived first (with a copy of the job record, for the
+   submitted state), logged, restorable while no new work has been saved. */
+const workPrefixes = id => [J.paths.claims(id), J.paths.pins(id), J.paths.photos(id)];
+async function workOf(id) {
+  const s = P.store();
+  const [mat, ...lists] = await Promise.all([s.get(J.paths.material(id))].concat(workPrefixes(id).map(p => s.list(p))));
+  return (mat ? [J.paths.material(id)] : []).concat(...lists);
+}
 
 /* Every stored file of the project, job record first. */
 async function filesOf(id) {
@@ -90,12 +108,52 @@ module.exports = P.handler(async ({ req, method, body, params, query, send }) =>
     return send(200, { deleted });
   }
 
+  if (method === "POST" && !key && body.mode === "reset") {
+    const id = J.normJob(body.projectId);
+    if (body.confirm !== id) throw new ApiError(400, "Confirm the reset: send confirm with the project id.");
+    const jrec = await s.get(J.paths.job(id));
+    if (!jrec) throw new ApiError(404, "No job on project \"" + id + "\".");
+    const first = await workOf(id);
+    const k = stampNow() + "-" + id;
+    /* 1. Copy the work and the job record. 2. Remove the work. 3. Anything
+       saved meanwhile is archived and removed too. 4. Clear "submitted". */
+    await copyAll(first.concat([J.paths.job(id)]), p => p, p => archivePath(k, p));
+    await verify(k, first.concat([J.paths.job(id)]));
+    const manifest = {
+      v: 1, kind: "reset", key: k, id, name: jrec.data.name || id, address: jrec.data.address || "", customer: jrec.data.customer || "",
+      source: (await s.get("sites/" + id + ".json")) ? "installer" : "portal", installers: jrec.data.installers || [],
+      at: new Date().toISOString(), by: user.username, byName: user.name || user.username,
+      reason: String(body.reason || "").trim().slice(0, 500), files: [], counts: null, restored: []
+    };
+    await s.put(manifestPath(k), Object.assign({}, manifest, { state: "archiving", files: first }), { ifNoneMatch: "*" });
+    for (let i = 0; i < first.length; i += 8) await Promise.all(first.slice(i, i + 8).map(p => s.del(p)));
+    const late = await workOf(id);
+    await copyAll(late, p => p, p => archivePath(k, p));
+    await verify(k, late);
+    for (let i = 0; i < late.length; i += 8) await Promise.all(late.slice(i, i + 8).map(p => s.del(p)));
+    const all = first.concat(late.filter(p => !first.includes(p)));
+    const cur = await s.get(J.paths.job(id));
+    if (cur) {
+      const j = cur.data;
+      j.submitted = null;
+      j.reset = { at: manifest.at, by: user.username, archive: k };
+      j.updated = manifest.at; j.updatedBy = user.username;
+      await s.put(J.paths.job(id), j, { ifMatch: cur.etag });
+    }
+    manifest.files = all;
+    manifest.counts = countsOf(all, id);
+    const mrec = await s.get(manifestPath(k));
+    await s.put(manifestPath(k), manifest, { ifMatch: mrec.etag });
+    await P.audit(req, user.username, "job.reset", "job:" + id, { archive: k, files: all.length, counts: manifest.counts, reason: manifest.reason || undefined });
+    return send(200, { deleted: manifest });
+  }
+
   if (method === "POST" && !key) {
     const id = J.normJob(body.projectId);
     if (body.confirm !== id) throw new ApiError(400, "Confirm the delete: send confirm with the project id.");
     const first = await filesOf(id);
     if (!first.job && !first.site) throw new ApiError(404, "Nothing stored for project \"" + id + "\".");
-    const stamp = new Date().toISOString().replace(/[-:]/g, "").replace(/\.\d+Z$/, "Z");
+    const stamp = stampNow();
     const k = stamp + "-" + id;
     /* 1. Copy everything. 2. Remove the job record, so nobody can save to
        the job any more. 3. Copy anything saved in between. 4. Remove the
@@ -134,6 +192,25 @@ module.exports = P.handler(async ({ req, method, body, params, query, send }) =>
     const rec = await s.get(manifestPath(key));
     if (!rec) throw new ApiError(404, "Not found.");
     const m = rec.data;
+    /* A reset goes back onto the job that is still there, only while
+       nobody has saved new work on it; "submitted" comes back as it was. */
+    if (m.kind === "reset") {
+      const cur = await s.get(J.paths.job(m.id));
+      if (!cur) throw new ApiError(409, "Project \"" + m.id + "\" has no job any more; restore its delete first.");
+      const now = await workOf(m.id);
+      if (now.length && m.state !== "archiving") throw new ApiError(409, "New work was saved on " + (m.name || m.id) + " after the reset (" + now.length + " file(s)). Reset it again first, or keep what is there.");
+      await copyAll(m.files, p => archivePath(key, p), p => p);
+      const was = await s.getBytes(archivePath(key, J.paths.job(m.id)));
+      const j = cur.data;
+      j.submitted = was ? (JSON.parse(was.buf.toString("utf8")).submitted || null) : j.submitted;
+      j.reset = Object.assign({}, j.reset, { restoredAt: new Date().toISOString(), restoredBy: user.username });
+      await s.put(J.paths.job(m.id), j, { ifMatch: cur.etag });
+      delete m.state;
+      m.restored = (m.restored || []).concat([{ at: new Date().toISOString(), by: user.username, byName: user.name || user.username }]);
+      await s.put(manifestPath(key), m, { ifMatch: rec.etag });
+      await P.audit(req, user.username, "job.restore", "job:" + m.id, { archive: key, files: m.files.length, kind: "reset" });
+      return send(200, { restored: m });
+    }
     /* A delete that stopped half way ("archiving") can always be put back:
        files still in place are left as they are. */
     const there = await filesOf(m.id);
