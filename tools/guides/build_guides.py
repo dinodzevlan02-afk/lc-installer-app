@@ -31,7 +31,7 @@ HERE = os.path.dirname(os.path.abspath(__file__))
 ROOT = os.path.abspath(os.path.join(HERE, "..", ".."))
 CONTENT = os.path.join(HERE, "content")
 LOGO = os.path.join(ROOT, "app", "lc-logo.png")
-OUT = os.path.join(ROOT, "app", "guides", "optimus")
+OUT = os.path.join(ROOT, "app", "guides")
 
 for name in ["Outfit-Regular", "Outfit-Medium", "Outfit-SemiBold", "Outfit-Bold", "Outfit-ExtraBold",
              "Orbitron-Bold", "Orbitron-Black", "JetBrainsMono-Regular", "JetBrainsMono-Bold"]:
@@ -49,16 +49,28 @@ COMPANY = {"name": "LED Connection", "phone": "702.847.7680", "web": "www.ledcon
 PN = ["LC", "SLOT", "{watt}W", "{volt}", "L5", "{sensor}", "{cct}", "{cri}", "{optic}", "{BRACKET}", "{color}"]
 
 
+# A guide for another product names itself in "product" (content/{code}.json);
+# without it a guide is an Optimus bracket guide, exactly as before.
+OPTIMUS = {"name": "OPTIMUS", "line": "Ultra area luminaire  ·  LC-SLOT", "pn": PN,
+           "for": "FOR EVERY OPTIMUS PART NUMBER WITH BRACKET {code}", "chip": "{bracket} BRACKET",
+           "title": "Optimus Installation Guide - {bracket} bracket ({code})",
+           "file": "optimus/LC-Optimus-Installation-Guide-{code}.pdf"}
+
+
 class Guide:
     def __init__(self, data, common, path):
-        self.d, self.k, self.page = data, common, 0
+        self.p = dict(OPTIMUS, **data.get("product", {}))
+        self.d, self.k, self.page = data, dict(common, **data.get("common", {})), 0
         self.c = canvas.Canvas(path, pagesize=letter)
-        self.c.setTitle("Optimus Installation Guide - " + data["bracket"] + " bracket (" + data["code"] + ")")
+        self.c.setTitle(self.f(self.p["title"]))
         self.c.setAuthor(COMPANY["name"])
         self.c.setSubject(data["doc"] + " rev " + data["rev"])
         self.c.setCreator(COMPANY["name"])
 
     # ── helpers ──────────────────────────────────────────────────────────
+    def f(self, s):
+        return s.format(code=self.d["code"], bracket=self.d.get("bracket", ""))
+
     def text(self, x, y, s, font="Outfit-Regular", size=10.5, color=INK, align="l", spacing=0):
         t = self.c.beginText()
         t.setFont(font, size)
@@ -97,10 +109,10 @@ class Guide:
         c.setFillColor(NAVY); c.rect(0, H - 54, W, 54, stroke=0, fill=1)
         c.setFillColor(ORANGE); c.rect(0, H - 57, W, 3, stroke=0, fill=1)
         self.logo(M, H - 45, 34)
-        w1 = self.text(M + 62, H - 26, "OPTIMUS", "Orbitron-Bold", 9.5, white, spacing=1.2)
+        w1 = self.text(M + 62, H - 26, self.p["name"], "Orbitron-Bold", 9.5, white, spacing=1.2)
         c.setFillColor(ORANGE); c.rect(M + 62 + w1 + 8, H - 24, 4, 4, stroke=0, fill=1)   # Orbitron has no middle dot
         self.text(M + 62 + w1 + 20, H - 26, "INSTALLATION GUIDE", "Orbitron-Bold", 9.5, white, spacing=1.2)
-        self.text(M + 62, H - 40, d["bracket"].upper() + " BRACKET  (" + d["code"] + ")", "JetBrainsMono-Bold", 8, CYAN, spacing=0.6)
+        self.text(M + 62, H - 40, self.f(self.p["chip"]).upper() + "  (" + d["code"] + ")", "JetBrainsMono-Bold", 8, CYAN, spacing=0.6)
         self.text(W - M, H - 33, d["doc"], "JetBrainsMono-Regular", 8, INK3, "r")
 
     def new_page(self, header=True):
@@ -162,9 +174,11 @@ class Guide:
         c.setFillColor(ORANGE); c.rect(0, top - 6, W, 6, stroke=0, fill=1)
         self.logo(M, H - 118, 72)
         self.text(M, H - 166, "INSTALLATION GUIDE", "JetBrainsMono-Bold", 10, CYAN, spacing=3)
-        self.text(M, H - 224, "OPTIMUS", "Orbitron-Black", 58, white, spacing=2)
-        self.text(M, H - 250, "Ultra area luminaire  ·  LC-SLOT", "Outfit-Medium", 13, HexColor("#cbd5e1"))
-        label = d["bracket"].upper() + " BRACKET"
+        name = self.p["name"]
+        size = 58 if pdfmetrics.stringWidth(name, "Orbitron-Black", 58) + 2 * len(name) < W - 2 * M else 40
+        self.text(M, H - 224, name, "Orbitron-Black", size, white, spacing=2)
+        self.text(M, H - 250, self.p["line"], "Outfit-Medium", 13, HexColor("#cbd5e1"))
+        label = self.f(self.p["chip"]).upper()
         bw = pdfmetrics.stringWidth(label, "Orbitron-Bold", 15) + 0.5 * (len(label) - 1) + 98
         c.setFillColor(ORANGE); c.roundRect(M, top + 34, bw, 46, 8, stroke=0, fill=1)
         c.setFillColor(NAVY); c.roundRect(M + 8, top + 42, 58, 30, 5, stroke=0, fill=1)
@@ -172,12 +186,12 @@ class Guide:
         self.text(M + 78, top + 51, label, "Orbitron-Bold", 15, NAVY, spacing=0.5)
 
         y = top - 46
-        self.text(M, y, "FOR EVERY OPTIMUS PART NUMBER WITH BRACKET " + d["code"], "JetBrainsMono-Bold", 8.5, INK2, spacing=0.8)
+        self.text(M, y, self.f(self.p["for"]), "JetBrainsMono-Bold", 8.5, INK2, spacing=0.8)
         y -= 32
         x = M
-        for seg in PN:
-            hot = seg == "{BRACKET}"
-            lab = d["code"] if hot else seg.replace("{", "").replace("}", "")
+        for seg in self.p["pn"]:
+            hot = seg == "{BRACKET}" or seg.startswith("*")
+            lab = (d["code"] if seg == "{BRACKET}" else seg.lstrip("*")) if hot else seg.replace("{", "").replace("}", "")
             f, sz = ("JetBrainsMono-Bold", 12) if hot else ("JetBrainsMono-Regular", 9.5)
             sw = max(pdfmetrics.stringWidth(lab, f, sz) + 12, 24)
             c.setFillColor(ORANGE if hot else SOFT); c.setStrokeColor(ORANGE if hot else LINE)
@@ -187,8 +201,9 @@ class Guide:
         y -= 44
         # at a glance: tools, torque, parts in the box
         torques = sorted({s["torque"] for s in d["steps"] if s.get("torque")})
-        boxes = [("TOOLS", d["tools"]), ("TORQUE", torques or ["-"]),
-                 ("IN THE BOX", [str(len(d["parts"])) + " kinds of parts, " + str(sum(int(p["qty"]) for p in d["parts"])) + " pieces", "Numbered list and drawing on page 3"])]
+        inbox = d.get("inbox") or [str(len(d["parts"])) + " kinds of parts, " + str(sum(int(p["qty"]) for p in d["parts"])) + " pieces", "Numbered list and drawing on page 3"]
+        boxes = [("TOOLS", d["tools"]), (d.get("glance2", ["TORQUE"])[0], d.get("glance2", [None, None])[1] or torques or ["-"]),
+                 (d.get("glance3", "IN THE BOX"), inbox)]
         bw3 = (W - 2 * M - 24) / 3
         for i, (k, vals) in enumerate(boxes):
             bx = M + i * (bw3 + 12)
@@ -236,7 +251,10 @@ class Guide:
             self.text(rx + 30, ry, p["name"], "Outfit-Medium", 10.5, INK)
             self.text(rx + cw - 10, ry, "× " + str(p["qty"]), "JetBrainsMono-Bold", 10, INK2, "r")
         y -= half * 24 + 12
-        self.figure(M, y, W - 2 * M, d["code"] + "-parts.png", y - 60)
+        if os.path.exists(os.path.join(CONTENT, "figures", d["code"] + "-parts.png")):
+            self.figure(M, y, W - 2 * M, d["code"] + "-parts.png", y - 60)
+        for t in d.get("parts_notes", []):
+            y = self.box(y, t["title"], t["lines"], CYAN, CYAN_BG, "i") - 6
 
     def card(self, x, y, cw, n, st, draw=True, fmax1=215):
         """One step as a card in the two-column grid; returns its height."""
@@ -322,7 +340,10 @@ class Guide:
 
     def wiring(self):
         d, fw = self.d, W - 2 * M
-        labels = ["STANDARD WIRING", "0-10V DIM WIRING"]
+        if not d.get("wiring"):
+            self.wmax = 230
+            return self.extras()
+        labels = d.get("wiring_labels", ["STANDARD WIRING", "0-10V DIM WIRING"])
         intro = len(simpleSplit(self.k["wiring"], "Outfit-Regular", 10.5, fw)) * 14.5 + 14
         head = 6 + 26 + intro + self.box_h([self.k["waterproof"]]) + 8 + 6 + 36
         # the first diagram follows the steps on their page when it fits, a
@@ -342,17 +363,36 @@ class Guide:
                 self.wmax = 230
             self.text(M, self.y, labels[i] if i < len(labels) else "", "JetBrainsMono-Bold", 8.5, ORANGE, spacing=1.2)
             self.y -= 10 + self.figure(M, self.y - 8, fw, f, self.wmax) + 18
+        self.extras()
+
+    def extras(self):
+        d, fw = self.d, W - 2 * M
         if d.get("extra"):
             for f in d["extra"]["figures"]:
                 self.room(self.fig_height(fw, f, 360) + 40, d["extra"]["title"])
                 self.y -= self.figure(M, self.y, fw, f, 360) + 12
+        for sec in d.get("sections", []):              # e.g. the step-down, the goof ring
+            lines = sec.get("lines", [])
+            need = 40 + sum(len(simpleSplit(t, "Outfit-Regular", 10.5, fw - 14)) * 14.5 + 6 for t in lines)
+            need += sum(self.fig_height(fw, f, 260) + 12 for f in sec.get("figures", []))
+            self.room(min(need, 520), sec["title"])
+            if sec.get("intro"):
+                self.y = self.para(M, self.y, sec["intro"], fw) - 10
+            if lines:
+                self.y = self.bullets(M, self.y, lines, fw) - 6
+            if sec.get("box"):
+                self.y = self.box(self.y, sec["box"]["title"], sec["box"]["lines"]) - 6
+            for f in sec.get("figures", []):
+                if self.y - self.fig_height(fw, f, 260) < 56:
+                    self.new_page(); self.y = self.section(TOPY, sec["title"] + ", continued")
+                self.y -= self.figure(M, self.y, fw, f, 260) + 12
 
     def back(self):
-        c = self.c
+        c, d = self.c, self.d
         self.room(250, "Record the install")
         y = self.bullets(M, self.y, [
             "In the LC Installer App, open the fixture's pin, take a photo of the installed fixture (and its label if you can), and SAVE AS INSTALLED. Every head is its own pin.",
-            "Anything not as designed (bracket, height, aim): write it in the pin's note."], W - 2 * M) - 24
+            d.get("record_note", "Anything not as designed (bracket, height, aim): write it in the pin's note.")], W - 2 * M) - 24
         y = self.section(y, "Questions on site")
         c.setFillColor(NAVY); c.roundRect(M, y - 92, W - 2 * M, 104, 10, stroke=0, fill=1)
         self.logo(M + 20, y - 62, 50)
@@ -361,7 +401,13 @@ class Guide:
         self.text(M + 100, y - 64, COMPANY["email"] + "  ·  " + COMPANY["web"], "Outfit-Medium", 10.5, HexColor("#cbd5e1"))
 
     def build(self):
-        self.cover(); self.safety(); self.parts_page(); self.steps(); self.wiring(); self.back()
+        self.cover(); self.safety()
+        if self.d.get("parts"):
+            self.parts_page()
+        self.steps()
+        if self.d.get("wiring") or self.d.get("sections") or self.d.get("extra"):
+            self.wiring()
+        self.back()
         self.footer(); self.c.save()
 
 
@@ -375,7 +421,9 @@ def main(argv):
         d = json.load(open(f))
         if only and d["code"] not in only:
             continue
-        path = os.path.join(out, "LC-Optimus-Installation-Guide-" + d["code"] + ".pdf")
+        name = dict(OPTIMUS, **d.get("product", {}))["file"].format(code=d["code"], bracket=d.get("bracket", ""))
+        path = os.path.join(out, os.path.basename(name) if out.endswith("preview") else name)
+        os.makedirs(os.path.dirname(path), exist_ok=True)
         Guide(d, common, path).build()
         print("built", os.path.relpath(path, ROOT))
 

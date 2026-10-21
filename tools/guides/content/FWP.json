@@ -1,0 +1,105 @@
+{
+ "code": "FWP",
+ "doc": "LC-IG-FWP",
+ "rev": "A",
+ "source": "LED Connection NightShade wall pack LC-FWP-WS-3CCT: supplier wall pack spec sheet and installation instruction (tools/specs/sources/LC-FWP-WS-3CCT/fcw-spec-install.pdf, pages 4-7). Never printed.",
+ "product": {
+  "name": "NIGHTSHADE",
+  "line": "Full cutoff wall pack  ·  LC-FWP-WS-3CCT",
+  "pn": [
+   "LC",
+   "*FWP",
+   "WS",
+   "3CCT"
+  ],
+  "for": "FOR LC-FWP-WS-3CCT",
+  "chip": "WALL MOUNT",
+  "title": "NightShade Wall Pack Installation Guide (LC-FWP-WS-3CCT)",
+  "file": "wallpack/LC-NightShade-Installation-Guide-FWP.pdf"
+ },
+ "tools": [
+  "Screwdriver"
+ ],
+ "parts": [],
+ "inbox": [
+  "Wall pack (upper half and lamp base)",
+  "Mounts over a recessed junction box"
+ ],
+ "glance2": [
+  "SET ON SITE",
+  [
+   "Wattage 45 / 60 / 75W",
+   "CCT 3000 / 4000 / 5000K"
+  ]
+ ],
+ "common": {
+  "warning": [
+   "The complete installation must be done by a qualified electrician.",
+   "Be sure the power supply is turned off before installation, and switch off the mains before any work.",
+   "Use the standard working voltage, 120-277V AC, 50/60Hz. Do not exceed it.",
+   "Keep the external power wires protected against water, dust and shock.",
+   "Make sure every wire connection is in good condition, with no leakage.",
+   "Read these instructions before installation."
+  ],
+  "electrical": "Supply the wall pack with 120-277V AC, as on its label. It dims with 0-10V: purple DIM+, gray DIM-.",
+  "grounding": "Connect the green wire to the ground of the supply, in accordance with the NEC and local codes.",
+  "before": [
+   "Ensure that the supply power is shut off.",
+   "Unpack the wall pack and check that nothing is damaged or missing.",
+   "The wall pack mounts over a recessed (embedded) junction box in the wall."
+  ],
+  "toolsNote": ""
+ },
+ "steps": [
+  {
+   "title": "Unscrew the screws with a screwdriver and remove the upper half of the fixture from the lamp base.",
+   "figures": [
+    "FWP-fig-A.png"
+   ]
+  },
+  {
+   "title": "Unscrew the cover of the entry hole on the lamp base and remove it.",
+   "figures": [
+    "FWP-fig-B.png"
+   ]
+  },
+  {
+   "title": "Punch the mounting holes on the lamp base that match the embedded junction box.",
+   "figures": [
+    "FWP-fig-C.png"
+   ]
+  },
+  {
+   "title": "Pass the input wires from the junction box through the waterproof pad and then through the lamp base.",
+   "figures": [
+    "FWP-fig-D.png"
+   ]
+  },
+  {
+   "title": "Lock the lamp base on the junction box with screws.",
+   "figures": [
+    "FWP-fig-E.png"
+   ]
+  },
+  {
+   "title": "Connect the wires: black to line (L), white to neutral (N), green to ground; purple to DIM+ and gray to DIM- for 0-10V dimming. Put the connections into the junction box.",
+   "figures": [
+    "FWP-fig-F.png"
+   ]
+  },
+  {
+   "title": "Set the wattage and CCT on the internal DIP switches. Wattage: up 45W, centre 60W (default), down 75W. CCT: up 3000K, centre 4000K (default), down 5000K.",
+   "figures": [
+    "FWP-set-A.png"
+   ]
+  },
+  {
+   "title": "Put the upper half back and lock the fixture with its screws. Installation completed.",
+   "figures": [
+    "FWP-fig-G.png"
+   ]
+  }
+ ],
+ "wiring": [],
+ "record_note": "Anything not as designed (height, setting, junction box): write it in the pin's note."
+}
