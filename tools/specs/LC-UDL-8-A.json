@@ -1,0 +1,227 @@
+{
+ "_about": "LC-UDL-8-A Universal Downlight (8 in) + LC-UDL-8-GR goof ring, Kroger 345 DL1-GR (set 16W, 4000K). Source: LED Connection's own Universal Downlight sheet (lc-existing/, 2022) for every value and image; LC item text for -A and the goof ring. No supplier datasheet on file.",
+ "sku": "LC-UDL-8-A",
+ "family": "Universal Downlight",
+ "product_type": "LED Downlight",
+ "product_type_label": "Recessed Downlight, 8 in, Selectable",
+ "category": "lighting",
+ "draft": true,
+ "vendor_pdf": "lc-existing/LC SPEC SHEET_Universal Downlight Series.pdf",
+ "out": "preview/LC-UDL-8-A.pdf",
+ "source_note": "LED Connection Universal Downlight sheet (2022)",
+ "vendor_words": [
+  "rz lighting",
+  "up-shine",
+  "upshine",
+  "dl347"
+ ],
+ "extracted": {
+  "wattage": {
+   "values": [
+    "12W",
+    "16W",
+    "22W"
+   ],
+   "src": "LC sheet, 8 in row"
+  },
+  "lumens": {
+   "values": [
+    "1350 / 1800 / 2350 lm"
+   ],
+   "src": "LC sheet, 8 in row"
+  },
+  "voltage": {
+   "values": [
+    "120-277VAC"
+   ],
+   "src": "LC sheet rated voltage; its overview says 100-277VAC"
+  },
+  "efficacy": {
+   "values": [
+    "Up to 113 lm/W"
+   ],
+   "src": "computed from the LC sheet's 8 in rated lumens / watts: 1350/12 = 1800/16 = 112.5, 2350/22 = 106.8"
+  },
+  "cct": {
+   "values": [
+    "3000K",
+    "3500K",
+    "4000K"
+   ],
+   "src": "LC sheet table and the switch label in its product image; LC item text says 30/40/50K"
+  },
+  "cri": {
+   "values": [
+    "Ra >80"
+   ],
+   "src": "LC sheet"
+  },
+  "lifetime": {
+   "values": [
+    "50,000 h"
+   ],
+   "src": "LC sheet 50,000+ hours, Dino 2026-10-21"
+  },
+  "warranty": {
+   "values": [
+    "5 years"
+   ],
+   "src": "LC sheet, Dino 2026-10-21"
+  },
+  "ip_rating": {
+   "values": [
+    "Wet location, IC and airtight rated"
+   ],
+   "src": "LC sheet"
+  },
+  "power_factor": {
+   "values": [
+    ">0.90"
+   ],
+   "src": "LC sheet"
+  },
+  "controls": {
+   "values": [
+    "0-10V dimming"
+   ],
+   "src": "LC sheet"
+  },
+  "adjustment": {
+   "values": [
+    "Wattage and CCT on toggle switches on the back of the fixture"
+   ],
+   "src": "LC sheet description + image"
+  },
+  "driver": {
+   "values": [
+    "Built-in, with integral metal-clad whip, 15-3/4 in (400 mm)"
+   ],
+   "src": "LC sheet overview + drawing"
+  },
+  "finish": {
+   "values": [
+    "White standard, custom finish available"
+   ],
+   "src": "LC sheet"
+  },
+  "operating_temp": {
+   "values": [
+    "-20 F to +122 F"
+   ],
+   "src": "LC sheet"
+  },
+  "total_harmonic_distortion": {
+   "values": [
+    "<15%"
+   ],
+   "src": "LC sheet"
+  }
+ },
+ "certifications": {},
+ "cover": {
+  "subtitle": "",
+  "tagline": "SELECTABLE POWER. SELECTABLE CCT. RETROFIT FROM BELOW.",
+  "chips": {
+   "WATTAGE": "12/16/22W",
+   "VOLTAGE": "120-277V",
+   "LIFESPAN": "50,000 h",
+   "WARRANTY": "5 years",
+   "CRI": ">80",
+   "CCT": "30/35/40K"
+  },
+  "headline_efficacy": "113 LM/W",
+  "positioning": "An 8 in recessed downlight for retrofit and new construction, installed from below the ceiling with its own metal-clad whip. For custom solutions please contact our sales representative."
+ },
+ "badges": [
+  "3 WATTAGES",
+  "3 CCTS",
+  "IC",
+  "0-10V"
+ ],
+ "quality_line": "Wet location, IC and airtight rated, with a deep recessed light source for low glare.",
+ "description": "The Universal Downlight is suitable for retrofit and new construction applications, with 120-277V input and an integrated IC-rated junction box. Wattage (12, 16 or 22W) and CCT (3000, 3500 or 4000K) are set on toggle switches on the back of the fixture. It does not need a recessed frame in new construction, and a retrofit is done from below the ceiling without removing the existing fixture, supported by the factory-installed metal-clad whip. The LC-UDL-8-GR goof ring (up to 12 in diameter) covers oversized cavities.",
+ "overview_drop": [
+  "Adjustment",
+  "Total Harmonic"
+ ],
+ "overview_max": 11,
+ "overview_add": [
+  "Accessory: LC-UDL-8-GR goof ring, up to 12 in diameter, for oversized cavities"
+ ],
+ "order_logic": {
+  "sample_code": "LC - UDL - 8 - A",
+  "segments": [
+   {
+    "n": "01",
+    "name": "BRAND",
+    "options": [
+     [
+      "LC",
+      "LED Connection - fixed, every SKU"
+     ]
+    ]
+   },
+   {
+    "n": "02",
+    "name": "SERIES",
+    "options": [
+     [
+      "UDL",
+      "Universal Downlight"
+     ]
+    ]
+   },
+   {
+    "n": "03",
+    "name": "SIZE",
+    "options": [
+     [
+      "8",
+      "8 in"
+     ]
+    ]
+   },
+   {
+    "n": "04",
+    "name": "VERSION",
+    "options": [
+     [
+      "A",
+      "12/16/22W, CCT selectable"
+     ]
+    ]
+   }
+  ]
+ },
+ "hero": {
+  "page": 0,
+  "clip": [
+   26,
+   138,
+   241,
+   266
+  ]
+ },
+ "dims_panel": {
+  "drawing": {
+   "page": 0,
+   "clip": [
+    8,
+    346,
+    244,
+    430
+   ]
+  },
+  "text": "8 in MODEL\nA  10-5/16 in\nB  7-7/8 in\nC  4-7/8 in\nD  1-1/3 in\n\nWHIP  15-3/4 in (400 mm)\n\nGOOF RING LC-UDL-8-GR\nup to 12 in diameter"
+ },
+ "electrical_note": "Wattage and CCT are set on the toggle switches on the back. Set them before the fixture is powered.",
+ "callout_body": "",
+ "_open_items": [
+  "CCT: LC sheet and the switch label read 3000/3500/4000K; LC item text says 30/40/50K. Printed 3000/3500/4000K. Kroger 345 uses 4000K (in both).",
+  "Voltage: LC sheet table 120-277V (printed), its overview 100-277VAC.",
+  "What '-A' stands for is not written anywhere; printed as the item text describes it.",
+  "Efficacy computed from the LC sheet's 8 in lumens (113 lm/W at 12/16W, 107 at 22W); family headline on the old sheet was up to 115 lm/W.",
+  "No supplier datasheet on file (NetSuite points to RZ Lighting): no wiring colours, weight or installation steps on this sheet.",
+  "Goof ring: NetSuite text only, no drawing."
+ ]
+}
