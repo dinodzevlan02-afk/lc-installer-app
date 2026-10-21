@@ -25,6 +25,8 @@ installer-app/
   jobs/{projectId}/pins/{pinId}.json    one installed head
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
   system/relay.json                 the paired Outlook relay: SHA-256 of its key, who paired it, when
+  system/relay-seen.json            when a relay last came for mail, and which (installer | portal | setting)
+  system/notify.json                LED Connection's list for every claim email (@ledconnection.com only)
   mailqueue/pending/{id}.json       an email waiting for the Outlook relay (photos inside, base64)
   mailqueue/sent/{id}.json          sent by the relay (attachments dropped, sentAt)
   mailqueue/failed/{id}.json        given up after 5 tries (error)
@@ -125,9 +127,18 @@ never stored; a newer link retires the older one.
 ```
 An Optimus `pn` always passes the order logic (api/shared/parts.js).
 
+## Who gets a claim email
+
+To: system/notify.json `{ to: [address], at, by }` (home page EMAIL panel,
+@ledconnection.com only; absent = INSTALLER_NOTIFY_TO, else cassieh@ +
+dinod@). CC: the job's own `notify` on jobs/{projectId}.json,
+`{ installersOff: [username], client: [{ name, email }] }` (the project's
+EMAILS dialog): every installer on the job whose login has an email, except
+those unticked, and the client contacts.
+
 ## jobs/{projectId}/claims/{ref}.json
 
-`{ ref, kind: shortage|damaged|wrong|other, kindLabel, lines: [{ key, name, sku, expected, received, damaged }], note, photos: [name], status: "open", at, by, byName, mail: { sent, queued, to, attached, at, reason } }`
+`{ ref, kind: shortage|damaged|wrong|other, kindLabel, lines: [{ key, name, sku, expected, received, damaged }], note, photos: [name], status: "open", at, by, byName, mail: { sent, queued, to, cc, attached, at, reason } }`
 
 `mail` is how the claim email went: `sent` true = handed to Graph or queued
 for the Outlook relay (`queued`), false with a `reason` = not emailed (the
@@ -141,7 +152,10 @@ tools/outlook-relay.ps1 on Dino's PC fetches it (GET /api/relay/outbox, header
 X-Relay-Key), sends it through Outlook and acks it (POST, `{ id, ok, error }`),
 which moves it to sent/ or, after 5 failures, failed/. system/relay.json is
 `{ keyHash, pairedAt, pairedBy }`: the key itself is shown once on the home
-page and never stored.
+page and never stored. The customer portal's relay is accepted too: its key
+hash is read from the portal's own system/relay.json (read-only), and its
+script polls this app with the same key, so one relay on Dino's PC sends
+both apps' emails.
 
 ## jobs/{projectId}/pins/{pinId}.json
 

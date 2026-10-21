@@ -174,7 +174,7 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     const partsRec = await P.store().get(J.paths.parts(id));
     const saved = (partsRec && partsRec.data.byLabel) || {};
     const notify = await CLAIMMAIL.notifyClaim(req, id, job, site, claim, user, sku => (saved[sku] && saved[sku].pn) || PARTS.DECIDED[sku] || null);
-    claim.mail = { sent: notify.sent, queued: !!notify.queued, to: notify.to, attached: notify.attached, at: new Date().toISOString(), reason: notify.reason || null };
+    claim.mail = { sent: notify.sent, queued: !!notify.queued, to: notify.to, cc: notify.cc || [], attached: notify.attached, at: new Date().toISOString(), reason: notify.reason || null };
     await P.store().put(J.paths.claim(id, ref), claim).catch(() => null);
     return send(201, { claim, notify });
   }

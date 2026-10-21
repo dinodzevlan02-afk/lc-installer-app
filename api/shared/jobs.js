@@ -60,7 +60,8 @@ function publicJob(j, user) {
     id: j.id, name: j.name || j.id, address: j.address || "", installers: j.installers || [],
     created: j.created, submitted: j.submitted || null
   };
-  if (!A.isLc(user)) delete out.installers;
+  if (A.isLc(user)) out.notify = { installersOff: (j.notify && j.notify.installersOff) || [], client: (j.notify && j.notify.client) || [] };
+  else delete out.installers;
   return out;
 }
 

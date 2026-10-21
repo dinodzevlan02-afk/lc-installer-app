@@ -6,6 +6,7 @@
    the whole sign-in and login model through the real HTTP API, and exits
    non-zero if any rule does not hold. Run it after any change to api/. */
 const { spawn } = require("child_process");
+const crypto = require("crypto");
 const path = require("path");
 const fs = require("fs");
 const os = require("os");
@@ -13,6 +14,10 @@ const os = require("os");
 const PORT = 4398;
 const BASE = "http://127.0.0.1:" + PORT + "/api/";
 const store = fs.mkdtempSync(path.join(os.tmpdir(), "lci-smoke-"));
+/* The customer portal's container, read-only to the app: a throwaway copy of
+   the fixture, so a check can play the portal pairing its Outlook relay. */
+const portalDir = fs.mkdtempSync(path.join(os.tmpdir(), "lci-portal-"));
+fs.cpSync(path.join(__dirname, "fixtures", "portal"), portalDir, { recursive: true });
 const PW = "correct-horse-battery";
 
 let failed = 0, passed = 0;
@@ -330,6 +335,41 @@ async function main() {
   const st2 = await o2("GET", "relay/status");
   check(st2.body.pending === 0 && st2.body.sent === 1, "it moves to sent");
 
+  console.log("who gets claim emails: LED Connection's list, the job's installers, its client");
+  check((await inst("POST", "relay/notify", { to: ["x@ledconnection.com"] })).status === 403, "an installer cannot change who is emailed");
+  check((await o2("POST", "relay/notify", { to: ["cassieh@ledconnection.com", "someone@gmail.com"] })).status === 400, "the LED Connection list takes @ledconnection.com only");
+  check((await o2("POST", "relay/notify", { to: [] })).status === 400, "the list cannot be emptied");
+  const nl = await o2("POST", "relay/notify", { to: ["cassieh@ledconnection.com", "dinod@ledconnection.com", "Ops@LEDConnection.com"] });
+  check(nl.status === 200 && nl.body.notifyTo.includes("ops@ledconnection.com") && (await o2("GET", "relay/status")).body.notifySaved === true, "LC admin adds an LED Connection address");
+  check((await o2("PATCH", "users/mike.crew", { email: "mike@crew-a.example" })).status === 200, "the installer's login gets an email");
+  check((await inst("PATCH", "jobs/TEST-OWN-01", { notify: { client: [] } })).status === 403, "an installer cannot set a project's emails");
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { client: [{ name: "Jim", email: "not-an-email" }] } })).status === 400, "a client email must be an email");
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: ["nobody.here"] } })).status === 400, "only the job's own installers can be unticked");
+  const jn = await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: [], client: [{ name: "Jim Green", email: "Jim.Green@Client.example" }] } });
+  check(jn.status === 200 && jn.body.job.notify.client[0].email === "jim.green@client.example", "LC admin adds the client contact to the project");
+  check((await inst("GET", "jobs/TEST-OWN-01")).body.job.notify === undefined, "installers never see who else is emailed");
+  const c3 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "shortage", lines: [{ key: oj.body.site.bom[0].key, received: 2 }], note: "Two short" });
+  check(c3.status === 201 && c3.body.notify.to.includes("ops@ledconnection.com") &&
+        JSON.stringify(c3.body.notify.cc) === '["mike@crew-a.example","jim.green@client.example"]', "the claim goes to LED Connection, CC the installer and the client");
+  const q3 = await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key });
+  const m3 = q3.body.messages.find(m => /Two short/.test(m.html));
+  check(m3 && m3.cc.includes("jim.green@client.example") && m3.to.includes("ops@ledconnection.com"), "the queued email carries them");
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: ["mike.crew"], client: [] } })).status === 200, "an installer can be unticked");
+  const c4 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "other", lines: [], note: "Wrong bracket" });
+  check(c4.status === 201 && c4.body.notify.cc.length === 0, "then only LED Connection gets it");
+  for (const m of (await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key })).body.messages)
+    await anon("POST", "relay/outbox", { id: m.id, ok: true }, { "X-Relay-Key": pr.body.key });
+
+  console.log("the customer portal's relay sends this app's mail too (same key, no second pairing)");
+  const portalKey = "portal-relay-key-" + "0123456789abcdef0123456789";
+  check((await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": portalKey })).status === 401, "before the portal pairs it, its key is refused");
+  fs.mkdirSync(path.join(portalDir, "system"), { recursive: true });
+  fs.writeFileSync(path.join(portalDir, "system", "relay.json"), JSON.stringify({ keyHash: crypto.createHash("sha256").update(portalKey).digest("hex"), pairedAt: Date.now(), pairedBy: "dino" }));
+  check((await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": portalKey })).status === 200, "the portal relay's key fetches this app's queue");
+  const st3 = (await o2("GET", "relay/status")).body;
+  check(st3.portalRelay === true && st3.via.includes("portal") && st3.seenAt > 0, "the EMAIL panel shows the portal relay and when it last checked in");
+  check(!fs.readdirSync(path.join(portalDir, "system")).some(f => f !== "relay.json"), "nothing is written to the portal's container");
+
   console.log("delete a project, keep everything, restore it (LC only)");
   const filesUnder = d => !fs.existsSync(d) ? [] : fs.readdirSync(d, { withFileTypes: true }).flatMap(e => e.isDirectory() ? filesUnder(path.join(d, e.name)) : [e.name]);
   const auditOf = action => { const d = path.join(store, "audit"); const out = [];
@@ -363,7 +403,7 @@ async function main() {
   check(auditOf("job.restore").some(a => a.target === "job:TEST-OWN-01"), "the restore is in the activity log");
   check((await o2("POST", "deleted/" + del.body.deleted.key, { action: "restore" })).status === 409, "restoring over a project that is there again is refused");
   check((await o2("POST", "deleted/not-a-key", { action: "restore" })).status === 404, "an unknown archive answers 404");
-  const portalFix = path.join(__dirname, "fixtures", "portal", "projects", "TEST-SITE-01", "site.json");
+  const portalFix = path.join(portalDir, "projects", "TEST-SITE-01", "site.json");
   const portalBefore = fs.existsSync(portalFix) ? fs.readFileSync(portalFix, "utf8") : null;
   const dp = await o2("POST", "deleted", { projectId: "TEST-SITE-01", confirm: "TEST-SITE-01" });
   const back = (await o2("GET", "projects")).body.projects.find(p => p.id === "TEST-SITE-01");
@@ -378,7 +418,7 @@ async function main() {
 }
 
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "dev", "server.js")], {
-  env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store, INSTALLER_PORTAL_LOCAL_STORE: path.join(__dirname, "fixtures", "portal"), INSTALLER_CATALOG_FILE: path.join(__dirname, "fixtures", "catalog-data.json") }), stdio: ["ignore", "pipe", "inherit"]
+  env: Object.assign({}, process.env, { PORT: String(PORT), INSTALLER_LOCAL_STORE: store, INSTALLER_PORTAL_LOCAL_STORE: portalDir, INSTALLER_CATALOG_FILE: path.join(__dirname, "fixtures", "catalog-data.json") }), stdio: ["ignore", "pipe", "inherit"]
 });
 let started = false;
 srv.stdout.on("data", d => {

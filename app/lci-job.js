@@ -303,7 +303,7 @@
       $('ovClaim').hidden = true;
       renderMaterial();
       var n = r.notify || {};
-      toast('Claim ' + r.claim.ref + ' saved' + (n.sent ? ' and emailed to LED Connection' + (n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : '') + '.'
+      toast('Claim ' + r.claim.ref + ' saved' + (n.sent ? ' and emailed to LED Connection' + (n.cc && n.cc.length ? ' (+' + n.cc.length + ' on this project)' : '') + (n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : '') + '.'
         : '. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here. Call if the install is held up.'), !n.sent);
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('clSend').disabled = false; });
   });
