@@ -356,7 +356,7 @@ the installer app": nothing goes to the customer portal.
   Nightshade Series Full Cutoff Wallpack sheet, LC-UDL-8-A -> the Universal
   Downlight Series sheet (Marketing-2025 > LED > SpecSheets). Waiting on
   the PDFs (SharePoint gives this session text only, not the file). No LC
-  sheet found for the LC-FL-WS-3CCT-Y flood (the Architectural Floodlight
+  sheet found for the LC-FL-WS-3CCT flood (the Architectural Floodlight
   is LC-AFL, the Utility Floodlight LC-UFL).
 - The Nightshade wall pack sheet lists 45/65/75W; SO636 says FCW1 is set to
   20W. Confirm the 20W setting with Dino.
@@ -366,7 +366,8 @@ the installer app": nothing goes to the customer portal.
   T5S-SS-BR; S01 and S02-HS LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR (one
   fixture, dip switch to 75W; S02-HS adds LC-SLOT-LG-SHIELD). No order logic
   for the rest, so the LC item that shipped (not checked): FCW1/FCW2
-  LC-FWP-WS-3CCT (set 20W / 45W), FL1 LC-FL-WS-3CCT-Y (40W, through a
+  LC-FWP-WS-3CCT (set 20W / 45W), FL1 LC-FL-WS-3CCT-SF (slip fitter, Dino 2026-10-21: "they have a slip
+  fitter mount", not the yoke -Y; 40W, through a
   480-to-277V step-down), DL1-GR LC-UDL-8-A + goof ring LC-UDL-8-GR.
 - parts.js SETUP[label]: how a head is set up where the part number does not
   say it (dip switch, shield, goof ring, transformer). Shown as SET UP on the

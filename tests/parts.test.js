@@ -61,7 +61,7 @@ test("every decided part number is a valid LC part number (Walmart A-05, Kroger 
     "LC-SLOT-L-S1-480-40-70-TY4W-HS": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
     "FCW-20-740-277-CT": "LC-FWP-WS-3CCT",
     "FCW-45-740-277-CT": "LC-FWP-WS-3CCT",
-    "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-Y",
+    "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-SF",
     "LC-UDL-10-16W-277-40-GR": "LC-UDL-8-A"
   };
   assert.deepEqual(PARTS.DECIDED, want);

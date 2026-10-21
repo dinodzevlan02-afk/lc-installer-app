@@ -122,7 +122,7 @@ const DECIDED = {
   "LC-SLOT-L-S1-480-40-70-TY4W-HS": "LC-SLOT-230W-HV-L5-XX-40-80-T4-SS-BR",
   "FCW-20-740-277-CT": "LC-FWP-WS-3CCT",
   "FCW-45-740-277-CT": "LC-FWP-WS-3CCT",
-  "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-Y",
+  "LC-FL32A-40-480-40": "LC-FL-WS-3CCT-SF",   /* slip fitter, not yoke (Dino, 2026-10-21) */
   "LC-UDL-10-16W-277-40-GR": "LC-UDL-8-A"
 };
 
@@ -137,7 +137,7 @@ const SETUP = {
   "LC-SLOT-L-S1-480-40-70-TY4W-HS": "Set to 75W with the fixture's dip switch (design 74W). Fit the house-side shield (LC-SLOT-LG-SHIELD, shipped with it) on site.",
   "FCW-20-740-277-CT": "Selectable wall pack: set to 20W and 4000K.",
   "FCW-45-740-277-CT": "Selectable wall pack: set to 45W and 4000K.",
-  "LC-FL32A-40-480-40": "Selectable flood on its yoke: set to 40W and 4000K. It runs on 120-277V: wire it through the 480V-to-277V step-down transformer in its junction box (shipped with it).",
+  "LC-FL32A-40-480-40": "Selectable flood on its slip fitter: set to 40W and 4000K. It runs on 120-277V: wire it through the 480V-to-277V step-down transformer in its junction box (shipped with it).",
   "LC-UDL-10-16W-277-40-GR": "Selectable 8\" downlight: set to 16W and 4000K. Fit the goof ring (LC-UDL-8-GR) to cover the old 10\" opening."
 };
 
