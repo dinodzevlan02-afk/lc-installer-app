@@ -1,6 +1,6 @@
 {
   "id": "KR-00345-NV",
-  "name": "Kroger 345 · El Dorado Village",
+  "name": "Kroger 345 \u00b7 El Dorado Village",
   "address": "5564 Camino Al Norte, North Las Vegas, NV 89031",
   "customer": "Kroger",
   "kind": "exterior",
@@ -122,5 +122,10 @@
       "why": "The A-02 has 6 FL1 floods, the audit 5 pins. Dino (2026-10-20): the 6th goes on 20203's pole (S03 pole G12), opposite 20203.",
       "installer": "New head: nothing is mounted here today. Add this flood to the pole, on the side opposite the existing flood."
     }
-  ]
+  ],
+  "tidyPoles": {
+    "radiusFt": 4,
+    "why": "Dino 2026-10-21: the audit dropped the two heads of each back-to-back S03 pole 25-31 ft apart; heads go back on their pole (middle of its audit pins), 4 ft ring, as in the customer portal."
+  },
+  "poleAt": {}
 }

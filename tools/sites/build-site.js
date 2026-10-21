@@ -141,6 +141,50 @@ function build(dir) {
       specific: d.specific || undefined, prodId: d.prodId || undefined, specSheetUrl: d.specSheetUrl || undefined };
   });
 
+  /* Heads of one pole back on their pole (Dino, 2026-10-21: "fix the
+     location of the pins ... same thing that we have done with the customer
+     portal"). The audit drops each head where the surveyor tapped: on Kroger
+     345 the two heads of one back-to-back S03 pole sat 25-31 ft apart. The
+     pole is taken as the middle of its own heads' audit pins (every head
+     the audit has on it, removed ones too), and the heads go on an even
+     ring of project.tidyPoles.radiusFt around it, in the order they stood,
+     the first keeping its bearing; two heads face each other along the
+     line the surveyor drew. project.poleAt { pole: { lat, lng } } puts a
+     pole on a spot measured from the aerial instead. The audit's own
+     position stays on the row (audit latitude / audit longitude). */
+  const tidy = project.tidyPoles || null;
+  const tidied = [];
+  if (tidy) {
+    const R = 6371000, k = Math.PI / 180, ft = 0.3048;
+    const byPole = {};
+    data.forEach((r, i) => { const p = String(r["pole id"] || "").trim(); if (p && (solutions[i] || excluded[i])) (byPole[p] = byPole[p] || []).push(i); });
+    Object.keys(byPole).forEach(pole => {
+      const idx = byPole[pole];
+      const fixed = (project.poleAt || {})[pole];
+      if (idx.length < 2 && !fixed) return;
+      const pts = idx.map(i => pos(data[i]));
+      const c = fixed ? { lat: +fixed.lat, lng: +fixed.lng }
+        : { lat: pts.reduce((a, p) => a + p.lat, 0) / pts.length, lng: pts.reduce((a, p) => a + p.lng, 0) / pts.length };
+      const toXY = p => ({ x: (p.lng - c.lng) * k * Math.cos(c.lat * k) * R, y: (p.lat - c.lat) * k * R });
+      const ang = idx.map((i, j) => { const v = toXY(pts[j]); return Math.atan2(v.y, v.x); });
+      const order = idx.map((i, j) => j).sort((a, b) => ang[a] - ang[b]);
+      const r0 = (tidy.radiusFt || 4) * ft, n = idx.length;
+      const start = n === 2 ? Math.atan2(toXY(pts[1]).y - toXY(pts[0]).y, toXY(pts[1]).x - toXY(pts[0]).x) + Math.PI : ang[order[0]];
+      const before = [];
+      order.forEach((j, m) => {
+        const i = idx[j], row = data[i];
+        const th = n === 2 ? start + (j === 0 ? 0 : Math.PI) : start + 2 * Math.PI * m / n;
+        const p = n === 1 ? { lat: c.lat, lng: c.lng }
+          : { lat: c.lat + (r0 * Math.sin(th)) / R / k, lng: c.lng + (r0 * Math.cos(th)) / (R * Math.cos(c.lat * k)) / k };
+        before.push(metres(pts[j], p));
+        if (row["audit latitude"] == null && row.latitude !== undefined) { row["audit latitude"] = row.latitude; row["audit longitude"] = row.longitude; }
+        row.latitude = String(+p.lat.toFixed(8)); row.longitude = String(+p.lng.toFixed(8));
+        row["position source"] = fixed ? "pole measured from the aerial" : "pole tidied: middle of its audit pins, " + (tidy.radiusFt || 4) + " ft ring";
+      });
+      tidied.push({ pole, heads: n, moved: Math.max(...before), fixed: !!fixed });
+    });
+  }
+
   const counts = {};
   Object.keys(solutions).forEach(i => { if (!excluded[i]) counts[solutions[i].tag] = (counts[solutions[i].tag] || 0) + 1; });
   const checks = Object.keys(tags).map(t => ({ tag: t, design: tags[t].qty, pins: counts[t] || 0 }));
@@ -152,7 +196,7 @@ function build(dir) {
     source: Object.assign({}, project.source, { built: new Date().toISOString().slice(0, 10), builder: "tools/sites/build-site.js" }),
     site: { datasets: [{ id: project.dataset.id, label: project.dataset.label, data, solutions: JSON.parse(JSON.stringify(solutions)), excluded }] }
   };
-  return { file, errors, notes, checks, rows: data.length, heads: Object.values(counts).reduce((a, b) => a + b, 0), excluded: Object.keys(excluded).length };
+  return { file, errors, notes, checks, tidied, rows: data.length, heads: Object.values(counts).reduce((a, b) => a + b, 0), excluded: Object.keys(excluded).length };
 }
 
 module.exports = { build, parseCsv };
@@ -165,6 +209,10 @@ if (require.main === module) {
   console.log("tag        design  pins");
   out.checks.forEach(c => console.log(c.tag.padEnd(10) + String(c.design).padStart(6) + String(c.pins).padStart(6) + (c.pins !== c.design ? "   <-" : "")));
   [...new Set(out.notes)].forEach(n => console.log("note: " + n));
+  if (out.tidied.length) {
+    console.log("poles tidied (heads back on their pole):");
+    out.tidied.sort((a, b) => b.moved - a.moved).forEach(t => console.log("  " + t.pole.padEnd(6) + t.heads + " heads, largest move " + (t.moved / 0.3048).toFixed(1) + " ft" + (t.fixed ? " (measured spot)" : "")));
+  }
   if (out.errors.length) { out.errors.forEach(e => console.error("ERROR: " + e)); process.exit(1); }
   fs.mkdirSync(path.join(__dirname, "out"), { recursive: true });
   const f = path.join(__dirname, "out", id + ".site.json");

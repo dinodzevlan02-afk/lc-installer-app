@@ -311,6 +311,15 @@ the installer app": nothing goes to the customer portal.
   20203's pole": project.json "added" ADD-FL1-01, placed opposite 20203
   across pole G12's centre; the pin card says NEW HEAD (row.added, whitelisted
   in site.js) instead of Replaces.
+- Pole positions (Dino, 2026-10-21, "fix the location of the pins, same as
+  the customer portal"): the audit dropped the two heads of each back-to-back
+  S03 pole 25-31 ft apart. build-site.js tidyPoles (project.json, 4 ft):
+  every pole with 2+ heads goes to the middle of its own heads' audit pins,
+  heads on an even ring, the audit position kept as audit latitude /
+  longitude. 28 pins moved (S03 18, FL1 6, S02-HS 2, removed 2), max 12 ft;
+  pin ids unchanged. NOT yet checked against the aerial: this session's
+  network blocks Google / Esri / OSM. project.poleAt { G15: { lat, lng } }
+  pins a pole to a spot measured from the aerial once that is possible.
 - Pole ids: blank audit pole ids take the Field Survey group (G10...); heads
   to install still without one (the floods) join the pole whose centre is
   within 6 m. Wall packs and downlights stay off poles.
