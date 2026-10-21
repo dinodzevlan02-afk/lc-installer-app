@@ -12,6 +12,19 @@ Live: https://witty-plant-08257f31e.2.azurestaticapps.net (Azure SWA created
 in the portal linked to GitHub like the customer portal; push to main
 deploys after `npm test` passes in the same workflow).
 
+## Working with Dino: his browser (Dino, 2026-10-21)
+
+Standing permission: "I'm allowing you to take control of my computer when
+you need through Microsoft Edge extension of the Claude so you can control
+the app." Use the Claude extension in his Edge whenever a step needs his
+browser instead of stopping to hand it back: uploading a site file on the
+live installer app, checking a deploy on the live site, the LC catalog
+admin, downloading a file from SharePoint that this session can only read
+as text. Still ask first before anything outward-facing or hard to undo
+(sending email, deleting, payments, changing logins), and say what was done
+in his browser. The extension's tools exist only while it is connected to
+the session; if they are not there, say so rather than guessing.
+
 ## Layout and how we work (engineering-mentor session, 2026-10-20)
 
 | Path | What | Deployed |
