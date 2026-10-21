@@ -103,15 +103,70 @@
       "font:600 11px/1.35 'JetBrains Mono',ui-monospace,monospace;letter-spacing:.06em;text-align:center}" +
       '#lciBeta b{background:#111;color:#f37021;padding:1px 7px;border-radius:3px;letter-spacing:.14em}' +
       '@media (max-width:767px){#lciBeta .long{display:none}}' +
+      '#lciInstall{font:inherit;font-weight:700;letter-spacing:.1em;padding:1px 9px;border:1px solid #111;border-radius:3px;' +
+      'background:#111;color:#22d3ee;cursor:pointer;min-height:0}' +
+      '#lciInstall[hidden]{display:none}' +
+      '@media (pointer:coarse){#lciInstall{min-height:30px;padding:4px 12px}}' +
+      '#lciIosTip{position:fixed;left:50%;bottom:18px;transform:translateX(-50%);z-index:6000;max-width:min(420px,calc(100vw - 32px));' +
+      'padding:12px 14px;border:1px solid rgba(34,211,238,.45);border-radius:10px;background:#0f1626;color:#e5e7eb;' +
+      "font:500 13px/1.5 'JetBrains Mono',ui-monospace,monospace;box-shadow:0 10px 30px rgba(0,0,0,.5)}" +
+      '#lciIosTip b{color:#22d3ee}' +
       '@media print{#lciBeta{display:none}}';
     document.head.appendChild(st);
     var d = document.createElement('div');
     d.id = 'lciBeta';
     d.setAttribute('role', 'note');
-    d.innerHTML = '<b>BETA</b><span>Installer App in testing<span class="long">: features and data may change. Report anything odd to LED Connection.</span></span>';
+    d.innerHTML = '<b>BETA</b><span>Installer App in testing<span class="long">: features and data may change. Report anything odd to LED Connection.</span></span>' +
+                  '<button type="button" id="lciInstall" hidden title="Install the Installer App on this device: its own icon and window">INSTALL APP</button>';
     document.body.insertBefore(d, document.body.firstChild);
   }
   betaBanner();
+
+  /* The app installed on the device (Dino, 2026-10-21: "a standalone app,
+     like the customer portal"): its own icon (LC + wrench), its own window,
+     taskbar / Start / home-screen pins, and app links open in it. The
+     banner's INSTALL APP shows only where it can be installed and the page
+     is not already running as the app. Edge / Chrome / Android offer the
+     install (beforeinstallprompt); an iPad or iPhone has no such prompt, so
+     there the button explains Share > Add to Home Screen. */
+  var installEvt = null;
+  function isInstalled() {
+    return !!(window.matchMedia && (matchMedia('(display-mode: standalone)').matches ||
+              matchMedia('(display-mode: window-controls-overlay)').matches)) || navigator.standalone === true;
+  }
+  var IOS = /iP(ad|hone|od)/.test(navigator.userAgent) || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
+  function installBtn() { return document.getElementById('lciInstall'); }
+  if (IOS && !isInstalled()) { var ib = installBtn(); if (ib) ib.hidden = false; }
+  window.addEventListener('beforeinstallprompt', function (e) {
+    e.preventDefault();
+    installEvt = e;
+    var b = installBtn();
+    if (b && !isInstalled()) b.hidden = false;
+  });
+  window.addEventListener('appinstalled', function () {
+    installEvt = null;
+    var b = installBtn(); if (b) b.hidden = true;
+  });
+  document.addEventListener('click', function (e) {
+    if (!e.target || e.target.id !== 'lciInstall') return;
+    if (installEvt) {
+      var ev = installEvt; installEvt = null;
+      ev.prompt();
+      /* a prompt shows once; the browser offers a fresh one later if it can */
+      e.target.hidden = true;
+      if (ev.userChoice) ev.userChoice.catch(function () {});
+      return;
+    }
+    if (IOS) {
+      var t = document.getElementById('lciIosTip');
+      if (t) { t.remove(); return; }
+      t = document.createElement('div');
+      t.id = 'lciIosTip'; t.setAttribute('role', 'status');
+      t.innerHTML = 'To install: tap <b>Share</b> (the square with the arrow), then <b>Add to Home Screen</b>. The app then opens from its LED Connection icon.';
+      document.body.appendChild(t);
+      setTimeout(function () { if (t.parentNode) t.remove(); }, 12000);
+    }
+  });
 
   /* Installable as a standalone tablet app (sw.js). Not on localhost, where
      a cached page would hide the edit just made. */
