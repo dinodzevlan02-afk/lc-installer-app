@@ -12,6 +12,13 @@ on:
   # GitHub dropped the push events for two merges and nothing deployed.
   workflow_dispatch:
 
+# One production deploy at a time: two at once collide in Azure and one
+# fails (2026-10-21, runs 89 and 90). Queued, not cancelled, so a late stale
+# run can never cancel the fresh one; it waits and then skips itself.
+concurrency:
+  group: ${{ github.event_name == 'pull_request' && format('pr-{0}', github.event.number) || 'production' }}
+  cancel-in-progress: false
+
 jobs:
   smoke_test_job:
     if: github.event_name == 'push' || github.event_name == 'workflow_dispatch' || (github.event_name == 'pull_request' && github.event.action != 'closed')
