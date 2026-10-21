@@ -1,6 +1,6 @@
 {
   "id": "KR-00345-NV",
-  "name": "Kroger 345 \u00b7 El Dorado Village",
+  "name": "Kroger 345 · El Dorado Village",
   "address": "5564 Camino Al Norte, North Las Vegas, NV 89031",
   "customer": "Kroger",
   "kind": "exterior",
@@ -127,5 +127,325 @@
     "radiusFt": 4,
     "why": "Dino 2026-10-21: the audit dropped the two heads of each back-to-back S03 pole 25-31 ft apart; heads go back on their pole (middle of its audit pins), 4 ft ring, as in the customer portal."
   },
-  "poleAt": {}
+  "poleAt": {},
+  "placeAt": {
+    "why": "Dino 2026-10-21 (screenshots of the live map): fuel-canopy heads as a symmetrical array under the canopy, downlights under the building canopies in straight lines, wall packs on the walls, not in the air. Measured from his screenshots: each fitted to the pins' own coordinates (similarity fit, 24/32/11 pins, residual under 1.3 px = 0.11 m, 0.085 m/px), then canopy edges and wall faces read off the aerial in them. Fuel canopy 2 x 12 (CP2 in the middle of the first row); downlights on even spacing along each canopy's line; wall packs on the wall face. The four downlights at the north end were not in the screenshots and keep their audit spots.",
+    "heads": {
+      "20247": {
+        "lat": 36.26124703,
+        "lng": -115.15343143,
+        "why": "on the store's east wall"
+      },
+      "20248": {
+        "lat": 36.26117397,
+        "lng": -115.15341402,
+        "why": "on the dock's south wall (was out in the dock)"
+      },
+      "20249": {
+        "lat": 36.26117397,
+        "lng": -115.15337005,
+        "why": "on the dock's south wall (was out in the dock)"
+      },
+      "20250": {
+        "lat": 36.26117397,
+        "lng": -115.15339203,
+        "why": "on the dock's south wall (was out in the dock)"
+      },
+      "20252": {
+        "lat": 36.261127,
+        "lng": -115.15333685,
+        "why": "on the east wall of the back block"
+      },
+      "20478": {
+        "lat": 36.26144802,
+        "lng": -115.15490686,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20479": {
+        "lat": 36.26144802,
+        "lng": -115.15445076,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20480": {
+        "lat": 36.26144802,
+        "lng": -115.15449223,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20481": {
+        "lat": 36.26144802,
+        "lng": -115.15482393,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20482": {
+        "lat": 36.26144802,
+        "lng": -115.15478247,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20483": {
+        "lat": 36.26144802,
+        "lng": -115.15469954,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20484": {
+        "lat": 36.26144802,
+        "lng": -115.15461662,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20485": {
+        "lat": 36.26148273,
+        "lng": -115.15490686,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20486": {
+        "lat": 36.26144802,
+        "lng": -115.1548654,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20487": {
+        "lat": 36.26144802,
+        "lng": -115.15474101,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20488": {
+        "lat": 36.26144802,
+        "lng": -115.15465808,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20489": {
+        "lat": 36.26144802,
+        "lng": -115.15457515,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20490": {
+        "lat": 36.26144802,
+        "lng": -115.15453369,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20491": {
+        "lat": 36.26148273,
+        "lng": -115.15445076,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20492": {
+        "lat": 36.26148273,
+        "lng": -115.1548654,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20493": {
+        "lat": 36.26148273,
+        "lng": -115.15482393,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20494": {
+        "lat": 36.26148273,
+        "lng": -115.15478247,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20495": {
+        "lat": 36.26148273,
+        "lng": -115.15474101,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20496": {
+        "lat": 36.26148273,
+        "lng": -115.15469954,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20497": {
+        "lat": 36.26148273,
+        "lng": -115.15465808,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20498": {
+        "lat": 36.26148273,
+        "lng": -115.15449223,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20499": {
+        "lat": 36.26148273,
+        "lng": -115.15453369,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20500": {
+        "lat": 36.26148273,
+        "lng": -115.15457515,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20501": {
+        "lat": 36.26148273,
+        "lng": -115.15461662,
+        "why": "fuel canopy: 2 x 12 under the canopy roof"
+      },
+      "20502": {
+        "lat": 36.26140794,
+        "lng": -115.15416241,
+        "why": "store-front canopy: one straight line, even spacing"
+      },
+      "20503": {
+        "lat": 36.26137831,
+        "lng": -115.15416241,
+        "why": "store-front canopy: one straight line, even spacing"
+      },
+      "20504": {
+        "lat": 36.26134868,
+        "lng": -115.15416241,
+        "why": "store-front canopy: one straight line, even spacing"
+      },
+      "20505": {
+        "lat": 36.26131905,
+        "lng": -115.15416241,
+        "why": "store-front canopy: one straight line, even spacing"
+      },
+      "20506": {
+        "lat": 36.26126019,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20507": {
+        "lat": 36.26110128,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20508": {
+        "lat": 36.26112398,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20509": {
+        "lat": 36.26114669,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20510": {
+        "lat": 36.26116939,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20511": {
+        "lat": 36.26119209,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20512": {
+        "lat": 36.26121479,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20513": {
+        "lat": 36.26123749,
+        "lng": -115.15412915,
+        "why": "walkway canopy: centre line, even spacing"
+      },
+      "20514": {
+        "lat": 36.26107101,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20515": {
+        "lat": 36.26104721,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20516": {
+        "lat": 36.26102341,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20517": {
+        "lat": 36.26099961,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20518": {
+        "lat": 36.2609758,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20519": {
+        "lat": 36.260952,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20520": {
+        "lat": 36.2609282,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20521": {
+        "lat": 36.2609044,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20522": {
+        "lat": 36.2608806,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20523": {
+        "lat": 36.2608568,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20524": {
+        "lat": 36.260833,
+        "lng": -115.15418275,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20525": {
+        "lat": 36.26107101,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20526": {
+        "lat": 36.26107101,
+        "lng": -115.15412583,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20527": {
+        "lat": 36.26104721,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20528": {
+        "lat": 36.26104721,
+        "lng": -115.15412583,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20529": {
+        "lat": 36.260833,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20530": {
+        "lat": 36.2608568,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20531": {
+        "lat": 36.2608806,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20532": {
+        "lat": 36.2609044,
+        "lng": -115.15415386,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20533": {
+        "lat": 36.260833,
+        "lng": -115.15412583,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20534": {
+        "lat": 36.2608568,
+        "lng": -115.15412583,
+        "why": "entrance canopy: grid, even spacing"
+      },
+      "20535": {
+        "lat": 36.2608806,
+        "lng": -115.15412583,
+        "why": "entrance canopy: grid, even spacing"
+      }
+    }
+  }
 }

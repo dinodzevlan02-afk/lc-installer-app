@@ -185,6 +185,23 @@ function build(dir) {
     });
   }
 
+  /* Heads placed from the aerial (Dino, 2026-10-21: canopy heads as an
+     array under the canopy, downlights in straight lines under the
+     building's canopies, wall packs on the walls). project.placeAt.heads
+     { auditId: { lat, lng, why } } wins over the audit and the pole tidy;
+     the audit's own spot stays as audit latitude / audit longitude. */
+  const placed = [];
+  const heads = (project.placeAt && project.placeAt.heads) || {};
+  data.forEach(row => {
+    const p = heads[String(row.id)];
+    if (!p) return;
+    if (row["audit latitude"] == null && row.latitude !== undefined) { row["audit latitude"] = row.latitude; row["audit longitude"] = row.longitude; }
+    placed.push({ id: row.id, moved: metres(pos(row), { lat: +p.lat, lng: +p.lng }) });
+    row.latitude = String(p.lat); row.longitude = String(p.lng);
+    row["position source"] = "placed from the aerial: " + p.why;
+  });
+  Object.keys(heads).forEach(id => { if (!data.some(r => String(r.id) === id)) errors.push("placeAt: no audit row " + id); });
+
   const counts = {};
   Object.keys(solutions).forEach(i => { if (!excluded[i]) counts[solutions[i].tag] = (counts[solutions[i].tag] || 0) + 1; });
   const checks = Object.keys(tags).map(t => ({ tag: t, design: tags[t].qty, pins: counts[t] || 0 }));
@@ -196,7 +213,7 @@ function build(dir) {
     source: Object.assign({}, project.source, { built: new Date().toISOString().slice(0, 10), builder: "tools/sites/build-site.js" }),
     site: { datasets: [{ id: project.dataset.id, label: project.dataset.label, data, solutions: JSON.parse(JSON.stringify(solutions)), excluded }] }
   };
-  return { file, errors, notes, checks, tidied, rows: data.length, heads: Object.values(counts).reduce((a, b) => a + b, 0), excluded: Object.keys(excluded).length };
+  return { file, errors, notes, checks, tidied, placed, rows: data.length, heads: Object.values(counts).reduce((a, b) => a + b, 0), excluded: Object.keys(excluded).length };
 }
 
 module.exports = { build, parseCsv };
@@ -213,6 +230,7 @@ if (require.main === module) {
     console.log("poles tidied (heads back on their pole):");
     out.tidied.sort((a, b) => b.moved - a.moved).forEach(t => console.log("  " + t.pole.padEnd(6) + t.heads + " heads, largest move " + (t.moved / 0.3048).toFixed(1) + " ft" + (t.fixed ? " (measured spot)" : "")));
   }
+  if (out.placed.length) console.log("heads placed from the aerial: " + out.placed.length + ", largest move " + (Math.max(...out.placed.map(p => p.moved)) / 0.3048).toFixed(1) + " ft");
   if (out.errors.length) { out.errors.forEach(e => console.error("ERROR: " + e)); process.exit(1); }
   fs.mkdirSync(path.join(__dirname, "out"), { recursive: true });
   const f = path.join(__dirname, "out", id + ".site.json");
