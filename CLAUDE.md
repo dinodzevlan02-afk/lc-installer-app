@@ -351,6 +351,18 @@ the installer app": nothing goes to the customer portal.
   pin ids unchanged. NOT yet checked against the aerial: this session's
   network blocks Google / Esri / OSM. project.poleAt { G15: { lat, lng } }
   pins a pole to a spot measured from the aerial once that is possible.
+- Heads placed from the aerial (Dino, 2026-10-21, screenshots of the live
+  map: "canopy heads ... array, symmetrical; downlights below the canopy,
+  straight lines; wall packs on the building, not in the air"): project.json
+  placeAt.heads { auditId: { lat, lng, why } }, applied after the pole tidy.
+  Measured from his own screenshots: each fitted to the pins' coordinates
+  (similarity, residual under 1.3 px = 0.11 m at 0.085 m/px), then canopy
+  edges and wall faces read off the aerial in them. 63 heads: fuel canopy
+  2 x 12 (CP2 in the middle of the first row), downlights on even spacing
+  along each canopy line (walkway canopy centre line, entrance grid), five
+  wall packs onto the wall face. The 4 north downlights were off-screen and
+  keep their audit spots. Takes effect when the rebuilt site file is uploaded
+  (UPLOAD SITE FILE); pin ids and saved work are unchanged.
 - Pole ids: blank audit pole ids take the Field Survey group (G10...); heads
   to install still without one (the floods) join the pole whose centre is
   within 6 m. Wall packs and downlights stay off poles.
