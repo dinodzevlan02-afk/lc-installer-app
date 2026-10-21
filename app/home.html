@@ -168,6 +168,7 @@
       <div class="sub">Who gets this project's material claim emails, the moment an installer sends one. Photos, note and missing quantities included.</div>
       <h3>LED Connection (every project)</h3>
       <div class="chips" id="ntLc"></div>
+      <label class="pick" style="margin:10px 0 0"><span><input type="checkbox" id="ntInstalls"> Email each installed fixture, with its photo</span></label>
       <h3>Installers on this job</h3>
       <div class="pick" id="ntInst"></div>
       <h3>Client</h3>
@@ -337,7 +338,7 @@
   /* ── Installer: my jobs ───────────────────────────────────────────── */
   var USERS = [];
   function stepBadge(j) {
-    return j.submitted ? '<span class="badge active">Submitted</span>' : !j.materialApproved ? '<span class="badge">1 · Material check</span>' : '<span class="badge installer">2 · Install</span>';
+    return j.accepted ? '<span class="badge active">Approved</span>' : j.submitted ? '<span class="badge">Waiting approval</span>' : !j.materialApproved ? '<span class="badge">1 · Material check</span>' : '<span class="badge installer">2 · Install</span>';
   }
   function renderJobs(list) {
     if (!list.length) { $('jobs').innerHTML = '<p class="placeholder">No jobs assigned to you yet. LED Connection will add you to one.</p>'; return; }
@@ -617,6 +618,7 @@
         esc(rec.name || u) + ' <span class="em">' + (rec.disabled ? 'switched off' : ok ? esc(rec.email) : 'no email on the login: add it under Logins') + '</span></label>';
     }).join('') || '<span class="small-text">No installers on this job yet (INSTALLERS on its row).</span>';
     $('ntClient').innerHTML = (n.client || []).map(clientRow).join('');
+    $('ntInstalls').checked = n.installs !== 'off';
     $('ovNotify').hidden = false;
   }
   $('ntAddClient').addEventListener('click', function () {
@@ -631,7 +633,7 @@
       return { name: r.querySelector('[data-cn]').value.trim(), email: r.querySelector('[data-ce]').value.trim() };
     }).filter(function (c) { return c.name || c.email; });
     $('ntSave').disabled = true;
-    LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { installersOff: off, client: client } })
+    LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { installersOff: off, client: client, installs: $('ntInstalls').checked ? 'each' : 'off' } })
       .then(function () { $('ovNotify').hidden = true; say('Claim emails saved for ' + notifying.name + '.', true); return loadProjects(); }, function (e) { say(e.message); })
       .then(function () { $('ntSave').disabled = false; });
   });

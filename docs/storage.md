@@ -163,6 +163,11 @@ A problem flagged on one fixture during the install (ref FL-yymmdd-XXXX):
 `{ ref, kind: pole|power|access|fit|other, kindLabel, pinId, fid, tag, poleId, product, partNo, note, photos: [name], status: "open", at, by, byName, mail }`.
 material.json `approved.mail` and jobs/{projectId}.json `submitted.mail`
 record the sign-off and submit emails the same way.
+jobs/{projectId}.json also carries `accepted: { at, by, byName, note, mail }`
+once LED Connection approves the install, and `sentBack: [{ at, by, byName,
+reason, submitted, mail }]`, one per send-back; `notify.installs` ("each" |
+"off") switches the per-fixture emails. A pin record carries `partNo` and,
+for its first install, `mail`.
 
 ## jobs/{projectId}/pins/{pinId}.json
 

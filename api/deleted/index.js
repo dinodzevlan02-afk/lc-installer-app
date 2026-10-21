@@ -135,7 +135,7 @@ module.exports = P.handler(async ({ req, method, body, params, query, send }) =>
     const cur = await s.get(J.paths.job(id));
     if (cur) {
       const j = cur.data;
-      j.submitted = null;
+      j.submitted = null; j.accepted = null;
       j.reset = { at: manifest.at, by: user.username, archive: k };
       j.updated = manifest.at; j.updatedBy = user.username;
       await s.put(J.paths.job(id), j, { ifMatch: cur.etag });
@@ -202,7 +202,8 @@ module.exports = P.handler(async ({ req, method, body, params, query, send }) =>
       await copyAll(m.files, p => archivePath(key, p), p => p);
       const was = await s.getBytes(archivePath(key, J.paths.job(m.id)));
       const j = cur.data;
-      j.submitted = was ? (JSON.parse(was.buf.toString("utf8")).submitted || null) : j.submitted;
+      const old = was ? JSON.parse(was.buf.toString("utf8")) : null;
+      if (old) { j.submitted = old.submitted || null; j.accepted = old.accepted || null; }
       j.reset = Object.assign({}, j.reset, { restoredAt: new Date().toISOString(), restoredBy: user.username });
       await s.put(J.paths.job(m.id), j, { ifMatch: cur.etag });
       delete m.state;

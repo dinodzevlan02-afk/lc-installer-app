@@ -69,9 +69,11 @@ const withMail = (rec, user) => rec && rec.mail ? Object.assign({}, rec, { mail:
 function publicJob(j, user) {
   const out = {
     id: j.id, name: j.name || j.id, address: j.address || "", installers: j.installers || [],
-    created: j.created, submitted: withMail(j.submitted || null, user)
+    created: j.created, submitted: withMail(j.submitted || null, user),
+    accepted: withMail(j.accepted || null, user),
+    sentBack: j.sentBack && j.sentBack.length ? withMail(Object.assign({}, j.sentBack[j.sentBack.length - 1], { submitted: undefined }), user) : null
   };
-  if (A.isLc(user)) out.notify = { installersOff: (j.notify && j.notify.installersOff) || [], client: (j.notify && j.notify.client) || [] };
+  if (A.isLc(user)) out.notify = { installersOff: (j.notify && j.notify.installersOff) || [], installs: (j.notify && j.notify.installs) || "each", client: (j.notify && j.notify.client) || [] };
   else delete out.installers;
   return out;
 }

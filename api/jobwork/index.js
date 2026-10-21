@@ -3,6 +3,8 @@
 
    PUT  /api/jobs/{id}/material          { lines: { [productKey]: { received, damaged, note } } }
                                          Saves the counts so far (until signed off).
+   POST /api/jobs/{id}/accept            { note? }  LED Connection approves a submitted install: done.
+   POST /api/jobs/{id}/sendback          { reason } LED Connection sends it back: the job opens again.
    POST /api/jobs/{id}/approve           { lines, confirm: true }
                                          The installer signs off the counted quantities.
                                          Expected quantities come from the site, never the page.
@@ -23,7 +25,7 @@ const P = require("../shared/app");
 const J = require("../shared/jobs");
 const PARTS = require("../shared/parts");
 const CLAIMMAIL = require("../shared/claimmail");
-const { ApiError } = P;
+const { A, ApiError } = P;
 
 const MAX_PHOTO = 3 * 1024 * 1024, MAX_PHOTOS = 6, MAX_QTY = 100000;
 const RE_PHOTO = /^[a-f0-9]{16}\.jpg$/;
@@ -123,6 +125,35 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     await P.store().put(J.paths.parts(id), rec, cur ? { ifMatch: cur.etag } : { ifNoneMatch: "*" });
     await P.audit(req, user.username, "parts.update", "job:" + id, changed);
     return send(200, { byLabel: rec.byLabel });
+  }
+
+  /* Approving or sending back a submitted job: LED Connection only. */
+  if (action === "accept" || action === "sendback") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    if (!A.isLc(user)) throw new ApiError(403, "Only LED Connection approves or sends back an install.");
+    if (!job.submitted) throw new ApiError(409, "The job has not been submitted yet.");
+    if (job.accepted) throw new ApiError(409, "This install was already approved on " + job.accepted.at.slice(0, 10) + ".");
+    const now = new Date().toISOString();
+    if (action === "accept") {
+      job.accepted = Object.assign({ at: now, note: P.text(body.note, 1000, "Note") }, who(user));
+      const je = await P.store().put(J.paths.job(id), job, { ifMatch: jobEtag });
+      await P.audit(req, user.username, "job.accept", "job:" + id, { heads: job.submitted.heads });
+      const notify = await CLAIMMAIL.notifyAccepted(req, id, job, job.accepted, user);
+      job.accepted.mail = CLAIMMAIL.mailRecord(notify);
+      await P.store().put(J.paths.job(id), job, { ifMatch: je }).catch(() => null);
+      return send(200, { job: J.publicJob(job, user), notify });
+    }
+    const reason = P.text(body.reason, 1000, "Reason");
+    if (reason.length < 3) throw new ApiError(400, "Say what needs fixing.");
+    const back = Object.assign({ at: now, reason, submitted: job.submitted }, who(user));
+    job.sentBack = (job.sentBack || []).concat([back]);
+    job.submitted = null;
+    const je = await P.store().put(J.paths.job(id), job, { ifMatch: jobEtag });
+    await P.audit(req, user.username, "job.sendback", "job:" + id, { reason });
+    const notify = await CLAIMMAIL.notifySentBack(req, id, job, back, user);
+    back.mail = CLAIMMAIL.mailRecord(notify);
+    await P.store().put(J.paths.job(id), job, { ifMatch: je }).catch(() => null);
+    return send(200, { job: J.publicJob(job, user), notify });
   }
 
   if (job.submitted && action !== "claims" && action !== "flags") throw new ApiError(409, "This job was submitted on " + job.submitted.at.slice(0, 10) + ". Ask LED Connection to reopen it.");
@@ -230,9 +261,21 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
       installed, note: P.text(body.note, 1000, "Note"), serial: P.text(body.serial, 100, "Serial"), photos,
       at: new Date().toISOString()
     }, who(user));
+    const prev = await P.store().get(J.paths.pin(id, key));
+    rec.partNo = (await partOfJob(id))(pin.product.sku);
     await P.store().put(J.paths.pin(id, key), rec, { compact: true });
     await P.audit(req, user.username, installed ? "pin.install" : "pin.undo", "job:" + id, { pin: key, tag: pin.tag, photos: photos.length });
-    return send(200, { pin: rec });
+    /* The first save as installed is emailed with its photo (an update or
+       an undo is not), unless the project switched it off. */
+    let notify = null;
+    if (installed && !(prev && prev.data.installed) && !(job.notify && job.notify.installs === "off")) {
+      const todo = site.pins.filter(p => !p.off && p.product).length;
+      const saved = (await Promise.all((await P.store().list(J.paths.pins(id))).map(n => P.store().get(n)))).filter(r => r && r.data.installed).length;
+      notify = await CLAIMMAIL.notifyInstalled(req, id, job, rec, user, { done: saved, total: todo });
+      rec.mail = CLAIMMAIL.mailRecord(notify);
+      await P.store().put(J.paths.pin(id, key), rec, { compact: true }).catch(() => null);
+    }
+    return send(200, { pin: J.withMail(rec, user), notify: notify && J.forViewer(notify, user) });
   }
 
   /* ── Submit ─────────────────────────────────────────────────────────── */

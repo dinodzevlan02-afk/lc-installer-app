@@ -54,7 +54,9 @@ function cleanJobNotify(n, job) {
   if (stray) throw new P.ApiError(400, "\"" + stray + "\" is not an installer on this job.");
   const client = Array.isArray(n.client) ? n.client : [];
   if (client.length > 10) throw new P.ApiError(400, "At most 10 client contacts.");
-  const out = { installersOff: off, client: client.map(c => ({ name: String((c && c.name) || "").trim().slice(0, 80), email: String((c && c.email) || "").trim().toLowerCase() })) };
+  if (n.installs !== undefined && n.installs !== "each" && n.installs !== "off") throw new P.ApiError(400, "installs must be \"each\" or \"off\".");
+  const out = { installersOff: off, installs: n.installs === "off" ? "off" : "each",
+                client: client.map(c => ({ name: String((c && c.name) || "").trim().slice(0, 80), email: String((c && c.email) || "").trim().toLowerCase() })) };
   const bad = out.client.find(c => !RE_EMAIL.test(c.email));
   if (bad) throw new P.ApiError(400, "\"" + (bad.email || bad.name || "(blank)") + "\" is not an email address.");
   return out;
@@ -172,12 +174,15 @@ async function photoAttachments(id, prefix, names) {
 }
 const CELL = 'style="padding:5px 8px;border:1px solid #d9dde5"';
 const HEAD = 'style="padding:5px 8px;border:1px solid #d9dde5;background:#f3f4f7;text-align:left"';
-function page(title, color, rows, table, note, link, linkText) {
+function page(title, color, rows, table, note, link, linkText, button) {
   return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1f2430">' +
     '<tr><td style="padding:0 0 10px;font-size:18px;font-weight:700;color:' + color + '">' + esc(title) + '</td></tr>' +
     rows.filter(Boolean).map(r => '<tr><td style="padding:3px 0"><b>' + esc(r[0]) + ':</b> ' + esc(r[1]) + '</td></tr>').join("") +
     (table ? '<tr><td style="padding:12px 0 0">' + table + '</td></tr>' : "") +
-    (note ? '<tr><td style="padding:12px 0 0"><b>What happened:</b><br>' + esc(note).replace(/\n/g, "<br>") + '</td></tr>' : "") +
+    (note ? '<tr><td style="padding:12px 0 0"><b>' + esc(button && button.noteLabel || "What happened") + ':</b><br>' + esc(note).replace(/\n/g, "<br>") + '</td></tr>' : "") +
+    (button && button.href ? '<tr><td style="padding:20px 0 4px"><a href="' + esc(button.href) + '" style="display:inline-block;padding:14px 26px;background:#f37021;color:#0a0e1a;' +
+      'font-weight:800;letter-spacing:.06em;text-decoration:none;border-radius:8px">' + esc(button.text) + '</a></td></tr>' +
+      (button.hint ? '<tr><td style="padding:4px 0 0;font-size:12px;color:#6b7280">' + esc(button.hint) + '</td></tr>' : "") : "") +
     '<tr><td style="padding:16px 0 0"><a href="' + esc(link) + '" style="color:#f37021;font-weight:700">' + esc(linkText) + '</a></td></tr></table>';
 }
 const byLine = u => (u.name || u.username) + (u.company ? " (" + u.company + ")" : "") + (u.phone ? ", " + u.phone : "");
@@ -236,18 +241,69 @@ async function notifyFlag(req, id, job, site, flag, user) {
   return deliver(req, id, job, user, { subject, html, attachments }, "flag.notify", { ref: flag.ref, attached: attachments.length });
 }
 
-/* The installer submitted the job: every head saved as installed. */
+/* One fixture saved as installed, its photo as the proof (Dino, 2026-10-21:
+   "a notification for every fixture that is installed ... and the proof
+   being uploaded a photo"). Off per project with job.notify.installs. */
+async function notifyInstalled(req, id, job, rec, user, progress) {
+  const jobName = job.name || id;
+  const attachments = await photoAttachments(id, (rec.tag || "fixture") + "-" + rec.fid, rec.photos);
+  const subject = "[" + jobName + "] Installed: " + [rec.tag, rec.poleId ? "pole " + rec.poleId : ""].filter(Boolean).join(" · ") + " (" + progress.done + " of " + progress.total + ")";
+  const html = page("Fixture installed", "#15803d", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Fixture", [rec.tag, rec.poleId ? "pole " + rec.poleId : "", "fixture " + rec.fid].filter(Boolean).join(" · ")],
+    ["Product", (rec.product || "-") + (rec.partNo ? " (" + rec.partNo + ")" : "")],
+    rec.serial ? ["Serial / date code", rec.serial] : null,
+    ["Proof", attachments.length ? attachments.length + " photo" + (attachments.length > 1 ? "s" : "") + " attached" : "photo on the job page"],
+    ["Progress", progress.done + " of " + progress.total + " fixtures installed"],
+    ["Installed by", byLine(user) + ", " + new Date(rec.at).toUTCString()]
+  ], "", rec.note, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App",
+  rec.note ? { noteLabel: "Installer's note" } : null);
+  return deliver(req, id, job, user, { subject, html, attachments }, "pin.notify", { pin: rec.pinId, tag: rec.tag, attached: attachments.length });
+}
+
+/* The installer submitted the job: every head saved as installed. This is
+   the big one: it asks LED Connection to approve, with a button into the
+   app (sign-in required, so a forwarded email cannot approve anything). */
 async function notifySubmit(req, id, job, site, submitted, user, open) {
   const jobName = job.name || id;
-  const subject = "[" + jobName + "] Install submitted: " + submitted.heads + " fixtures";
-  const html = page("Install submitted", "#15803d", [
+  const review = INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "&review=1";
+  const subject = "[" + jobName + "] Install complete: " + submitted.heads + " fixtures - approval needed";
+  const html = page("Install complete: approval needed", "#b45309", [
     ["Job", jobName + (job.address ? ", " + job.address : "")],
     ["Installed", submitted.heads + " of " + submitted.heads + " fixtures, each with a photo"],
     ["Submitted by", byLine(user) + ", " + new Date(submitted.at).toUTCString()],
-    open.claims || open.flags ? ["Still open", [open.claims ? open.claims + " material claim" + (open.claims > 1 ? "s" : "") : "", open.flags ? open.flags + " install problem" + (open.flags > 1 ? "s" : "") : ""].filter(Boolean).join(", ")] : null
-  ], "", "", INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App");
+    open.claims || open.flags ? ["Still open", [open.claims ? open.claims + " material claim" + (open.claims > 1 ? "s" : "") : "", open.flags ? open.flags + " install problem" + (open.flags > 1 ? "s" : "") : ""].filter(Boolean).join(", ")] : ["Still open", "nothing"],
+    ["Next", "LED Connection reviews the photos and approves the install, or sends it back with a reason."]
+  ], "", "", review, "Or open the job in the Installer App",
+  { href: review, text: "REVIEW AND APPROVE", hint: "Opens the job in the Installer App. Sign in with your LED Connection login, check the installed fixtures, then press APPROVE." });
   return deliver(req, id, job, user, { subject, html }, "submit.notify", { heads: submitted.heads });
 }
 
+/* LED Connection approved the install: the job is done. */
+async function notifyAccepted(req, id, job, accepted, user) {
+  const jobName = job.name || id;
+  const subject = "[" + jobName + "] Install approved: " + (job.submitted ? job.submitted.heads + " fixtures" : "done");
+  const html = page("Install approved", "#15803d", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    job.submitted ? ["Installed", job.submitted.heads + " fixtures, submitted by " + (job.submitted.byName || job.submitted.by) + " on " + new Date(job.submitted.at).toUTCString()] : null,
+    ["Approved by", byLine(user) + ", " + new Date(accepted.at).toUTCString()]
+  ], "", accepted.note, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App",
+  accepted.note ? { noteLabel: "Note" } : null);
+  return deliver(req, id, job, user, { subject, html }, "accept.notify", {});
+}
+
+/* LED Connection sent the install back: the job opens again for the installer. */
+async function notifySentBack(req, id, job, back, user) {
+  const jobName = job.name || id;
+  const subject = "[" + jobName + "] Install sent back: " + back.reason.slice(0, 80);
+  const html = page("Install sent back", "#b91c1c", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Sent back by", byLine(user) + ", " + new Date(back.at).toUTCString()],
+    ["Next", "The job is open again: fix what is described below, then submit it again."]
+  ], "", back.reason, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App",
+  { noteLabel: "What to fix" });
+  return deliver(req, id, job, user, { subject, html }, "sendback.notify", {});
+}
+
 module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, recipients, NOTIFY_PATH,
-                   notifySignoff, notifyFlag, notifySubmit, FLAG_KINDS, mailRecord };
+                   notifySignoff, notifyFlag, notifySubmit, notifyInstalled, notifyAccepted, notifySentBack, FLAG_KINDS, mailRecord };
