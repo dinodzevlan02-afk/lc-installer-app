@@ -6,7 +6,7 @@
    manufacturer's PDFs). The steps are general good practice, written so
    that anything product-specific (wire colours, torque, drilling, sealing)
    points to the fixture's own label and instructions instead of guessing.
-   Marked DRAFT until LED Connection approves the wording (2026-10-20). */
+   No DRAFT note on the page (Dino, 2026-10-21: removed from every job sheet). */
 (function () {
   'use strict';
   var esc = LCI.esc, q = new URLSearchParams(location.search);
@@ -91,7 +91,6 @@
       '<div><h1>' + esc(b.name) + '</h1>' + (b.partNo ? '<div class="mono">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' : '') +
         (b.partNo ? '' : '<div class="mono muted">Design label ' + esc(b.sku) + '</div>') + '<div class="muted">' + esc(d.job.name) + '</div></div></div>' +
       guide +
-      '<div class="draft"><b>LC DRAFT job sheet.</b> Generated from this job\'s design and the LC catalog. The instructions packed with the fixture come first: where they differ, follow them and tell LED Connection.</div>' +
       '<h2>On this job</h2><dl class="kv"><dt>Quantity</dt><dd><b>' + pins.length + '</b> heads</dd>' +
       '<dt>Tags</dt><dd>' + Object.keys(byTag).map(function (t) { return '<b>' + esc(t) + '</b> &times; ' + byTag[t].length; }).join(', ') + '</dd>' +
       (sol.mh ? '<dt>Mount height</dt><dd>' + esc(sol.mh) + ' ft</dd>' : '') +
