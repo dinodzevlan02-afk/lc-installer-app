@@ -73,7 +73,9 @@ def main(argv):
     os.makedirs(tmpdir, exist_ok=True)
     src = p.get("vendor_pdf") and pymupdf.open(rel(p["vendor_pdf"]))
     z = pymupdf.Matrix(3, 3)
-    if p.get("hero"):
+    if p.get("hero", {}).get("png"):         # a prepared photo (clean_photo.py), not a page crop
+        sheet["hero_png"] = rel(p["hero"]["png"])
+    elif p.get("hero"):
         h = p["hero"]
         hero_png = os.path.join(tmpdir, "hero.png")
         src[h["page"]].get_pixmap(matrix=z, clip=pymupdf.Rect(*h["clip"])).save(hero_png)
