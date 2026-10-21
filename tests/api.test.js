@@ -407,6 +407,18 @@ async function main() {
   check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: ["mike.crew"], client: [] } })).status === 200, "an installer can be unticked");
   const c4 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "other", lines: [], note: "Wrong bracket" });
   check(c4.status === 201 && c4.body.notify.others === 0, "then only LED Connection gets it");
+  /* Three sets per project, each with an x and an add (Dino, 2026-10-21). */
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { lc: [{ name: "Out", email: "someone@gmail.com" }] } })).status === 400, "LED Connection adds take @ledconnection.com only");
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { lcOff: ["cassieh@ledconnection.com", "dinod@ledconnection.com", "ops@ledconnection.com"] } })).status === 400, "a project keeps at least one LED Connection address");
+  const n3 = await o2("PATCH", "jobs/TEST-OWN-01", { notify: { lcOff: ["ops@ledconnection.com"], lc: [{ name: "Field PM", email: "PM@ledconnection.com" }],
+    installersOff: [], installer: [{ name: "Crew office", email: "office@crew-a.example" }], client: [{ name: "Jim Green", email: "jim.green@client.example" }] } });
+  check(n3.status === 200 && n3.body.job.notify.lcOff[0] === "ops@ledconnection.com" && n3.body.job.notify.lc[0].email === "pm@ledconnection.com" &&
+        n3.body.job.notify.installer[0].email === "office@crew-a.example", "LC admin takes one off, adds an LED Connection and an installer contact");
+  const c5 = await inst("POST", "jobs/TEST-OWN-01/claims", { kind: "other", lines: [], note: "Three lists" });
+  const m5 = (await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key })).body.messages.find(m => /Three lists/.test(m.html));
+  check(c5.status === 201 && m5 && !m5.to.includes("ops@ledconnection.com") && m5.to.includes("pm@ledconnection.com") && m5.to.includes("cassieh@ledconnection.com") &&
+        JSON.stringify(m5.cc) === '["mike@crew-a.example","office@crew-a.example","jim.green@client.example"]', "the email follows the project: off one, plus the added LED Connection on To; installer login, installer contact and client on CC");
+  check((await o2("GET", "projects")).body.projects.find(p => p.id === "TEST-OWN-01").job.notify.installer.length === 1, "the projects list carries the three sets for the dialog");
   for (const m of (await anon("GET", "relay/outbox", undefined, { "X-Relay-Key": pr.body.key })).body.messages)
     await anon("POST", "relay/outbox", { id: m.id, ok: true }, { "X-Relay-Key": pr.body.key });
 

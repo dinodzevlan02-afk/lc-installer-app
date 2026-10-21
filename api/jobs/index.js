@@ -149,12 +149,13 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       logged.removed = before.filter(u => !job.installers.includes(u));
       if (job.notify) job.notify.installersOff = (job.notify.installersOff || []).filter(u => job.installers.includes(u));
     }
-    /* Who else gets this job's claim emails (Dino, 2026-10-21): its
-       installers (by their login email; untick any) and the client's
-       contacts. LED Connection's own list is on the home page. */
+    /* Who gets this job's emails (Dino, 2026-10-21): LED Connection (the
+       home page's list, less anyone taken off here, plus anyone added), its
+       installers (login emails, plus contacts) and the client. */
     if (body.notify !== undefined) {
-      job.notify = CLAIMMAIL.cleanJobNotify(body.notify, job);
-      logged.notify = { installersOff: job.notify.installersOff, client: job.notify.client.map(c => c.email) };
+      job.notify = CLAIMMAIL.cleanJobNotify(body.notify, job, (await CLAIMMAIL.lcList()).to);
+      logged.notify = { lcOff: job.notify.lcOff, lc: job.notify.lc.map(c => c.email), installersOff: job.notify.installersOff,
+                        installer: job.notify.installer.map(c => c.email), client: job.notify.client.map(c => c.email), installs: job.notify.installs };
     }
     if (body.reopenMaterial) {
       const mat = await P.store().get(J.paths.material(id));

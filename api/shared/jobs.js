@@ -66,6 +66,13 @@ function forViewer(mail, user) {
 }
 const withMail = (rec, user) => rec && rec.mail ? Object.assign({}, rec, { mail: forViewer(rec.mail, user) }) : rec;
 
+/* A project's email settings as LC admins see them, every field filled
+   (shapes in claimmail.js cleanJobNotify). */
+function notifyOf(j) {
+  const n = j.notify || {};
+  return { lcOff: n.lcOff || [], lc: n.lc || [], installersOff: n.installersOff || [], installer: n.installer || [],
+           client: n.client || [], installs: n.installs || "each" };
+}
 function publicJob(j, user) {
   const out = {
     id: j.id, name: j.name || j.id, address: j.address || "", installers: j.installers || [],
@@ -73,7 +80,7 @@ function publicJob(j, user) {
     accepted: withMail(j.accepted || null, user),
     sentBack: j.sentBack && j.sentBack.length ? withMail(Object.assign({}, j.sentBack[j.sentBack.length - 1], { submitted: undefined }), user) : null
   };
-  if (A.isLc(user)) out.notify = { installersOff: (j.notify && j.notify.installersOff) || [], installs: (j.notify && j.notify.installs) || "each", client: (j.notify && j.notify.client) || [] };
+  if (A.isLc(user)) out.notify = notifyOf(j);
   else delete out.installers;
   return out;
 }
@@ -88,4 +95,4 @@ function contact() {
   };
 }
 
-module.exports = { SCHEMA, normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact, forViewer, withMail };
+module.exports = { notifyOf, SCHEMA, normJob, paths, canSeeJob, requireJob, requireSite, publicJob, contact, forViewer, withMail };

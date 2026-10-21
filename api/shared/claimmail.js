@@ -44,27 +44,55 @@ function cleanLcList(list) {
   if (bad) throw new P.ApiError(400, "\"" + bad + "\" is not an @ledconnection.com address. Installers and the client are set per project.");
   return out;
 }
-/* A project's own recipients, as saved on the job:
-   { installersOff: [username], client: [{ name, email }] }. Installers are
-   on unless unticked, so one added to the job later hears too. */
-function cleanJobNotify(n, job) {
+/* A project's own recipients, as saved on the job (Dino, 2026-10-21: three
+   sets, each with an x and an add):
+   { lcOff: [email], lc: [{ name, email }],          LED Connection
+     installersOff: [username], installer: [{ name, email }],   installers
+     client: [{ name, email }], installs: "each" | "off" }
+   lcOff takes people off the home page's list for THIS project only; lc adds
+   @ledconnection.com people for it. Installer logins are on unless taken
+   off, so one added to the job later hears too; installer adds any email
+   (a crew office, a foreman without a login). A project always keeps at
+   least one LED Connection address: it hears about everything. */
+function cleanContacts(list, what, lcOnly) {
+  const arr = Array.isArray(list) ? list : [];
+  if (arr.length > 10) throw new P.ApiError(400, "At most 10 " + what + " contacts.");
+  const seen = new Set(), out = [];
+  for (const c of arr) {
+    const one = { name: String((c && c.name) || "").trim().slice(0, 80), email: String((c && c.email) || "").trim().toLowerCase() };
+    if (!RE_EMAIL.test(one.email)) throw new P.ApiError(400, "\"" + (one.email || one.name || "(blank)") + "\" is not an email address.");
+    if (lcOnly && !RE_LC.test(one.email)) throw new P.ApiError(400, "\"" + one.email + "\" is not an @ledconnection.com address. Put it under Installers or Client.");
+    if (!seen.has(one.email)) { seen.add(one.email); out.push(one); }
+  }
+  return out;
+}
+function cleanJobNotify(n, job, lcDefault) {
   if (!n || typeof n !== "object") throw new P.ApiError(400, "notify must be an object.");
   const off = Array.isArray(n.installersOff) ? [...new Set(n.installersOff.map(P.normUser))] : [];
   const stray = off.find(u => !(job.installers || []).includes(u));
   if (stray) throw new P.ApiError(400, "\"" + stray + "\" is not an installer on this job.");
-  const client = Array.isArray(n.client) ? n.client : [];
-  if (client.length > 10) throw new P.ApiError(400, "At most 10 client contacts.");
   if (n.installs !== undefined && n.installs !== "each" && n.installs !== "off") throw new P.ApiError(400, "installs must be \"each\" or \"off\".");
-  const out = { installersOff: off, installs: n.installs === "off" ? "off" : "each",
-                client: client.map(c => ({ name: String((c && c.name) || "").trim().slice(0, 80), email: String((c && c.email) || "").trim().toLowerCase() })) };
-  const bad = out.client.find(c => !RE_EMAIL.test(c.email));
-  if (bad) throw new P.ApiError(400, "\"" + (bad.email || bad.name || "(blank)") + "\" is not an email address.");
+  const lcOff = Array.isArray(n.lcOff) ? [...new Set(n.lcOff.map(a => String(a || "").trim().toLowerCase()).filter(Boolean))] : [];
+  const out = { lcOff, lc: cleanContacts(n.lc, "LED Connection", true), installersOff: off,
+                installer: cleanContacts(n.installer, "installer"), client: cleanContacts(n.client, "client"),
+                installs: n.installs === "off" ? "off" : "each" };
+  if (lcDefault && !lcTo(lcDefault, out).length) throw new P.ApiError(400, "Keep at least one LED Connection address on the project.");
   return out;
 }
-/* Who gets this job's claim email. -> { to, cc, installers: [{ username, name, email }], client, skipped: [username] } */
+/* The LED Connection addresses of a project: the home page's list less the
+   ones taken off it, plus its own. */
+function lcTo(list, n) {
+  const off = new Set(((n && n.lcOff) || []).map(a => a.toLowerCase()));
+  const to = list.map(a => a.toLowerCase()).filter(a => !off.has(a));
+  for (const c of (n && n.lc) || []) if (!to.includes(c.email)) to.push(c.email);
+  return to;
+}
+/* Who gets this job's emails. -> { to, cc, installers: [{ username, name, email }], client, skipped: [username] } */
 async function recipients(job) {
-  const to = (await lcList()).to;
+  const list = (await lcList()).to;
   const n = job.notify || {};
+  let to = lcTo(list, n);
+  if (!to.length) to = list;   /* the home list changed under a project: LED Connection still hears */
   const on = (job.installers || []).filter(u => !(n.installersOff || []).includes(u));
   const installers = [], skipped = [];
   for (const u of on) {
@@ -72,9 +100,10 @@ async function recipients(job) {
     if (rec && !rec.data.disabled && RE_EMAIL.test(rec.data.email || "")) installers.push({ username: u, name: rec.data.name || u, email: rec.data.email.toLowerCase() });
     else skipped.push(u);
   }
+  const extra = (n.installer || []).filter(c => RE_EMAIL.test(c.email));
   const client = (n.client || []).filter(c => RE_EMAIL.test(c.email));
-  const seen = new Set(to.map(a => a.toLowerCase()));
-  const cc = installers.map(i => i.email).concat(client.map(c => c.email)).filter(a => !seen.has(a) && seen.add(a));
+  const seen = new Set(to);
+  const cc = installers.map(i => i.email).concat(extra.map(c => c.email), client.map(c => c.email)).filter(a => !seen.has(a) && seen.add(a));
   return { to, cc, installers, client, skipped };
 }
 const esc = MAIL.esc;
@@ -305,5 +334,5 @@ async function notifySentBack(req, id, job, back, user) {
   return deliver(req, id, job, user, { subject, html }, "sendback.notify", {});
 }
 
-module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, recipients, NOTIFY_PATH,
+module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, lcTo, recipients, NOTIFY_PATH,
                    notifySignoff, notifyFlag, notifySubmit, notifyInstalled, notifyAccepted, notifySentBack, FLAG_KINDS, mailRecord };
