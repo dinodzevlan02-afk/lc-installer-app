@@ -1,0 +1,260 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>LED Connection spec sheet LC-STR8-4A-10W-840</title>
+<style>
+@page { size: 8.5in 11in; margin: 0; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Light.ttf"); font-weight:300; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Regular.ttf"); font-weight:400; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Medium.ttf"); font-weight:500; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-SemiBold.ttf"); font-weight:600; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Bold.ttf"); font-weight:700; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-ExtraBold.ttf"); font-weight:800; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Black.ttf"); font-weight:900; }
+:root { --navy:#1A1A2E; --orange:#f37021; --ink:#1A1A2E; --grey:#5d6170; --line:#d9dbe1; --soft:#f4f4f6; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; font-family:Poppins, Arial, sans-serif; color:var(--ink);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { width:8.5in; height:11in; position:relative; overflow:hidden; page-break-after:always; background:#fff; }
+.page:last-child { page-break-after:auto; }
+.foot { position:absolute; left:0; right:0; bottom:0; height:.32in; background:var(--navy);
+  border-top:3px solid var(--orange); color:#fff; display:flex; align-items:center; gap:.28in;
+  padding:0 .45in; font-size:7.6pt; font-weight:500; }
+.foot b { color:var(--orange); font-weight:600; font-size:6.4pt; letter-spacing:.04em; margin-right:4px; }
+.foot .addr { margin-left:auto; }
+/* cover */
+.side { position:absolute; left:0; top:0; bottom:.32in; width:.93in; background:var(--navy); }
+.side .vt { position:absolute; left:50%; bottom:.98in; writing-mode:vertical-rl; transform:translateX(-50%) rotate(180deg); transform-origin:center center;
+  white-space:nowrap; color:var(--orange); font-weight:700; font-size:7.4pt; letter-spacing:.12em; }
+.side img { position:absolute; left:50%; transform:translateX(-50%); bottom:.12in; width:.74in; }
+.art { position:absolute; left:1.15in; top:.52in; right:1.30in; height:4.72in; object-fit:contain; }
+.art.tall { left:3.9in; right:1.3in; top:.42in; height:4.85in; }
+.badges { position:absolute; right:.42in; top:5.40in; display:flex; flex-direction:column; align-items:center; gap:.1in; }
+.badges img { width:.5in; }
+.badges img.cul { width:.72in; }
+.tbadge { width:.78in; border:1.4px solid var(--navy); border-radius:3px; text-align:center; padding:.03in .02in;
+  font-size:5.1pt; font-weight:800; letter-spacing:.03em; line-height:1.25; color:var(--navy); }
+.tbadge i { display:block; font-style:normal; color:var(--orange); font-size:5.6pt; }
+.cv { position:absolute; left:1.25in; top:5.52in; right:.45in; }
+.kick { font-size:12pt; font-weight:500; letter-spacing:.02em; }
+.big { font-family:Poppins; font-weight:900; font-size:44pt; line-height:1; letter-spacing:.01em; margin:.04in 0 .1in; }
+.big.sm { font-size:34pt; }
+.rule { width:2.1in; height:4px; background:var(--orange); margin:.06in 0 .14in; }
+.lpw { color:var(--orange); font-weight:900; font-size:20pt; letter-spacing:.03em; }
+.tag { font-size:7.4pt; color:#454857; letter-spacing:.035em; margin-top:.05in; }
+.strip { display:grid; grid-template-columns:repeat(6,1fr); margin-top:.24in; border-top:1px solid var(--line); }
+.strip div { padding:.11in .07in .04in 0; border-right:1px solid var(--line); margin-right:.09in; }
+.strip div:last-child { border-right:0; }
+.strip small { display:block; color:var(--orange); font-size:5.6pt; font-weight:600; letter-spacing:.07em; }
+.strip span { font-weight:800; font-size:9.8pt; line-height:1.15; }
+.pn { margin-top:.18in; font-size:8pt; color:#454857; }
+.pn b { color:var(--ink); font-weight:700; letter-spacing:.02em; }
+.callout { margin-top:.14in; background:var(--soft); border-left:4px solid var(--orange); padding:.12in .18in; }
+.callout h4 { margin:0 0 .04in; font-size:8.2pt; font-weight:800; letter-spacing:.05em; }
+.callout p { margin:0; font-size:8.2pt; line-height:1.45; }
+.custom { position:absolute; right:.6in; bottom:.45in; font-size:8pt; font-style:italic; font-weight:300; color:#454857; }
+.proj { position:absolute; left:1.25in; right:.45in; top:.30in; font-size:7pt; font-weight:600; letter-spacing:.06em;
+  color:#7a7e8c; }
+/* inner pages */
+.hdr { position:absolute; left:.45in; right:.45in; top:.32in; height:.42in; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:.2in; }
+.hdr .t { color:var(--orange); font-weight:800; font-size:7.6pt; letter-spacing:.06em; }
+.hdr .s { color:#7a7e8c; font-size:7pt; letter-spacing:.04em; }
+.hdr img { margin-left:auto; height:.42in; margin-top:-.08in; }
+.body { position:absolute; left:.45in; right:.45in; top:.95in; bottom:.52in; }
+.h1 { font-size:10pt; font-weight:500; margin-top:.18in; }
+.h1 + .big { font-size:30pt; margin:.02in 0 .02in; }
+.code { color:var(--orange); font-weight:900; font-size:11.5pt; letter-spacing:.03em; }
+.code small { display:block; color:#7a7e8c; font-weight:500; font-size:7.2pt; letter-spacing:.03em; margin-top:1px; }
+.hero2 { position:absolute; right:0; top:.05in; width:2.45in; }
+.hero2.nar { width:1.9in; }
+.wrapn { padding-right:2.65in; }
+.icons { display:flex; gap:.1in; margin-top:.20in; align-items:center; }
+.icons img { height:.62in; }
+.dim0 { width:.58in; height:.58in; border-radius:50%; border:3px solid var(--orange); border-right-color:#f6b08a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:6.2pt;
+  line-height:1.05; text-align:center; color:var(--ink); }
+.hl { margin-top:.26in; background:#fdeee5; border-left:4px solid var(--orange); padding:.1in .16in; }
+.hl h4 { margin:0 0 .03in; font-size:7.8pt; font-weight:800; letter-spacing:.05em; }
+.hl p { margin:0; font-size:8.4pt; line-height:1.4; }
+.sec { display:flex; align-items:center; margin:.18in 0 .09in; }
+.sec h3 { margin:0; background:var(--navy); color:#fff; font-size:9.5pt; font-weight:800; letter-spacing:.08em;
+  padding:.05in .14in; min-width:3.1in; border-left:5px solid var(--orange); }
+.sec::after { content:""; flex:1; height:1px; background:var(--line); align-self:flex-end; }
+p.txt { margin:0; font-size:8.4pt; line-height:1.5; }
+ul.ov { margin:0; padding-left:.18in; font-size:8.2pt; line-height:1.45; }
+ul.ov.two { column-count:2; column-gap:.3in; }
+ul.ov li::marker { color:var(--orange); }
+.dims { display:flex; align-items:flex-start; gap:.25in; }
+.dims img { width:3.1in; }
+.dims .w { font-size:7.6pt; line-height:1.6; color:#454857; }
+.dims .w b { color:var(--ink); }
+/* order logic */
+.olx { font-size:8.4pt; margin-bottom:.09in; }
+.sample { background:var(--navy); color:#fff; padding:.1in .22in .08in; border-left:5px solid var(--orange); }
+.sample small { font-size:6.6pt; letter-spacing:.1em; color:#b9bccb; }
+.segs { display:flex; align-items:flex-end; gap:.05in; margin-top:.02in; font-weight:900; font-size:15pt; letter-spacing:.02em; }
+.segs .sg { display:flex; flex-direction:column; align-items:center; }
+.segs .sg i { font-style:normal; color:var(--orange); font-size:6.2pt; font-weight:600; margin-top:.02in; letter-spacing:.05em; }
+.segs .o { color:var(--orange); }
+.segs .dash { color:#6c7083; font-weight:600; padding-bottom:.12in; }
+.cards { display:grid; gap:.05in; margin-top:.1in; }
+.card { background:var(--soft); font-size:6.8pt; line-height:1.32; }
+.card h5 { margin:0; background:var(--orange); color:#fff; font-size:6.2pt; font-weight:700; letter-spacing:.04em; padding:.04in .05in; }
+.card div { padding:.06in .06in .08in; }
+.card b { display:block; font-weight:800; font-size:7.4pt; }
+.card .op { margin-top:.05in; }
+table { width:100%; border-collapse:collapse; font-size:7.4pt; }
+th { background:var(--navy); color:#fff; font-weight:700; font-size:6.6pt; letter-spacing:.04em; text-align:left; padding:.055in .08in; }
+td { padding:.04in .08in; border-bottom:1px solid #e6e7ec; }
+tr:nth-child(even) td { background:#f6f6f8; }
+td.k { font-weight:800; }
+td.c, th.c { text-align:center; }
+.pass { color:#1b7f4a; font-weight:800; }
+.note { font-size:6.9pt; color:#454857; margin-top:.06in; line-height:1.4; }
+.note b { color:var(--ink); }
+.cfm { color:#b4531a; font-weight:800; }
+.tbar { background:var(--orange); color:#fff; text-align:center; font-weight:800; font-size:7.2pt; letter-spacing:.08em; padding:.06in; margin-top:.14in; }
+.small-h { font-size:7.2pt; font-weight:800; letter-spacing:.05em; margin:.02in 0 .05in; }
+.photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:.22in; margin-top:.05in; }
+.pcard { border:1px solid var(--line); padding:.08in .08in .04in; }
+.pcard h6 { margin:0 0 .04in; font-size:7.2pt; font-weight:800; letter-spacing:.04em; color:var(--navy); }
+.pcard .sub { font-size:6.6pt; color:#7a7e8c; margin-bottom:.04in; }
+.pcard .pw { height:2.45in; }
+.pcard .pw svg { height:100%; width:auto; display:block; margin:0 auto; }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:.22in; }
+.band { background:#fdeee5; border-left:4px solid var(--orange); padding:.08in .14in; font-size:7.2pt; line-height:1.45; margin-top:.1in; }
+.band b { font-weight:800; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="side"><div class="vt">LED CONNECTION &nbsp;&middot;&nbsp; T8 LED TUBE &nbsp;&middot;&nbsp; 4 FT TYPE A</div><img src="assets/logo_side_w.png" alt=""></div>
+  <div class="proj">PROJECT: KROGER INTERIOR &nbsp;&middot;&nbsp; 4 FT T8 TUBE &nbsp;&middot;&nbsp; ISSUED 2026-10-13</div>
+  <img src="assets/str8_tube_soft.png" alt="4 ft T8 LED tube" style="position:absolute;left:2.05in;top:.95in;width:5.3in;height:auto">
+  <div class="badges">
+    <div class="tbadge">TYPE A<i>BALLAST<br>COMPATIBLE</i></div>
+    <div class="tbadge">1,850<br>LUMENS<i>ON BALLAST</i></div>
+    <div class="tbadge">4000K<i>NEUTRAL</i></div>
+  </div>
+  <div class="cv" style="right:1.45in">
+    <div class="kick">4 FT T8 LED TUBE &middot; TYPE A &middot; BALLAST COMPATIBLE</div>
+    <div class="big">LC STRATA T8</div>
+    <div class="rule"></div>
+    <div class="lpw">1,850 LM &middot; 12.5 W SYSTEM &middot; 4000K</div>
+    <div class="tag">RUNS ON THE EXISTING T8 BALLAST &middot; NO REWIRING &middot; G13 BI-PIN</div>
+    <div class="strip">
+      <div><small>CRI</small><span>83</span></div>
+<div><small>LUMENS</small><span>1,850 lm</span></div>
+<div><small>LAMP POWER</small><span>10 W</span></div>
+<div><small>ON BALLAST</small><span>12.5 W<br>system</span></div>
+<div><small>CCT</small><span>4000K</span></div>
+<div><small>TYPE</small><span>A</span></div>
+    </div>
+    <div class="pn">PART NO. &nbsp;<b>LC-STR8-4A-10W-840</b></div>
+    <div class="callout">
+      <h4>RELAMP ON THE BALLAST ALREADY IN THE FIXTURE</h4>
+      <p>A Type A tube runs on the T8 fluorescent ballast that is already installed: the lamp is swapped, the ballast stays,
+         and nothing is rewired. 1,850 lm on a normal-ballast-factor ballast; 10 W lamp, 12.5 W for the tube and ballast together.</p>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">4 FT T8 LED TUBE &middot; TYPE A &middot; LC STRATA T8</span><span class="s">LC-STR8-4A-10W-840</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body">
+    <img class="hero2" src="assets/str8_tube.jpeg" alt="" style="width:2.6in;height:auto;top:.2in;right:0">
+    <div class="wrapn" style="padding-right:2.8in">
+      <div class="h1">4 FT T8 LED TUBE &middot; TYPE A</div>
+      <div class="big" style="font-size:28pt">LC STRATA T8</div>
+      <div class="code">LC-STR8-4A-10W-840<small>4 ft T8 &middot; Type A &middot; 1,850 lm on ballast &middot; 10 W lamp &middot; 4000K</small></div>
+    </div>
+
+    <div class="sec" style="margin-top:.32in"><h3>PRODUCT DESCRIPTION</h3></div>
+    <p class="txt">A 4 ft T8 LED tube for relamping fluorescent troffers, wraps and strips. As a Type A tube it runs on the
+      T8 fluorescent ballast already in the fixture, so the lamp is swapped and nothing is rewired. On a normal-ballast-factor
+      ballast it gives 1,850 lm at 4000K and CRI 83 from 10 W of lamp power; with the ballast, the system draws 12.5 W. Light output and system power depend on the
+      ballast the tube runs on.</p>
+
+    <div class="sec"><h3>OVERVIEW</h3></div>
+    <ul class="ov two">
+      <li>4 ft T8 LED tube, G13 medium bi-pin base</li>
+<li>Type A: runs on the existing T8 fluorescent ballast</li>
+<li>1,850 lm on a normal-ballast-factor T8 ballast (tolerance &plusmn;10 percent)</li>
+<li>10 W lamp power; 12.5 W system power on ballast</li>
+<li>4000K colour temperature</li>
+<li>Works with emergency and dimmable T8 ballasts on the compatibility list</li>
+<li>CRI 83 (R9 above 0)</li>
+<li>Beam angle 200&deg;</li>
+<li>Rated life 50,000 hours</li>
+<li>5 years warranty</li>
+<li>Power factor 0.9 (set by the ballast)</li>
+<li>Glass tube with PET shatter coating, frosted lens</li>
+<li>Damp locations</li>
+    </ul>
+
+    <div class="sec"><h3>ORDER LOGIC</h3></div>
+    <div class="sample"><small>SAMPLE CODE</small>
+      <div class="segs">
+        <div class="sg"><span class="o">LC</span><i>[01]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">STR</span><i>[02]</i></div>
+        <div class="sg"><span>8</span><i>[03]</i></div><span class="dash">-</span>
+        <div class="sg"><span>4</span><i>[04]</i></div>
+        <div class="sg"><span>A</span><i>[05]</i></div><span class="dash">-</span>
+        <div class="sg"><span>10W</span><i>[06]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">840</span><i>[07]</i></div>
+      </div>
+    </div>
+    <div class="cards" style="grid-template-columns:repeat(7,1fr)">
+      <div class="card"><h5>01 BRAND</h5><div><b>LC</b>LED Connection</div></div>
+      <div class="card"><h5>02 MODEL</h5><div><b>STR</b>Strata LED tube</div></div>
+      <div class="card"><h5>03 LAMP</h5><div><b>8</b>T8</div></div>
+      <div class="card"><h5>04 LENGTH</h5><div><b>4</b>4 ft</div></div>
+      <div class="card"><h5>05 TYPE</h5><div><b>A</b>Type A, ballast compatible</div></div>
+      <div class="card"><h5>06 WATTS</h5><div><b>10W</b>10 W lamp power</div></div>
+      <div class="card"><h5>07 COLOUR</h5><div><b>840</b>4000K</div></div>
+    </div>
+  </div>
+  <div class="custom" style="bottom:.45in">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">4 FT T8 LED TUBE &middot; TYPE A &middot; LC STRATA T8</span><span class="s">LC-STR8-4A-10W-840</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body">
+    <div class="sec" style="margin-top:.1in"><h3>SPECIFICATIONS</h3></div>
+    <table>
+      <tr><th colspan="2">PHYSICAL</th></tr>
+<tr><td class="k" style="width:38%">Lamp</td><td>4 ft T8 LED tube</td></tr>
+<tr><td class="k" style="width:38%">Base</td><td>G13 medium bi-pin</td></tr>
+<tr><td class="k" style="width:38%">Overall length</td><td>47.8 in (1,213 mm) with pins; 47.2 in (1,198 mm) between lampholders</td></tr>
+<tr><td class="k" style="width:38%">Diameter</td><td>1.02 in (26 mm), T8</td></tr>
+<tr><td class="k" style="width:38%">Lens / tube material</td><td>Glass tube with PET shatter coating, frosted lens</td></tr>
+<tr><th colspan="2">ELECTRICAL</th></tr>
+<tr><td class="k" style="width:38%">Operation</td><td>Type A: runs on the existing T8 fluorescent ballast</td></tr>
+<tr><td class="k" style="width:38%">Lamp power</td><td>10 W</td></tr>
+<tr><td class="k" style="width:38%">System power, on ballast</td><td>12.5 W (normal ballast factor)</td></tr>
+<tr><td class="k" style="width:38%">Power factor</td><td>0.9 (set by the ballast)</td></tr>
+<tr><td class="k" style="width:38%">Compatible ballasts</td><td>112 T8 electronic ballasts on the compatibility list: 93 instant start, 17 programmed start (2 triac dimming), 2 instant start 0-10 V dimming. Emergency ballast compatible</td></tr>
+<tr><th colspan="2">LIGHT</th></tr>
+<tr><td class="k" style="width:38%">Light output</td><td>1,850 lm on a normal-ballast-factor T8 ballast, tolerance &plusmn;10 percent</td></tr>
+<tr><td class="k" style="width:38%">Colour temperature</td><td>4000K</td></tr>
+<tr><td class="k" style="width:38%">CRI</td><td>83 (R9 above 0)</td></tr>
+<tr><td class="k" style="width:38%">Beam angle</td><td>200&deg;</td></tr>
+<tr><td class="k" style="width:38%">Efficacy, system</td><td>148 lm/W (1,850 lm / 12.5 W on ballast)</td></tr>
+<tr><th colspan="2">LIFE</th></tr>
+<tr><td class="k" style="width:38%">Rated life</td><td>50,000 hours</td></tr>
+<tr><td class="k" style="width:38%">Location</td><td>Damp locations</td></tr>
+<tr><td class="k" style="width:38%">Warranty</td><td>5 years</td></tr>
+<tr><td class="k" style="width:38%">Operating temperature</td><td>-4 to 113&deg;F (-20 to 45&deg;C)</td></tr>
+    </table>
+  </div>
+  <div class="custom" style="bottom:.45in">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+</body></html>

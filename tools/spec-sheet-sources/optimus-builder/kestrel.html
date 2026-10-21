@@ -1,0 +1,495 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>LED Connection spec sheet LC-KST3-20W-T-BA-H-95-30-15</title>
+<style>
+@page { size: 8.5in 11in; margin: 0; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Light.ttf"); font-weight:300; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Regular.ttf"); font-weight:400; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Medium.ttf"); font-weight:500; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-SemiBold.ttf"); font-weight:600; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Bold.ttf"); font-weight:700; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-ExtraBold.ttf"); font-weight:800; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Black.ttf"); font-weight:900; }
+:root { --navy:#1A1A2E; --orange:#f37021; --ink:#1A1A2E; --grey:#5d6170; --line:#d9dbe1; --soft:#f4f4f6; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; font-family:Poppins, Arial, sans-serif; color:var(--ink);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { width:8.5in; height:11in; position:relative; overflow:hidden; page-break-after:always; background:#fff; }
+.page:last-child { page-break-after:auto; }
+.foot { position:absolute; left:0; right:0; bottom:0; height:.32in; background:var(--navy);
+  border-top:3px solid var(--orange); color:#fff; display:flex; align-items:center; gap:.28in;
+  padding:0 .45in; font-size:7.6pt; font-weight:500; }
+.foot b { color:var(--orange); font-weight:600; font-size:6.4pt; letter-spacing:.04em; margin-right:4px; }
+.foot .addr { margin-left:auto; }
+/* cover */
+.side { position:absolute; left:0; top:0; bottom:.32in; width:.93in; background:var(--navy); }
+.side .vt { position:absolute; left:50%; bottom:.98in; writing-mode:vertical-rl; transform:translateX(-50%) rotate(180deg); transform-origin:center center;
+  white-space:nowrap; color:var(--orange); font-weight:700; font-size:7.4pt; letter-spacing:.12em; }
+.side img { position:absolute; left:50%; transform:translateX(-50%); bottom:.12in; width:.74in; }
+.art { position:absolute; left:1.15in; top:.52in; right:1.30in; height:4.72in; object-fit:contain; }
+.art.tall { left:3.9in; right:1.3in; top:.42in; height:4.85in; }
+.badges { position:absolute; right:.42in; top:5.40in; display:flex; flex-direction:column; align-items:center; gap:.1in; }
+.badges img { width:.5in; }
+.badges img.cul { width:.72in; }
+.tbadge { width:.78in; border:1.4px solid var(--navy); border-radius:3px; text-align:center; padding:.03in .02in;
+  font-size:5.1pt; font-weight:800; letter-spacing:.03em; line-height:1.25; color:var(--navy); }
+.tbadge i { display:block; font-style:normal; color:var(--orange); font-size:5.6pt; }
+.cv { position:absolute; left:1.25in; top:5.52in; right:.45in; }
+.kick { font-size:12pt; font-weight:500; letter-spacing:.02em; }
+.big { font-family:Poppins; font-weight:900; font-size:44pt; line-height:1; letter-spacing:.01em; margin:.04in 0 .1in; }
+.big.sm { font-size:34pt; }
+.rule { width:2.1in; height:4px; background:var(--orange); margin:.06in 0 .14in; }
+.lpw { color:var(--orange); font-weight:900; font-size:20pt; letter-spacing:.03em; }
+.tag { font-size:7.4pt; color:#454857; letter-spacing:.035em; margin-top:.05in; }
+.strip { display:grid; grid-template-columns:repeat(6,1fr); margin-top:.24in; border-top:1px solid var(--line); }
+.strip div { padding:.11in .07in .04in 0; border-right:1px solid var(--line); margin-right:.09in; }
+.strip div:last-child { border-right:0; }
+.strip small { display:block; color:var(--orange); font-size:5.6pt; font-weight:600; letter-spacing:.07em; }
+.strip span { font-weight:800; font-size:9.8pt; line-height:1.15; }
+.pn { margin-top:.18in; font-size:8pt; color:#454857; }
+.pn b { color:var(--ink); font-weight:700; letter-spacing:.02em; }
+.callout { margin-top:.14in; background:var(--soft); border-left:4px solid var(--orange); padding:.12in .18in; }
+.callout h4 { margin:0 0 .04in; font-size:8.2pt; font-weight:800; letter-spacing:.05em; }
+.callout p { margin:0; font-size:8.2pt; line-height:1.45; }
+.custom { position:absolute; right:.6in; bottom:.45in; font-size:8pt; font-style:italic; font-weight:300; color:#454857; }
+.proj { position:absolute; left:1.25in; right:.45in; top:.30in; font-size:7pt; font-weight:600; letter-spacing:.06em;
+  color:#7a7e8c; }
+/* inner pages */
+.hdr { position:absolute; left:.45in; right:.45in; top:.32in; height:.42in; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:.2in; }
+.hdr .t { color:var(--orange); font-weight:800; font-size:7.6pt; letter-spacing:.06em; }
+.hdr .s { color:#7a7e8c; font-size:7pt; letter-spacing:.04em; }
+.hdr img { margin-left:auto; height:.42in; margin-top:-.08in; }
+.body { position:absolute; left:.45in; right:.45in; top:.95in; bottom:.52in; }
+.h1 { font-size:10pt; font-weight:500; margin-top:.18in; }
+.h1 + .big { font-size:30pt; margin:.02in 0 .02in; }
+.code { color:var(--orange); font-weight:900; font-size:11.5pt; letter-spacing:.03em; }
+.code small { display:block; color:#7a7e8c; font-weight:500; font-size:7.2pt; letter-spacing:.03em; margin-top:1px; }
+.hero2 { position:absolute; right:0; top:.05in; width:2.45in; }
+.hero2.nar { width:1.9in; }
+.wrapn { padding-right:2.65in; }
+.icons { display:flex; gap:.1in; margin-top:.20in; align-items:center; }
+.icons img { height:.62in; }
+.dim0 { width:.58in; height:.58in; border-radius:50%; border:3px solid var(--orange); border-right-color:#f6b08a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:6.2pt;
+  line-height:1.05; text-align:center; color:var(--ink); }
+.hl { margin-top:.26in; background:#fdeee5; border-left:4px solid var(--orange); padding:.1in .16in; }
+.hl h4 { margin:0 0 .03in; font-size:7.8pt; font-weight:800; letter-spacing:.05em; }
+.hl p { margin:0; font-size:8.4pt; line-height:1.4; }
+.sec { display:flex; align-items:center; margin:.18in 0 .09in; }
+.sec h3 { margin:0; background:var(--navy); color:#fff; font-size:9.5pt; font-weight:800; letter-spacing:.08em;
+  padding:.05in .14in; min-width:3.1in; border-left:5px solid var(--orange); }
+.sec::after { content:""; flex:1; height:1px; background:var(--line); align-self:flex-end; }
+p.txt { margin:0; font-size:8.4pt; line-height:1.5; }
+ul.ov { margin:0; padding-left:.18in; font-size:8.2pt; line-height:1.45; }
+ul.ov.two { column-count:2; column-gap:.3in; }
+ul.ov li::marker { color:var(--orange); }
+.dims { display:flex; align-items:flex-start; gap:.25in; }
+.dims img { width:3.1in; }
+.dims .w { font-size:7.6pt; line-height:1.6; color:#454857; }
+.dims .w b { color:var(--ink); }
+/* order logic */
+.olx { font-size:8.4pt; margin-bottom:.09in; }
+.sample { background:var(--navy); color:#fff; padding:.1in .22in .08in; border-left:5px solid var(--orange); }
+.sample small { font-size:6.6pt; letter-spacing:.1em; color:#b9bccb; }
+.segs { display:flex; align-items:flex-end; gap:.05in; margin-top:.02in; font-weight:900; font-size:15pt; letter-spacing:.02em; }
+.segs .sg { display:flex; flex-direction:column; align-items:center; }
+.segs .sg i { font-style:normal; color:var(--orange); font-size:6.2pt; font-weight:600; margin-top:.02in; letter-spacing:.05em; }
+.segs .o { color:var(--orange); }
+.segs .dash { color:#6c7083; font-weight:600; padding-bottom:.12in; }
+.cards { display:grid; gap:.05in; margin-top:.1in; }
+.card { background:var(--soft); font-size:6.8pt; line-height:1.32; }
+.card h5 { margin:0; background:var(--orange); color:#fff; font-size:6.2pt; font-weight:700; letter-spacing:.04em; padding:.04in .05in; }
+.card div { padding:.06in .06in .08in; }
+.card b { display:block; font-weight:800; font-size:7.4pt; }
+.card .op { margin-top:.05in; }
+table { width:100%; border-collapse:collapse; font-size:7.4pt; }
+th { background:var(--navy); color:#fff; font-weight:700; font-size:6.6pt; letter-spacing:.04em; text-align:left; padding:.055in .08in; }
+td { padding:.04in .08in; border-bottom:1px solid #e6e7ec; }
+tr:nth-child(even) td { background:#f6f6f8; }
+td.k { font-weight:800; }
+td.c, th.c { text-align:center; }
+.pass { color:#1b7f4a; font-weight:800; }
+.note { font-size:6.9pt; color:#454857; margin-top:.06in; line-height:1.4; }
+.note b { color:var(--ink); }
+.cfm { color:#b4531a; font-weight:800; }
+.tbar { background:var(--orange); color:#fff; text-align:center; font-weight:800; font-size:7.2pt; letter-spacing:.08em; padding:.06in; margin-top:.14in; }
+.small-h { font-size:7.2pt; font-weight:800; letter-spacing:.05em; margin:.02in 0 .05in; }
+.photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:.22in; margin-top:.05in; }
+.pcard { border:1px solid var(--line); padding:.08in .08in .04in; }
+.pcard h6 { margin:0 0 .04in; font-size:7.2pt; font-weight:800; letter-spacing:.04em; color:var(--navy); }
+.pcard .sub { font-size:6.6pt; color:#7a7e8c; margin-bottom:.04in; }
+.pcard .pw { height:2.45in; }
+.pcard .pw svg { height:100%; width:auto; display:block; margin:0 auto; }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:.22in; }
+.band { background:#fdeee5; border-left:4px solid var(--orange); padding:.08in .14in; font-size:7.2pt; line-height:1.45; margin-top:.1in; }
+.band b { font-weight:800; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="side"><div class="vt">LED CONNECTION &nbsp;&middot;&nbsp; LED TRACK HEAD &nbsp;&middot;&nbsp; 3 IN</div><img src="assets/logo_side_w.png" alt=""></div>
+  <div class="proj">PROJECT: KROGER INTERIOR &nbsp;&middot;&nbsp; 3 IN TRACK HEAD &nbsp;&middot;&nbsp; ISSUED 2026-10-13</div>
+  <img src="assets/kst3_white.png" alt="3 in LED track head, white" style="position:absolute;left:1.5in;top:.7in;width:2.6in;height:auto">
+  <img src="assets/kst3_black.png" alt="3 in LED track head, black" style="position:absolute;left:4.45in;top:1.45in;width:2.25in;height:auto">
+  <div style="position:absolute;left:1.25in;right:1.3in;top:5.1in;text-align:center;font-size:6.8pt;color:#7a7e8c">Shown in white and in black. This part number (BA) is the brushed aluminum finish.</div>
+  <div class="badges" style="top:1.05in">
+    <div class="tbadge">ETL<br>LISTED<i>UL 1574</i></div>
+    <div class="tbadge">CRI 95<i>R9 &gt; 80 LED</i></div>
+    <div class="tbadge">TRIAC / ELV<br>DIMMING<i>1-100 PCT</i></div>
+    <div class="tbadge">H-TYPE<br>TRACK<i>3-WIRE</i></div>
+    <div class="tbadge">5 YEAR<i>WARRANTY</i></div>
+  </div>
+  <div class="cv">
+    <div class="kick">3 IN LED TRACK HEAD &middot; CRI 95 &middot; 15&deg; SPOT</div>
+    <div class="big">LC KESTREL 3</div>
+    <div class="rule"></div>
+    <div class="lpw">2,000 LM AT 20 W &middot; 3000K</div>
+    <div class="tag">SWITCHABLE 15 / 20 / 25 W &middot; CRI 95 COB &middot; TRIAC OR ELV DIMMING &middot; H-TYPE TRACK &middot; 360&deg; ROTATION, 90&deg; TILT &middot; BRUSHED ALUMINUM</div>
+    <div class="strip">
+      <div><small>HEAD</small><span>3.15 in<br>(80 mm)</span></div>
+      <div><small>WATTAGE</small><span>15 / 20 / 25 W<br>switchable</span></div>
+      <div><small>LUMENS</small><span>2,000 lm<br>at 20 W</span></div>
+      <div><small>CCT</small><span>3000K</span></div>
+      <div><small>BEAM</small><span>15&deg;</span></div>
+      <div><small>CRI</small><span>95+</span></div>
+    </div>
+    <div class="pn">PART NO. &nbsp;<b>LC-KST3-20W-T-BA-H-95-30-15</b></div>
+    <div class="callout">
+      <h4>A CRI 95 SPOT FOR RETAIL DISPLAY</h4>
+      <p>A 3 in class head with a CRI 95 chip-on-board source and a 15&deg; optic. One head covers three outputs: a switch on
+         the head sets 15, 20 or 25 W (1,500, 2,000 or 2,450 lm). It dims on TRIAC or ELV dimmers from 1 to 100 percent and
+         fits H-type 3-wire, 1-circuit track.</p>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">3 IN LED TRACK HEAD &middot; LC KESTREL 3</span><span class="s">LC-KST3-20W-T-BA-H-95-30-15</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body">
+    <img class="hero2" src="assets/kst3_white.png" alt="" style="width:1.75in;height:auto;top:.1in;right:.25in">
+    <div class="wrapn">
+      <div class="h1">3 IN LED TRACK HEAD &middot; CRI 95 &middot; 15&deg; SPOT</div>
+      <div class="big" style="font-size:28pt">LC KESTREL 3</div>
+      <div class="code">LC-KST3-20W-T-BA-H-95-30-15<small>20 W setting &middot; 2,000 lm &middot; 3000K &middot; CRI 95 &middot; 15&deg; &middot; H-type track</small></div>
+      <div class="icons">
+        <div class="dim0"><span>DIMMING</span><span>TRIAC</span><span>ELV</span></div>
+        <img src="assets/ic_watt.png" alt="wattage selectable">
+        <img src="assets/ic_warranty.png" alt="5 year warranty">
+        <div class="dim0"><span>BEAM</span><span>15&deg;</span></div>
+      </div>
+      <div class="hl"><h4>ONE HEAD, THREE OUTPUTS</h4>
+        <p>A switch on the head sets 15, 20 or 25 W. The part number is the 20 W setting, 2,000 lm; the same head gives
+           1,500 lm at 15 W or 2,450 lm at 25 W, set on site to suit the display.</p></div>
+    </div>
+
+    <div class="sec"><h3>PRODUCT DESCRIPTION</h3></div>
+    <p class="txt">An LED track head for retail display lighting. A CRI 95 chip-on-board source (Luminus CXM-11) behind a 15&deg;
+      optic puts a tight, high-colour-quality spot on product, with an 8&deg; shielding angle. The cylinder head is 3.15 in (80 mm)
+      across, rotates 360&deg; on the track and tilts 90&deg;. A switch on the head selects 15, 20 or 25 W. The driver dims on TRIAC
+      (leading-edge) or ELV (trailing-edge) dimmers from 1 to 100 percent by constant current reduction. The adapter fits
+      H-type 3-wire, 1-circuit track. Brushed aluminum finish (white and black also offered); honeycomb louver and snoot accessories are
+      available.</p>
+
+    <div class="sec"><h3>OVERVIEW</h3></div>
+    <ul class="ov two">
+      <li>Switchable 15 / 20 / 25 W; 2,000 lm at 20 W</li>
+      <li>3000K, CRI 95 or higher</li>
+      <li>LED R9 above 80 (LED maker's minimum for the bin)</li>
+      <li>3-step MacAdam ellipse LED bin</li>
+      <li>15&deg; beam, 8&deg; shielding angle</li>
+      <li>TRIAC or ELV dimming, 1-100 percent</li>
+      <li>120 VAC, 60 Hz; power factor 0.9</li>
+      <li>THD below 12 percent</li>
+      <li>Flicker IEEE 1789 low risk across the dimming range (8.0 percent at full output)</li>
+      <li>L70 (B50) 102,000 h at 77 F (25 C)</li>
+      <li>360&deg; rotation, 90&deg; tilt</li>
+      <li>H-type 3-wire, 1-circuit track adapter</li>
+      <li>ETL listed to UL 1574, track lighting</li>
+      <li>Finish brushed aluminum, white or black; 5 year warranty</li>
+    </ul>
+
+    <div class="sec"><h3>DIMENSIONS</h3></div>
+    <div class="dims"><div style="width:3.75in"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 270" width="100%">
+<defs><marker id="a" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#1A1A2E"/></marker></defs>
+<rect x="46.875" y="22" width="46.25" height="25" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<rect x="64" y="47" width="12" height="70" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<circle cx="70" cy="167" r="50" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<circle cx="70" cy="167" r="41" fill="#ffffff" stroke="#1A1A2E" stroke-width="0.8"/>
+<circle cx="70" cy="167" r="14" fill="#fdeee5" stroke="#f37021" stroke-width="0.8"/>
+<line x1="20" y1="231" x2="120" y2="231" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="70" y="242" font-family="Poppins" font-size="7.5" fill="#1A1A2E" text-anchor="middle">A</text>
+<line x1="46.875" y1="14" x2="93.125" y2="14" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="70" y="11" font-family="Poppins" font-size="7.5" fill="#1A1A2E" text-anchor="middle">D</text>
+<text x="70" y="266" font-family="Poppins" font-size="6.8" fill="#7a7e8c" text-anchor="middle">FRONT</text>
+<rect x="175" y="117" width="193.75" height="100" rx="2" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<rect x="175" y="117" width="14" height="100" fill="#e6e7ec" stroke="#1A1A2E" stroke-width="0.8"/>
+<rect x="289.125" y="47" width="12" height="70" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<rect x="272" y="22" width="46.25" height="25" fill="#f4f4f6" stroke="#1A1A2E" stroke-width="1"/>
+<line x1="175" y1="231" x2="368.75" y2="231" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="271.875" y="242" font-family="Poppins" font-size="7.5" fill="#1A1A2E" text-anchor="middle">B</text>
+<line x1="382.75" y1="22" x2="382.75" y2="217" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="391.75" y="122.5" font-family="Poppins" font-size="7.5" fill="#1A1A2E" text-anchor="middle">C</text>
+<text x="271.875" y="266" font-family="Poppins" font-size="6.8" fill="#7a7e8c" text-anchor="middle">SIDE, HEAD LEVEL</text>
+<text x="295.125" y="18" font-family="Poppins" font-size="6.2" fill="#7a7e8c" text-anchor="middle">track</text>
+</svg></div>
+      <div class="w"><b>Unit: inch (mm)</b><br>
+        A &nbsp;Head diameter 3.15 in (80 mm)<br>
+        B &nbsp;Head length 6.10 in (155 mm)<br>
+        C &nbsp;Overall height, track to head 6.14 in (156 mm)<br>
+        D &nbsp;Track adapter width 1.46 in (37 mm)<br><br>
+        <b>Mounting</b><br>H-type 3-wire, 1-circuit track<br>360&deg; horizontal rotation, 90&deg; vertical tilt<br><br>
+        <span style="color:#7a7e8c">Drawing is schematic; dimensions govern.</span></div></div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">3 IN LED TRACK HEAD &middot; LC KESTREL 3</span><span class="s">LC-KST3-20W-T-BA-H-95-30-15</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>ORDER LOGIC</h3></div>
+    <div class="olx">The LED Connection part number for this head. Segment 01 is always LC.</div>
+    <div class="sample"><small>SAMPLE CODE</small>
+      <div class="segs">
+        <div class="sg"><span class="o">LC</span><i>[01]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">KST</span><i>[02]</i></div>
+        <div class="sg"><span>3</span><i>[03]</i></div><span class="dash">-</span>
+        <div class="sg"><span>20W</span><i>[04]</i></div><span class="dash">-</span>
+        <div class="sg"><span>T</span><i>[05]</i></div><span class="dash">-</span>
+        <div class="sg"><span>BA</span><i>[06]</i></div><span class="dash">-</span>
+        <div class="sg"><span>H</span><i>[07]</i></div><span class="dash">-</span>
+        <div class="sg"><span>95</span><i>[08]</i></div><span class="dash">-</span>
+        <div class="sg"><span>30</span><i>[09]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">15</span><i>[10]</i></div>
+      </div>
+    </div>
+    <div class="cards" style="grid-template-columns:repeat(10,1fr)">
+      <div class="card"><h5>01 BRAND</h5><div><b>LC</b>LED Connection</div></div>
+      <div class="card"><h5>02 MODEL</h5><div><b>KST</b>Kestrel track head</div></div>
+      <div class="card"><h5>03 SIZE</h5><div><b>3</b>3 in class, 3.15 in (80 mm)</div></div>
+      <div class="card"><h5>04 WATTS</h5><div><b>20W</b>20 W setting; switch 15/20/25 W</div></div>
+      <div class="card"><h5>05 MOUNT</h5><div><b>T</b>Track</div></div>
+      <div class="card"><h5>06 FINISH</h5><div><b>BA</b>Brushed aluminum, silver adapter</div></div>
+      <div class="card"><h5>07 ADAPTER</h5><div><b>H</b>H-type, 3-wire, 1-circuit</div></div>
+      <div class="card"><h5>08 CRI</h5><div><b>95</b>CRI 95 or higher</div></div>
+      <div class="card"><h5>09 CCT</h5><div><b>30</b>3000K</div></div>
+      <div class="card"><h5>10 BEAM</h5><div><b>15</b>15&deg; optic</div></div>
+    </div>
+    <div class="note">This sheet covers the configuration above. Other colour temperatures and optics are quoted separately.</div>
+
+    <div class="sec"><h3>PERFORMANCE DATA</h3></div>
+    <table>
+      <tr><th style="width:20%">SWITCH SETTING</th><th class="c">RATED LUMENS</th><th class="c">EFFICACY</th>
+          <th class="c">CCT</th><th class="c">CRI</th><th class="c">BEAM</th></tr>
+      <tr><td class="k">15 W</td><td class="c">1,500 lm</td><td class="c">100 lm/W</td><td class="c">3000K</td><td class="c">95+</td><td class="c">15&deg;</td></tr>
+<tr style="font-weight:700"><td class="k">20 W &middot; this part</td><td class="c">2,000 lm</td><td class="c">100 lm/W</td><td class="c">3000K</td><td class="c">95+</td><td class="c">15&deg;</td></tr>
+<tr><td class="k">25 W</td><td class="c">2,450 lm</td><td class="c">98 lm/W</td><td class="c">3000K</td><td class="c">95+</td><td class="c">15&deg;</td></tr>
+    </table>
+    <div class="note">Rated lumens are the values stated for the CRI 95 build. Efficacy is rated lumens divided by the switch
+      setting, rounded.</div>
+
+    <div class="twocol" style="margin-top:.02in">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">ELECTRICAL DATA</h3></div>
+        <table>
+          <tr><td class="k" style="width:44%">Input voltage</td><td>120 VAC, 60 Hz</td></tr>
+          <tr><td class="k">Input power</td><td>15 / 20 / 25 W, switch on head</td></tr>
+          <tr><td class="k">Input current</td><td>250 mA max.</td></tr>
+          <tr><td class="k">Power factor</td><td>0.9</td></tr>
+          <tr><td class="k">THD</td><td>Below 12 percent</td></tr>
+          <tr><td class="k">Dimming</td><td>TRIAC or ELV, 1-100 percent</td></tr>
+          <tr><td class="k">Dimming method</td><td>Constant current reduction</td></tr>
+          <tr><td class="k">Inrush current</td><td>5 A, 135 &micro;s</td></tr>
+          <tr><td class="k">Start / turn-off time</td><td>Below 500 ms / below 1 s</td></tr>
+          <tr><td class="k">Protection</td><td>Over-temperature, over-voltage</td></tr>
+          <tr><td class="k">Switching cycles</td><td>Above 100,000</td></tr>
+          <tr><td class="k">Electrical class</td><td>Class I (grounded)</td></tr>
+        </table>
+        <div class="note">Current, THD and inrush at 120 VAC and maximum power.</div>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">LIGHT QUALITY</h3></div>
+        <table>
+          <tr><td class="k" style="width:44%">LED source</td><td>Chip-on-board, Luminus CXM-11</td></tr>
+          <tr><td class="k">CCT</td><td>3000K</td></tr>
+          <tr><td class="k">CRI</td><td>95 or higher</td></tr>
+          <tr><td class="k">R9</td><td>Above 80, LED maker's minimum for the bin</td></tr>
+          <tr><td class="k">Colour consistency</td><td>3-step MacAdam ellipse (LED bin)</td></tr>
+          <tr><td class="k">Beam / shielding</td><td>15&deg; / 8&deg;</td></tr>
+          <tr><td class="k">Percent flicker (120 V, 60 Hz)</td><td>8.0 at 100%, 6.7 at 80%, 0.8 at 50%, 0 at 20% output; IEEE 1789 low risk</td></tr>
+          <tr><td class="k">Flicker Pst LM / SVM</td><td>Below 0.8 / below 0.3</td></tr>
+          <tr><td class="k">Blue light hazard</td><td>Risk group 1</td></tr>
+          <tr><td class="k">L70 (B50)</td><td>102,000 h at 77 F (25 C)</td></tr>
+          <tr><td class="k">L80 (B10)</td><td>76,000 h at 77 F (25 C)</td></tr>
+          <tr><td class="k">L90 (B10)</td><td>35,000 h at 77 F (25 C)</td></tr>
+        </table>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">3 IN LED TRACK HEAD &middot; LC KESTREL 3</span><span class="s">LC-KST3-20W-T-BA-H-95-30-15</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>BEAM DISTRIBUTION</h3></div>
+    <div class="band" style="margin-top:0"><b>Measured on the CRI 90 build.</b> The curves below are from a goniophotometer test of the
+      CRI 90 build of this head with a 15&deg; optic, at 20.6 W, normalised to percent of peak. They show the beam shape only.
+      The CRI 95 build has not been photometrically tested, so no candela, lumen or illuminance values are printed.</div>
+    <div class="photo-grid" style="margin-top:.1in">
+      <div class="pcard"><h6>POLAR, RELATIVE</h6><div class="sub">0-180 and 90-270 deg planes, nadir at bottom</div><div class="pw"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 346.5" width="100%">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<circle cx="165" cy="165" r="33" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="139" font-family="Poppins" font-size="6" fill="#8a8d99">25%</text>
+<circle cx="165" cy="165" r="66" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="106" font-family="Poppins" font-size="6" fill="#8a8d99">50%</text>
+<circle cx="165" cy="165" r="99" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="73" font-family="Poppins" font-size="6" fill="#8a8d99">75%</text>
+<circle cx="165" cy="165" r="132" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="40" font-family="Poppins" font-size="6" fill="#8a8d99">100%</text>
+<line x1="165" y1="165" x2="165" y2="297" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="130.836" y2="292.502" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="99" y2="279.315" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="71.6619" y2="258.338" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="50.6846" y2="231" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="37.4978" y2="199.164" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="33" y2="165" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="37.4978" y2="130.836" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="50.6846" y2="99" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="71.6619" y2="71.6619" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="99" y2="50.6846" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="130.836" y2="37.4978" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="165" y2="33" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="199.164" y2="37.4978" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="231" y2="50.6846" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="258.338" y2="71.6619" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="279.315" y2="99" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="292.502" y2="130.836" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="297" y2="165" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="292.502" y2="199.164" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="279.315" y2="231" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="258.338" y2="258.338" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="231" y2="279.315" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="199.164" y2="292.502" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="165" y="310" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">0</text>
+<text x="93.5" y="290.842" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">30</text>
+<text x="236.5" y="290.842" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">30</text>
+<text x="41.1584" y="238.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">60</text>
+<text x="288.842" y="238.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">60</text>
+<text x="22" y="167" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">90</text>
+<text x="308" y="167" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">90</text>
+<text x="41.1584" y="95.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">120</text>
+<text x="288.842" y="95.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">120</text>
+<text x="93.5" y="43.1584" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">150</text>
+<text x="236.5" y="43.1584" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">150</text>
+<text x="165" y="24" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">180</text>
+<polyline points="165,296.661 160.608,290.758 157.415,273.469 156.118,249.508 155.942,229.452 156.461,213.427 157.911,198.35 159.348,187.668 160.748,179.829 161.836,174.737 162.607,171.574 163.064,169.791 163.646,168.041 163.949,167.156 164.148,166.602 164.288,166.234 164.387,165.982 164.454,165.809 164.518,165.663 164.564,165.558 164.595,165.483 164.618,165.424 164.64,165.372 164.654,165.334 164.676,165.291 164.689,165.261 164.702,165.233 164.718,165.205 164.737,165.178 164.755,165.153 164.773,165.131 164.795,165.109 164.821,165.087 164.851,165.066 164.878,165.049 164.906,165.034 164.934,165.022 164.951,165.014 164.962,165.009 164.973,165.006 164.985,165.003 164.99,165.001 164.994,165.001 164.994,165 164.996,165 164.996,165 165.004,165 165.005,165 165.007,165 165.009,165.001 165.012,165.002 165.02,165.004 165.031,165.007 165.047,165.012 165.068,165.019 165.091,165.03 165.111,165.04 165.135,165.055 165.16,165.071 165.183,165.089 165.203,165.108 165.223,165.129 165.242,165.151 165.258,165.174 165.275,165.2 165.291,165.227 165.306,165.257 165.321,165.289 165.339,165.327 165.352,165.364 165.368,165.409 165.392,165.467 165.418,165.535 165.457,165.63 165.511,165.758 165.585,165.936 165.681,166.18 165.792,166.489 165.968,166.984 166.233,167.769 166.647,169.076 167.229,171.125 167.901,173.929 169.028,179.048 170.605,187.48 172.145,198.615 173.64,213.999 174.181,230.324 174.238,252.896 172.875,277.62 169.476,293.186 165,296.661" fill="none" stroke="#f37021" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="165,296.235 160.483,294.337 156.911,280.681 155.292,257.362 155.161,235.01 155.286,220.089 156.656,204.257 158.428,191.359 160.006,182.415 161.202,176.689 162.124,172.902 162.847,170.329 163.37,168.661 163.747,167.57 163.996,166.888 164.145,166.48 164.276,166.159 164.374,165.928 164.45,165.757 164.51,165.628 164.551,165.535 164.582,165.465 164.601,165.414 164.62,165.367 164.635,165.328 164.646,165.297 164.656,165.269 164.667,165.242 164.684,165.213 164.703,165.186 164.727,165.158 164.747,165.134 164.769,165.112 164.79,165.093 164.815,165.075 164.838,165.059 164.861,165.045 164.887,165.033 164.909,165.023 164.931,165.015 164.951,165.009 164.97,165.004 164.984,165.002 164.988,165.001 164.993,165 164.995,165 165.004,165 165.006,165 165.007,165 165.011,165.001 165.019,165.003 165.034,165.006 165.058,165.012 165.079,165.02 165.101,165.029 165.123,165.04 165.147,165.054 165.17,165.069 165.194,165.086 165.216,165.105 165.239,165.127 165.256,165.148 165.277,165.173 165.302,165.204 165.316,165.23 165.328,165.256 165.337,165.283 165.347,165.312 165.354,165.342 165.366,165.379 165.381,165.423 165.399,165.475 165.424,165.542 165.458,165.63 165.505,165.749 165.557,165.892 165.637,166.103 165.738,166.388 165.883,166.81 166.109,167.49 166.456,168.604 166.893,170.2 167.537,172.807 168.478,177.129 169.394,182.623 171.28,194.545 172.805,209.262 173.499,225.474 173.465,245.543 172.307,269.491 169.305,288.292 165,296.235" fill="none" stroke="#1A1A2E" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="6" y1="337.4" x2="18" y2="337.4" stroke="#f37021" stroke-width="2"/>
+<text x="21" y="339.9" font-family="Poppins" font-size="7" fill="#1b1d2b">0-180 deg plane</text>
+<line x1="124" y1="337.4" x2="136" y2="337.4" stroke="#1A1A2E" stroke-width="2"/>
+<text x="139" y="339.9" font-family="Poppins" font-size="7" fill="#1b1d2b">90-270 deg plane</text>
+<text x="165" y="10" font-family="Poppins" font-size="7.5" font-weight="700" fill="#1b1d2b" text-anchor="middle">RELATIVE INTENSITY, PERCENT OF PEAK</text>
+</svg></div></div>
+      <div class="pcard"><h6>BEAM PROFILE, RELATIVE</h6><div class="sub">Mean of the 12 measured planes</div><div class="pw"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 300" width="100%">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<text x="165" y="12" font-family="Poppins" font-size="7.5" font-weight="700" fill="#1b1d2b" text-anchor="middle">RELATIVE INTENSITY AGAINST ANGLE</text>
+<line x1="38" y1="260" x2="318" y2="260" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="34" y="262" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="end">0%</text>
+<line x1="38" y1="201" x2="318" y2="201" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="34" y="203" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="end">25%</text>
+<line x1="38" y1="142" x2="318" y2="142" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="34" y="144" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="end">50%</text>
+<line x1="38" y1="83" x2="318" y2="83" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="34" y="85" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="end">75%</text>
+<line x1="38" y1="24" x2="318" y2="24" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="34" y="26" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="end">100%</text>
+<line x1="38" y1="24" x2="38" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="38" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">0</text>
+<line x1="73" y1="24" x2="73" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="73" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">5</text>
+<line x1="108" y1="24" x2="108" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="108" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">10</text>
+<line x1="143" y1="24" x2="143" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="143" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">15</text>
+<line x1="178" y1="24" x2="178" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="178" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">20</text>
+<line x1="213" y1="24" x2="213" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="213" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">25</text>
+<line x1="248" y1="24" x2="248" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="248" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">30</text>
+<line x1="283" y1="24" x2="283" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="283" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">35</text>
+<line x1="318" y1="24" x2="318" y2="260" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="318" y="271" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">40</text>
+<text x="178" y="284" font-family="Poppins" font-size="6.8" fill="#1b1d2b" text-anchor="middle">Angle from beam centre, degrees</text>
+<line x1="38" y1="142" x2="318" y2="142" stroke="#f37021" stroke-width="0.7" stroke-dasharray="3 2"/>
+<text x="316" y="139" font-family="Poppins" font-size="6.3" fill="#f37021" text-anchor="end">beam edge, 50%</text>
+<line x1="38" y1="236.4" x2="318" y2="236.4" stroke="#f37021" stroke-width="0.7" stroke-dasharray="3 2"/>
+<text x="316" y="233.4" font-family="Poppins" font-size="6.3" fill="#f37021" text-anchor="end">field edge, 10%</text>
+<polyline points="38,24.9344 52,34.0793 66,62.7121 80,104.971 94,142.073 108,170.615 122,197.219 136,219.029 150,232.605 164,241.798 178,247.503 192,251.165 206,254.022 220,255.693 234,256.718 248,257.4 262,257.883 276,258.241 290,258.512 304,258.71 318,258.853" fill="none" stroke="#1A1A2E" stroke-width="1.8" stroke-linejoin="round"/>
+<line x1="94.452" y1="24" x2="94.452" y2="260" stroke="#f37021" stroke-width="0.7"/>
+<line x1="155.492" y1="24" x2="155.492" y2="260" stroke="#f37021" stroke-width="0.7"/>
+</svg></div></div>
+    </div>
+    <table style="margin-top:.1in">
+      <tr><th style="width:28%">DISTANCE TO SURFACE</th><th class="c">BEAM DIAMETER, 16&deg; (50 PCT OF PEAK)</th>
+          <th class="c">FIELD DIAMETER, 34&deg; (10 PCT OF PEAK)</th></tr>
+      <tr><td class="k">6 ft (1.8 m)</td><td class="c">1 ft 8 in (0.52 m)</td><td class="c">3 ft 7 in (1.10 m)</td></tr>
+<tr><td class="k">8 ft (2.4 m)</td><td class="c">2 ft 3 in (0.69 m)</td><td class="c">4 ft 10 in (1.47 m)</td></tr>
+<tr><td class="k">10 ft (3.0 m)</td><td class="c">2 ft 10 in (0.86 m)</td><td class="c">6 ft 0 in (1.84 m)</td></tr>
+<tr><td class="k">12 ft (3.7 m)</td><td class="c">3 ft 5 in (1.04 m)</td><td class="c">7 ft 3 in (2.21 m)</td></tr>
+<tr><td class="k">15 ft (4.6 m)</td><td class="c">4 ft 3 in (1.30 m)</td><td class="c">9 ft 1 in (2.76 m)</td></tr>
+    </table>
+    <div class="note">Beam and field angles are measured from the test file and averaged over 12 planes; diameters are for a head
+      aimed straight at the surface.</div>
+
+    <div class="twocol">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">CERTIFICATION</h3></div>
+        <table>
+          <tr><td class="k" style="width:38%">Safety listing</td><td>ETL listed, track lighting: UL 1574; CSA C22.2 No. 250.570</td></tr>
+          <tr><td class="k">Location</td><td>Indoor, IP20</td></tr>
+          <tr><td class="k">Impact</td><td>IK08</td></tr>
+          <tr><td class="k">Glow-wire test</td><td>1,202 F (650 C), 30 s</td></tr>
+        </table>
+        <div class="note">The listing and standards are as read off the certificate. LED Connection prints a listing control number
+          only once it is confirmed for this exact build.</div>
+        <div class="sec"><h3 style="min-width:0;width:100%">ENVIRONMENT</h3></div>
+        <table>
+          <tr><td class="k" style="width:38%">Ambient, operating</td><td>14 F (-10 C) to 95 F (35 C)</td></tr>
+          <tr><td class="k">Humidity</td><td>20-80 percent RH</td></tr>
+          <tr><td class="k">Storage</td><td>-4 F (-20 C) to 167 F (75 C)</td></tr>
+        </table>
+        <div class="note">Not for totally enclosed spaces.</div>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">FINISH AND ACCESSORIES</h3></div>
+        <table>
+          <tr><th style="width:38%">FINISH</th><th>DESCRIPTION</th></tr>
+          <tr><td class="k">BA &middot; Brushed aluminum</td><td>Body brushed aluminum, adapter silver (this part number)</td></tr>
+          <tr><td class="k">White</td><td>RAL 9016</td></tr>
+          <tr><td class="k">Black</td><td>RAL 7021</td></tr>
+        </table>
+        <table style="margin-top:.08in">
+          <tr><th style="width:38%">ACCESSORY</th><th>SIZE, inch (mm)</th></tr>
+          <tr><td class="k">Honeycomb louver</td><td>2.83 in (72 mm) dia., 0.20 in (5 mm) deep</td></tr>
+          <tr><td class="k">Snoot, 30&deg; shielding</td><td>3.15 in (80 mm) dia., 2.20 in (56 mm) long</td></tr>
+        </table>
+        <div class="note">Accessories are ordered separately.</div>
+        <div class="sec"><h3 style="min-width:0;width:100%">WARRANTY</h3></div>
+        <ul class="ov"><li>5 year limited warranty. Full terms are issued with the order acknowledgement.</li></ul>
+      </div>
+    </div>
+  </div>
+  <div class="custom" style="bottom:.45in">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+</body></html>

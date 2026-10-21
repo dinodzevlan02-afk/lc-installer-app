@@ -1,0 +1,543 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>LED Connection spec sheet LC-HST</title>
+<style>
+@page { size: 8.5in 11in; margin: 0; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Light.ttf"); font-weight:300; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Regular.ttf"); font-weight:400; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Medium.ttf"); font-weight:500; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-SemiBold.ttf"); font-weight:600; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Bold.ttf"); font-weight:700; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-ExtraBold.ttf"); font-weight:800; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Black.ttf"); font-weight:900; }
+:root { --navy:#1A1A2E; --orange:#f37021; --ink:#1A1A2E; --grey:#5d6170; --line:#d9dbe1; --soft:#f4f4f6; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; font-family:Poppins, Arial, sans-serif; color:var(--ink);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { width:8.5in; height:11in; position:relative; overflow:hidden; page-break-after:always; background:#fff; }
+.page:last-child { page-break-after:auto; }
+.foot { position:absolute; left:0; right:0; bottom:0; height:.32in; background:var(--navy);
+  border-top:3px solid var(--orange); color:#fff; display:flex; align-items:center; gap:.28in;
+  padding:0 .45in; font-size:7.6pt; font-weight:500; }
+.foot b { color:var(--orange); font-weight:600; font-size:6.4pt; letter-spacing:.04em; margin-right:4px; }
+.foot .addr { margin-left:auto; }
+/* cover */
+.side { position:absolute; left:0; top:0; bottom:.32in; width:.93in; background:var(--navy); }
+.side .vt { position:absolute; left:50%; bottom:.98in; writing-mode:vertical-rl; transform:translateX(-50%) rotate(180deg); transform-origin:center center;
+  white-space:nowrap; color:var(--orange); font-weight:700; font-size:7.4pt; letter-spacing:.12em; }
+.side img { position:absolute; left:50%; transform:translateX(-50%); bottom:.12in; width:.74in; }
+.art { position:absolute; left:1.15in; top:.52in; right:1.30in; height:4.72in; object-fit:contain; }
+.art.tall { left:3.9in; right:1.3in; top:.42in; height:4.85in; }
+.badges { position:absolute; right:.42in; top:5.40in; display:flex; flex-direction:column; align-items:center; gap:.1in; }
+.badges img { width:.5in; }
+.badges img.cul { width:.72in; }
+.tbadge { width:.78in; border:1.4px solid var(--navy); border-radius:3px; text-align:center; padding:.03in .02in;
+  font-size:5.1pt; font-weight:800; letter-spacing:.03em; line-height:1.25; color:var(--navy); }
+.tbadge i { display:block; font-style:normal; color:var(--orange); font-size:5.6pt; }
+.cv { position:absolute; left:1.25in; top:5.52in; right:.45in; }
+.kick { font-size:12pt; font-weight:500; letter-spacing:.02em; }
+.big { font-family:Poppins; font-weight:900; font-size:44pt; line-height:1; letter-spacing:.01em; margin:.04in 0 .1in; }
+.big.sm { font-size:34pt; }
+.rule { width:2.1in; height:4px; background:var(--orange); margin:.06in 0 .14in; }
+.lpw { color:var(--orange); font-weight:900; font-size:20pt; letter-spacing:.03em; }
+.tag { font-size:7.4pt; color:#454857; letter-spacing:.035em; margin-top:.05in; }
+.strip { display:grid; grid-template-columns:repeat(6,1fr); margin-top:.24in; border-top:1px solid var(--line); }
+.strip div { padding:.11in .07in .04in 0; border-right:1px solid var(--line); margin-right:.09in; }
+.strip div:last-child { border-right:0; }
+.strip small { display:block; color:var(--orange); font-size:5.6pt; font-weight:600; letter-spacing:.07em; }
+.strip span { font-weight:800; font-size:9.8pt; line-height:1.15; }
+.pn { margin-top:.18in; font-size:8pt; color:#454857; }
+.pn b { color:var(--ink); font-weight:700; letter-spacing:.02em; }
+.callout { margin-top:.14in; background:var(--soft); border-left:4px solid var(--orange); padding:.12in .18in; }
+.callout h4 { margin:0 0 .04in; font-size:8.2pt; font-weight:800; letter-spacing:.05em; }
+.callout p { margin:0; font-size:8.2pt; line-height:1.45; }
+.custom { position:absolute; right:.6in; bottom:.45in; font-size:8pt; font-style:italic; font-weight:300; color:#454857; }
+.proj { position:absolute; left:1.25in; right:.45in; top:.30in; font-size:7pt; font-weight:600; letter-spacing:.06em;
+  color:#7a7e8c; }
+/* inner pages */
+.hdr { position:absolute; left:.45in; right:.45in; top:.32in; height:.42in; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:.2in; }
+.hdr .t { color:var(--orange); font-weight:800; font-size:7.6pt; letter-spacing:.06em; }
+.hdr .s { color:#7a7e8c; font-size:7pt; letter-spacing:.04em; }
+.hdr img { margin-left:auto; height:.42in; margin-top:-.08in; }
+.body { position:absolute; left:.45in; right:.45in; top:.95in; bottom:.52in; }
+.h1 { font-size:10pt; font-weight:500; margin-top:.18in; }
+.h1 + .big { font-size:30pt; margin:.02in 0 .02in; }
+.code { color:var(--orange); font-weight:900; font-size:11.5pt; letter-spacing:.03em; }
+.code small { display:block; color:#7a7e8c; font-weight:500; font-size:7.2pt; letter-spacing:.03em; margin-top:1px; }
+.hero2 { position:absolute; right:0; top:.05in; width:2.45in; }
+.hero2.nar { width:1.9in; }
+.wrapn { padding-right:2.65in; }
+.icons { display:flex; gap:.1in; margin-top:.20in; align-items:center; }
+.icons img { height:.62in; }
+.dim0 { width:.58in; height:.58in; border-radius:50%; border:3px solid var(--orange); border-right-color:#f6b08a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:6.2pt;
+  line-height:1.05; text-align:center; color:var(--ink); }
+.hl { margin-top:.26in; background:#fdeee5; border-left:4px solid var(--orange); padding:.1in .16in; }
+.hl h4 { margin:0 0 .03in; font-size:7.8pt; font-weight:800; letter-spacing:.05em; }
+.hl p { margin:0; font-size:8.4pt; line-height:1.4; }
+.sec { display:flex; align-items:center; margin:.18in 0 .09in; }
+.sec h3 { margin:0; background:var(--navy); color:#fff; font-size:9.5pt; font-weight:800; letter-spacing:.08em;
+  padding:.05in .14in; min-width:3.1in; border-left:5px solid var(--orange); }
+.sec::after { content:""; flex:1; height:1px; background:var(--line); align-self:flex-end; }
+p.txt { margin:0; font-size:8.4pt; line-height:1.5; }
+ul.ov { margin:0; padding-left:.18in; font-size:8.2pt; line-height:1.45; }
+ul.ov.two { column-count:2; column-gap:.3in; }
+ul.ov li::marker { color:var(--orange); }
+.dims { display:flex; align-items:flex-start; gap:.25in; }
+.dims img { width:3.1in; }
+.dims .w { font-size:7.6pt; line-height:1.6; color:#454857; }
+.dims .w b { color:var(--ink); }
+/* order logic */
+.olx { font-size:8.4pt; margin-bottom:.09in; }
+.sample { background:var(--navy); color:#fff; padding:.1in .22in .08in; border-left:5px solid var(--orange); }
+.sample small { font-size:6.6pt; letter-spacing:.1em; color:#b9bccb; }
+.segs { display:flex; align-items:flex-end; gap:.05in; margin-top:.02in; font-weight:900; font-size:15pt; letter-spacing:.02em; }
+.segs .sg { display:flex; flex-direction:column; align-items:center; }
+.segs .sg i { font-style:normal; color:var(--orange); font-size:6.2pt; font-weight:600; margin-top:.02in; letter-spacing:.05em; }
+.segs .o { color:var(--orange); }
+.segs .dash { color:#6c7083; font-weight:600; padding-bottom:.12in; }
+.cards { display:grid; gap:.05in; margin-top:.1in; }
+.card { background:var(--soft); font-size:6.8pt; line-height:1.32; }
+.card h5 { margin:0; background:var(--orange); color:#fff; font-size:6.2pt; font-weight:700; letter-spacing:.04em; padding:.04in .05in; }
+.card div { padding:.06in .06in .08in; }
+.card b { display:block; font-weight:800; font-size:7.4pt; }
+.card .op { margin-top:.05in; }
+table { width:100%; border-collapse:collapse; font-size:7.4pt; }
+th { background:var(--navy); color:#fff; font-weight:700; font-size:6.6pt; letter-spacing:.04em; text-align:left; padding:.055in .08in; }
+td { padding:.04in .08in; border-bottom:1px solid #e6e7ec; }
+tr:nth-child(even) td { background:#f6f6f8; }
+td.k { font-weight:800; }
+td.c, th.c { text-align:center; }
+.pass { color:#1b7f4a; font-weight:800; }
+.note { font-size:6.9pt; color:#454857; margin-top:.06in; line-height:1.4; }
+.note b { color:var(--ink); }
+.cfm { color:#b4531a; font-weight:800; }
+.tbar { background:var(--orange); color:#fff; text-align:center; font-weight:800; font-size:7.2pt; letter-spacing:.08em; padding:.06in; margin-top:.14in; }
+.small-h { font-size:7.2pt; font-weight:800; letter-spacing:.05em; margin:.02in 0 .05in; }
+.photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:.22in; margin-top:.05in; }
+.pcard { border:1px solid var(--line); padding:.08in .08in .04in; }
+.pcard h6 { margin:0 0 .04in; font-size:7.2pt; font-weight:800; letter-spacing:.04em; color:var(--navy); }
+.pcard .sub { font-size:6.6pt; color:#7a7e8c; margin-bottom:.04in; }
+.pcard .pw { height:2.45in; }
+.pcard .pw svg { height:100%; width:auto; display:block; margin:0 auto; }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:.22in; }
+.band { background:#fdeee5; border-left:4px solid var(--orange); padding:.08in .14in; font-size:7.2pt; line-height:1.45; margin-top:.1in; }
+.band b { font-weight:800; }
+
+.mm { font-size:.86em; color:#7a7e8c; font-weight:400; }
+em.sm { font-style:normal; font-weight:500; font-size:6.8pt; color:#5d6170; }
+table.spec tr.grp td { background:#fdeee5; color:var(--ink); font-weight:800; font-size:6.6pt; letter-spacing:.06em; padding:.035in .08in; }
+table.spec td { padding:.022in .08in; line-height:1.3; }
+table.spec tr.grp td { padding:.025in .08in; }
+table.ord td { white-space:nowrap; }
+table.cab td.c { white-space:nowrap; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="side"><div class="vt">LED CONNECTION &nbsp;&middot;&nbsp; PORTABLE LED AREA LIGHT &nbsp;&middot;&nbsp; 300 W</div><img src="assets/logo_side_w.png" alt=""></div>
+  <div class="proj">PORTABLE LED AREA LIGHTING &nbsp;&middot;&nbsp; 300 W &nbsp;&middot;&nbsp; ISSUED 2026-10-16</div>
+  <img src="assets/hst_md_stand.png" alt="LC HOIST MD on the crank tripod" style="position:absolute;left:1.55in;top:.55in;height:4.45in;width:auto">
+  <img src="assets/hst_hb.png" alt="LC HOIST HB portable high bay" style="position:absolute;left:3.95in;top:2.05in;width:3.15in;height:auto">
+  <div style="position:absolute;left:1.25in;right:1.3in;top:5.1in;text-align:center;font-size:6.8pt;color:#7a7e8c">Left: LC-HST-MD on the optional 13 ft crank tripod. Right: LC-HST-HB portable high bay with hook and plug.</div>
+  <div class="badges" style="top:1.05in">
+    <div class="tbadge">ETL<br>LISTED<i>SEE LISTING NOTE</i></div>
+    <div class="tbadge">IP65<i>INDOOR + OUTDOOR</i></div>
+    <div class="tbadge">IK08<i>5 JOULE IMPACT</i></div>
+    <div class="tbadge">100-277<br>VAC<i>50/60 HZ</i></div>
+    <div class="tbadge">2700K TO<br>6500K<i>CRI 80+</i></div>
+  </div>
+  <div class="cv">
+    <div class="kick">PORTABLE 300 W LED AREA LIGHT &middot; STAND OR HOOK</div>
+    <div class="big">LC HOIST</div>
+    <div class="rule"></div>
+    <div class="lpw">300 W &middot; 130 LM/W &middot; IP65</div>
+    <div class="tag">MOBILE DISK ON A 13 FT CRANK TRIPOD OR HOOK-HUNG HIGH BAY &middot; 100-277 VAC &middot; PLUG-IN &middot; ALUMINUM HOUSING &middot; IK08</div>
+    <div class="strip">
+      <div><small>WATTAGE</small><span>300 W</span></div>
+      <div><small>LUMENS, MD</small><span>37,760 lm<br><em class="sm">tested, 5000K</em></span></div>
+      <div><small>LUMENS, HB</small><span>39,000 lm<br><em class="sm">rated</em></span></div>
+      <div><small>CCT</small><span>2700K to<br>6500K</span></div>
+      <div><small>DISK</small><span>15.7 in<br><em class="sm">(400 mm) dia.</em></span></div>
+      <div><small>STAND</small><span>to 13 ft 1.5 in<br><em class="sm">(4 m), MD</em></span></div>
+    </div>
+    <div class="pn">ORDERING CODES &nbsp;<b>LC-HST-MD-300W-NV-XXK</b> &nbsp;&middot;&nbsp; <b>LC-HST-HB-300W-NV-XXK</b></div>
+    <div class="callout">
+      <h4>ONE 300 W DISK, TWO WAYS TO SET IT UP</h4>
+      <p>A 15.7 in round aluminum LED disk for light that has to move with the job. The MD rides a hand-crank tripod up to
+         13 ft; the HB hangs from its hook like a high bay. Both plug in, run on 100-277 VAC and are rated IP65 for
+         indoor and outdoor use.</p>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">PORTABLE 300 W LED AREA LIGHT &middot; LC HOIST</span><span class="s">LC-HST</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body">
+    <img class="hero2" src="assets/hst_md_head.png" alt="" style="width:2.35in;height:auto;top:.15in;right:0">
+    <div class="wrapn">
+      <div class="h1">PORTABLE 300 W LED AREA LIGHT &middot; STAND OR HOOK</div>
+      <div class="big" style="font-size:28pt">LC HOIST</div>
+      <div class="code">LC-HST-MD-300W-NV-XXK<small>Mobile LED disk, crank tripod or hook &middot; 300 W &middot; 37,760 lm tested at 5000K</small></div>
+      <div class="code" style="margin-top:.06in">LC-HST-HB-300W-NV-XXK<small>Portable high bay, hook and plug &middot; 300 W &middot; 39,000 lm rated</small></div>
+      <div class="icons">
+        <div class="dim0"><span>POWER</span><span>300 W</span></div>
+        <div class="dim0"><span>RATING</span><span>IP65</span></div>
+        <div class="dim0"><span>IMPACT</span><span>IK08</span></div>
+        <div class="dim0"><span>CRI</span><span>80+</span></div>
+        <div class="dim0"><span>INPUT</span><span>100-277</span><span>VAC</span></div>
+      </div>
+    </div>
+    <div class="hl"><h4>BUILT TO BE MOVED</h4>
+      <p>Set the MD on its tripod, crank it up to 13 ft and plug it in. Need it overhead instead? The HB hangs from a
+         ceiling hook or chain and plugs into an outlet. No hardwiring either way.</p></div>
+
+    <div class="sec"><h3>PRODUCT DESCRIPTION</h3></div>
+    <p class="txt">LC HOIST is a portable 300 W LED area light for sites where the lighting moves with the work. The light
+      engine sits in a 15.7 in (400 mm) round, passively cooled aluminum disk, sealed to IP65 and rated IK08 against
+      impact. It comes in two set-ups: the MD mounts on a post adapter and a hand-crank tripod for
+      free-standing area light, and the HB hangs from its hook as a temporary high bay. Both run on 100-277 VAC and are
+      ordered in one colour temperature from 2700K to 6500K.</p>
+
+    <div class="sec"><h3>OVERVIEW</h3></div>
+    <ul class="ov two">
+      <li>300 W; 37,760 lm tested (MD, 5000K)</li>
+      <li>130 lm/W rated</li>
+      <li>100-277 VAC, 50/60 Hz; power factor 0.9 or higher</li>
+      <li>THD below 20 percent</li>
+      <li>CCT 2700K to 6500K, CRI 80+</li>
+      <li>Wide 106&deg; distribution (MD, tested)</li>
+      <li>IP65; IK08 (5 J); indoor and outdoor</li>
+      <li>Operating ambient -4 F <span class="mm">(-20 C)</span> to 104 F <span class="mm">(40 C)</span></li>
+      <li>Rated life 50,000 h</li>
+      <li>Aluminum housing; plug-in power</li>
+      <li>MD: crank tripod to 13 ft 1.5 in <span class="mm">(4 m)</span></li>
+      <li>HB: hook with safety chain, 17.2 lb <span class="mm">(7.8 kg)</span></li>
+    </ul>
+
+    <div class="sec"><h3>APPLICATIONS</h3></div>
+    <ul class="ov two">
+      <li>Construction and building sites</li>
+      <li>Plant shutdowns and maintenance work</li>
+      <li>Warehouses and workshops, temporary high bay</li>
+      <li>Events, staging and outdoor venues</li>
+      <li>Emergency response and rescue staging areas</li>
+      <li>Industrial and utility work at night</li>
+    </ul>
+
+    <div class="sec"><h3>TWO SET-UPS</h3></div>
+    <div class="twocol">
+      <div class="pcard" style="display:flex;gap:.12in;align-items:center">
+        <img src="assets/hst_md_stand.png" alt="" style="height:1.55in;width:auto">
+        <div><h6>LC-HST-MD &middot; MOBILE DISK</h6><div class="sub" style="font-size:6.9pt;line-height:1.45;color:#454857">Post adapter
+          supplied for stand mounting; hook and safety chain supplied for hanging. Optional 13 ft hand-crank tripod with guy cables,
+          and a rolling carrying case.</div></div>
+      </div>
+      <div class="pcard" style="display:flex;gap:.12in;align-items:center">
+        <img src="assets/hst_hb_side.png" alt="" style="width:1.6in;height:auto">
+        <div><h6>LC-HST-HB &middot; PORTABLE HIGH BAY</h6><div class="sub" style="font-size:6.9pt;line-height:1.45;color:#454857">Hook,
+          safety chain and bag supplied. Hangs from a hook or support rated for 34.4 lb <span class="mm">(15.6 kg)</span> or more; plugs into an outlet.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">PORTABLE 300 W LED AREA LIGHT &middot; LC HOIST</span><span class="s">LC-HST</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>ORDER LOGIC</h3></div>
+    <div class="olx">The LED Connection ordering code. Segment 01 is always LC. Choose one colour temperature for segment 06.</div>
+    <div class="sample"><small>SAMPLE CODE</small>
+      <div class="segs">
+        <div class="sg"><span class="o">LC</span><i>[01]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">HST</span><i>[02]</i></div><span class="dash">-</span>
+        <div class="sg"><span>MD</span><i>[03]</i></div><span class="dash">-</span>
+        <div class="sg"><span>300W</span><i>[04]</i></div><span class="dash">-</span>
+        <div class="sg"><span>NV</span><i>[05]</i></div><span class="dash">-</span>
+        <div class="sg"><span class="o">50K</span><i>[06]</i></div>
+      </div>
+    </div>
+    <div class="cards" style="grid-template-columns:repeat(6,1fr)">
+      <div class="card"><h5>01 BRAND</h5><div><b>LC</b>LED Connection</div></div>
+      <div class="card"><h5>02 SERIES</h5><div><b>HST</b>LC HOIST portable area light</div></div>
+      <div class="card"><h5>03 TYPE</h5><div><b>MD</b>Mobile disk, stand or hook<div class="op"><b>HB</b>Portable high bay, hook</div></div></div>
+      <div class="card"><h5>04 WATTS</h5><div><b>300W</b>300 W<div class="op"><b>450W</b>Pending, see note</div></div></div>
+      <div class="card"><h5>05 VOLTAGE</h5><div><b>NV</b>100-277 VAC, 50/60 Hz</div></div>
+      <div class="card"><h5>06 CCT (XXK)</h5><div><b>27K to 65K</b>Two digits + K: 27K = 2700K, 50K = 5000K, 65K = 6500K. Range 2700K to 6500K.</div></div>
+    </div>
+
+    <div class="sec"><h3>ORDERING CODES</h3></div>
+    <table class="ord">
+      <tr><th style="width:29%">ORDERING CODE</th><th>TYPE</th><th>MOUNTING</th><th class="c">POWER</th><th class="c">LUMENS</th><th class="c">CCT</th></tr>
+      <tr><td class="k">LC-HST-MD-300W-NV-XXK</td><td>Mobile LED disk</td><td>Tripod stand or hook</td><td class="c">300 W</td><td class="c">37,760 lm, tested</td><td class="c">2700K to 6500K</td></tr>
+      <tr><td class="k">LC-HST-HB-300W-NV-XXK</td><td>Portable high bay</td><td>Hook and safety chain</td><td class="c">300 W</td><td class="c">39,000 lm, rated</td><td class="c">2700K to 6500K</td></tr>
+    </table>
+    <div class="note"><b>Pending, not yet released:</b> LC-HST-MD-450W-NV-XXK and LC-HST-HB-450W-NV-XXK, the 450 W versions. Data for them is issued separately.</div>
+
+    <div class="sec"><h3>SPECIFICATIONS</h3></div>
+    <table class="spec">
+      <tr><th style="width:24%">ITEM</th><th style="width:38%">LC-HST-MD &middot; MOBILE DISK</th><th>LC-HST-HB &middot; PORTABLE HIGH BAY</th></tr>
+      <tr class="grp"><td colspan="3">PERFORMANCE</td></tr>
+      <tr><td class="k">Input power</td><td>300 W</td><td>300 W</td></tr>
+      <tr><td class="k">Delivered lumens</td><td>37,760 lm, factory photometric test at 5000K</td><td>39,000 lm, rated</td></tr>
+      <tr><td class="k">Efficacy</td><td colspan="2">130 lm/W, rated</td></tr>
+      <tr><td class="k">Colour temperature</td><td colspan="2">2700K to 6500K, one CCT per order (segment 06)</td></tr>
+      <tr><td class="k">CRI</td><td colspan="2">80+</td></tr>
+      <tr><td class="k">Beam angle</td><td>106&deg; (50 percent of peak), tested</td><td>Not tested</td></tr>
+      <tr><td class="k">Rated life</td><td colspan="2">50,000 h</td></tr>
+      <tr class="grp"><td colspan="3">ELECTRICAL</td></tr>
+      <tr><td class="k">Input voltage</td><td colspan="2">100-277 VAC, 50/60 Hz (NV)</td></tr>
+      <tr><td class="k">Power factor</td><td colspan="2">0.9 or higher</td></tr>
+      <tr><td class="k">THD</td><td colspan="2">Below 20 percent</td></tr>
+      <tr><td class="k">Power connection</td><td>16.4 ft <span class="mm">(5.0 m)</span> SJTW 18 AWG 3-conductor cord, 105 C, 300 V, with US plug</td>
+          <td>STW (SOOW) 14 AWG 3-conductor cable, 105 C, 600 V; M19 waterproof connectors; three-pin plug; leads on page 4</td></tr>
+      <tr class="grp"><td colspan="3">PHYSICAL AND ENVIRONMENT</td></tr>
+      <tr><td class="k">Housing</td><td>Aluminum; opal lens</td><td>Aluminum and PC</td></tr>
+      <tr><td class="k">Mounting</td><td>Post adapter on tripod stand, or hook</td><td>Hook, with safety chain</td></tr>
+      <tr><td class="k">Ingress / impact</td><td colspan="2">IP65 / IK08 (5 J)</td></tr>
+      <tr><td class="k">Location</td><td>Indoor and outdoor</td><td>Wet location</td></tr>
+      <tr><td class="k">Operating ambient</td><td colspan="2">-4 F <span class="mm">(-20 C)</span> to 104 F <span class="mm">(40 C)</span></td></tr>
+      <tr><td class="k">Listing</td><td colspan="2">ETL listed (multiple listing for LED Connection in progress)</td></tr>
+    </table>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">PORTABLE 300 W LED AREA LIGHT &middot; LC HOIST</span><span class="s">LC-HST</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>DIMENSIONS</h3></div>
+    <div style="width:6.3in;margin:0 auto"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 560 256" width="100%">
+<defs><marker id="a" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#1A1A2E"/></marker></defs>
+<path d="M19.25,98.8 C50.75,116.4 133.25,116.4 164.75,98.8 Z" fill="#ffffff" stroke="#1A1A2E" stroke-width="0.8"/>
+<rect x="17" y="80.8" width="150" height="18" fill="#3b3f52" stroke="#1A1A2E" stroke-width="0.8"/>
+<path d="M22.25,80.8 C50.75,42.4 133.25,42.4 161.75,80.8 Z" fill="#e9eaee" stroke="#1A1A2E" stroke-width="0.9"/>
+<rect x="83.3438" y="110" width="17.3125" height="59.375" fill="#e9eaee" stroke="#1A1A2E" stroke-width="0.9"/>
+<line x1="114.5" y1="52" x2="183" y2="52" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="114.5" y1="112" x2="183" y2="112" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="101.656" y1="169.375" x2="203" y2="169.375" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="179" y1="52" x2="179" y2="112" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="184" y="85" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="start">B</text>
+<line x1="199" y1="52" x2="199" y2="169.375" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="204" y="113.688" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="start">C</text>
+<line x1="17" y1="183.375" x2="167" y2="183.375" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="92" y="195.375" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="middle">A</text>
+<text x="106" y="251" font-family="Poppins" font-size="7" font-weight="600" fill="#7a7e8c" text-anchor="middle">MD, DISK ON POST ADAPTER</text>
+<path d="M217.25,141.752 C248.75,158.582 331.25,158.582 362.75,141.752 Z" fill="#ffffff" stroke="#1A1A2E" stroke-width="0.8"/>
+<rect x="215" y="124.54" width="150" height="17.2125" fill="#3b3f52" stroke="#1A1A2E" stroke-width="0.8"/>
+<path d="M220.25,124.54 C248.75,87.82 331.25,87.82 359.75,124.54 Z" fill="#e9eaee" stroke="#1A1A2E" stroke-width="0.9"/>
+<rect x="285" y="83" width="10" height="15" fill="#e9eaee" stroke="#1A1A2E" stroke-width="0.9"/>
+<path d="M290,83 L290,61 A9,9 0 1 1 304.4,63.7" fill="none" stroke="#1A1A2E" stroke-width="2.4" stroke-linecap="round"/>
+<line x1="304" y1="52" x2="401" y2="52" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="312.5" y1="97" x2="401" y2="97" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="312.5" y1="154.375" x2="401" y2="154.375" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="377" y1="97" x2="377" y2="154.375" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="382" y="128.688" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="start">E</text>
+<line x1="397" y1="52" x2="397" y2="154.375" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="402" y="106.188" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="start">F</text>
+<line x1="215" y1="172.375" x2="365" y2="172.375" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="290" y="184.375" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="middle">D</text>
+<text x="304" y="251" font-family="Poppins" font-size="7" font-weight="600" fill="#7a7e8c" text-anchor="middle">HB, WITH HOOK</text>
+<line x1="416" y1="222" x2="530" y2="222" stroke="#9aa0ae" stroke-width="1"/>
+<line x1="478" y1="220" x2="478" y2="133" stroke="#1A1A2E" stroke-width="4.5"/>
+<line x1="478" y1="133" x2="478" y2="44" stroke="#1A1A2E" stroke-width="2.4"/>
+<line x1="478" y1="164" x2="437.95" y2="222" stroke="#1A1A2E" stroke-width="2"/>
+<line x1="478" y1="164" x2="518.05" y2="222" stroke="#1A1A2E" stroke-width="2"/>
+<path d="M465.914,41.095 C471.147,44.019 484.853,44.019 490.086,41.095 Z" fill="#ffffff" stroke="#1A1A2E" stroke-width="0.8"/>
+<rect x="465.54" y="38.1046" width="24.92" height="2.9904" fill="#3b3f52" stroke="#1A1A2E" stroke-width="0.8"/>
+<path d="M466.412,38.1046 C471.147,31.7251 484.853,31.7251 489.588,38.1046 Z" fill="#e9eaee" stroke="#1A1A2E" stroke-width="0.9"/>
+<line x1="478" y1="43.288" x2="478" y2="44" stroke="#1A1A2E" stroke-width="2"/>
+<line x1="428" y1="33.32" x2="466" y2="33.32" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="481" y1="44" x2="530" y2="44" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="526" y1="44" x2="526" y2="222" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="531" y="136" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="start">G</text>
+<line x1="432" y1="33.32" x2="432" y2="222" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="427" y="130.66" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="end">H</text>
+<line x1="437.95" y1="230" x2="518.05" y2="230" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="478" y="242" font-family="Poppins" font-size="9" font-weight="700" fill="#f37021" text-anchor="middle">J</text>
+<text x="472" y="251" font-family="Poppins" font-size="7" font-weight="600" fill="#7a7e8c" text-anchor="middle">MD ON THE CRANK TRIPOD</text>
+</svg></div>
+    <div class="note" style="text-align:right;margin-top:0">Drawing is schematic, not to one scale; dimensions govern.</div>
+    <div class="twocol" style="margin-top:.06in;align-items:start">
+      <table>
+        <tr><th style="width:11%">REF</th><th style="width:45%">LC-HST-MD</th><th class="c">US (METRIC)</th></tr>
+        <tr><td class="k">A</td><td>Disk diameter</td><td class="c">15.7 in <span class="mm">(400 mm)</span></td></tr>
+        <tr><td class="k">B</td><td>Disk height</td><td class="c">6.3 in <span class="mm">(160 mm)</span></td></tr>
+        <tr><td class="k">C</td><td>Height on post adapter</td><td class="c">12.3 in <span class="mm">(313 mm)</span></td></tr>
+        <tr><td class="k">-</td><td>Mounting tube diameter</td><td class="c">1.4 in <span class="mm">(35.5 mm)</span></td></tr>
+        <tr><td class="k">G</td><td>Tripod, maximum height</td><td class="c">13 ft 1.5 in <span class="mm">(4 m)</span></td></tr>
+        <tr><td class="k">H</td><td>Overall, disk on tripod</td><td class="c">13 ft 10.9 in <span class="mm">(4.24 m)</span></td></tr>
+        <tr><td class="k">J</td><td>Tripod leg spread</td><td class="c">4 ft 3.2 in to 5 ft 10.9 in<br><span class="mm">(1.3 to 1.8 m)</span></td></tr>
+        <tr><td class="k">-</td><td>Tripod weight</td><td class="c">34.3 lb <span class="mm">(15.55 kg)</span></td></tr>
+        <tr><td class="k">-</td><td>Tripod maximum load</td><td class="c">66.1 lb <span class="mm">(30 kg)</span></td></tr>
+      </table>
+      <table>
+        <tr><th style="width:11%">REF</th><th style="width:45%">LC-HST-HB</th><th class="c">US (METRIC)</th></tr>
+        <tr><td class="k">D</td><td>Disk diameter</td><td class="c">15.7 in <span class="mm">(400 mm)</span></td></tr>
+        <tr><td class="k">E</td><td>Body height</td><td class="c">6.0 in <span class="mm">(153 mm)</span></td></tr>
+        <tr><td class="k">F</td><td>Overall height with hook</td><td class="c">10.7 in <span class="mm">(273 mm)</span></td></tr>
+        <tr><td class="k">-</td><td>Weight</td><td class="c">17.2 lb <span class="mm">(7.8 kg)</span></td></tr>
+        <tr><td class="k">-</td><td>Support to carry at least</td><td class="c">34.4 lb <span class="mm">(15.6 kg)</span></td></tr>
+        <tr><td class="k">-</td><td>Safety chain</td><td class="c">3.3 ft <span class="mm">(1.0 m)</span></td></tr>
+      </table>
+    </div>
+
+    <div class="twocol">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">ACCESSORIES</h3></div>
+        <table>
+          <tr><th style="width:52%">ITEM</th><th class="c">MD</th><th class="c">HB</th></tr>
+          <tr><td class="k">Hook, for hanging</td><td class="c">Supplied</td><td class="c">Supplied</td></tr>
+          <tr><td class="k">Safety chain</td><td class="c">Supplied</td><td class="c">Supplied</td></tr>
+          <tr><td class="k">Post adapter, for stand mounting</td><td class="c">Supplied</td><td class="c">-</td></tr>
+          <tr><td class="k">Carry bag</td><td class="c">Supplied</td><td class="c">Supplied</td></tr>
+          <tr><td class="k">13 ft hand-crank tripod</td><td class="c">Option</td><td class="c">-</td></tr>
+          <tr><td class="k">Tripod guy cable set</td><td class="c">Option</td><td class="c">-</td></tr>
+          <tr><td class="k">Rolling carrying case</td><td class="c">Option</td><td class="c">-</td></tr>
+        </table>
+        <div class="note">Ceiling hooks and hanging chains for the HB are not included. Supplied items are confirmed on the order
+          acknowledgement.</div>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">HB CABLE SYSTEM</h3></div>
+        <table class="cab">
+          <tr><th style="width:27%">LEAD</th><th>ENDS</th><th class="c" style="width:27%">LENGTH</th></tr>
+          <tr><td class="k">Plug lead</td><td>Three-pin plug to M19 female</td><td class="c">1.0 ft <span class="mm">(0.3 m)</span></td></tr>
+          <tr><td class="k">Tee lead, linking</td><td>M19 male to M19 female, drop to M19 female</td><td class="c">5.0 ft <span class="mm">(1.5 m)</span><br>drop 3.0 ft <span class="mm">(0.9 m)</span></td></tr>
+          <tr><td class="k">Extension lead</td><td>M19 male to M19 female</td><td class="c">20.0 ft <span class="mm">(6.1 m)</span></td></tr>
+          <tr><td class="k">Outlet lead</td><td>M19 male to three-pin receptacle</td><td class="c">1.0 ft <span class="mm">(0.3 m)</span></td></tr>
+        </table>
+        <div class="note">All leads STW (SOOW) 14 AWG, 3-conductor, 105 C, 600 V, with M19 three-core waterproof connectors.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">PORTABLE 300 W LED AREA LIGHT &middot; LC HOIST</span><span class="s">LC-HST</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>PHOTOMETRY &middot; LC-HST-MD</h3></div>
+    <div class="band" style="margin-top:0"><b>Factory photometric test of the MD at 5000K,</b> 2024-08-16, test voltage 216.5 VAC,
+      284.6 W measured. 37,760 lm delivered; 96.2 percent of the light goes down, 3.8 percent up.
+      Values for other colour temperatures, and for the HB, have not been tested.</div>
+    <div class="twocol" style="margin-top:.1in;grid-template-columns:1fr 1.15fr">
+      <div class="pcard"><h6>POLAR DISTRIBUTION</h6><div class="sub">0-180 and 90-270 deg planes, nadir at bottom; 100 percent = 13,199 cd</div><div class="pw" style="height:2.75in"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 330 346.5" width="100%">
+<rect width="100%" height="100%" fill="#ffffff"/>
+<circle cx="165" cy="165" r="33" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="139" font-family="Poppins" font-size="6" fill="#8a8d99">25%</text>
+<circle cx="165" cy="165" r="66" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="106" font-family="Poppins" font-size="6" fill="#8a8d99">50%</text>
+<circle cx="165" cy="165" r="99" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="73" font-family="Poppins" font-size="6" fill="#8a8d99">75%</text>
+<circle cx="165" cy="165" r="132" fill="none" stroke="#d9dbe1" stroke-width="0.6"/>
+<text x="167" y="40" font-family="Poppins" font-size="6" fill="#8a8d99">100%</text>
+<line x1="165" y1="165" x2="165" y2="297" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="130.836" y2="292.502" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="99" y2="279.315" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="71.6619" y2="258.338" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="50.6846" y2="231" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="37.4978" y2="199.164" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="33" y2="165" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="37.4978" y2="130.836" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="50.6846" y2="99" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="71.6619" y2="71.6619" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="99" y2="50.6846" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="130.836" y2="37.4978" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="165" y2="33" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="199.164" y2="37.4978" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="231" y2="50.6846" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="258.338" y2="71.6619" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="279.315" y2="99" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="292.502" y2="130.836" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="297" y2="165" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="292.502" y2="199.164" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="279.315" y2="231" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="258.338" y2="258.338" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="231" y2="279.315" stroke="#d9dbe1" stroke-width="0.4"/>
+<line x1="165" y1="165" x2="199.164" y2="292.502" stroke="#d9dbe1" stroke-width="0.4"/>
+<text x="165" y="310" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">0</text>
+<text x="93.5" y="290.842" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">30</text>
+<text x="236.5" y="290.842" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">30</text>
+<text x="41.1584" y="238.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">60</text>
+<text x="288.842" y="238.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">60</text>
+<text x="22" y="167" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">90</text>
+<text x="308" y="167" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">90</text>
+<text x="41.1584" y="95.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">120</text>
+<text x="288.842" y="95.5" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">120</text>
+<text x="93.5" y="43.1584" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">150</text>
+<text x="236.5" y="43.1584" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">150</text>
+<text x="165" y="24" font-family="Poppins" font-size="6.5" fill="#8a8d99" text-anchor="middle">180</text>
+<polyline points="165,296.895 162.697,296.947 160.393,296.92 158.093,296.803 155.797,296.607 153.514,296.282 151.245,295.875 148.994,295.361 146.757,294.804 144.548,294.132 142.361,293.39 140.217,292.496 138.093,291.588 136.02,290.526 133.965,289.474 131.972,288.26 130.005,287.041 128.116,285.643 126.281,284.164 124.467,282.715 122.744,281.098 121.048,279.499 119.461,277.713 117.893,275.977 116.446,274.053 115.012,272.199 113.708,270.164 112.414,268.205 111.272,266.048 110.129,263.989 109.15,261.734 108.17,259.58 107.354,257.253 106.532,255.033 105.894,252.629 105.35,250.189 104.794,247.866 104.442,245.363 104.046,243.018 103.859,240.503 103.631,238.137 103.622,235.607 103.579,233.215 103.767,230.664 103.878,228.293 104.226,225.774 104.503,223.421 105.021,220.931 105.452,218.618 106.14,216.166 106.896,213.755 107.541,211.529 108.433,209.195 109.216,207.036 110.258,204.772 111.158,202.701 112.296,200.549 113.279,198.588 114.516,196.546 115.584,194.692 116.908,192.766 118.056,191.022 119.415,189.238 120.591,187.628 122.011,185.967 123.431,184.384 124.665,182.959 126.124,181.502 127.394,180.194 128.9,178.858 130.247,177.649 131.794,176.434 133.155,175.347 134.703,174.263 136.043,173.303 137.548,172.356 138.865,171.516 140.256,170.713 141.531,169.988 142.954,169.285 144.337,168.643 145.521,168.085 146.83,167.554 147.948,167.094 149.19,166.662 150.236,166.292 151.364,165.954 152.312,165.665 153.322,165.408 154.16,165.189 155.048,165 155.776,164.839 156.519,164.704 157.14,164.588 157.792,164.496 158.401,164.423 158.913,164.36 159.454,164.319 159.902,164.284 160.368,164.266 160.753,164.251 161.154,164.252 161.482,164.252 161.816,164.265 162.086,164.274 162.354,164.291 162.655,164.328 162.778,164.321 162.956,164.336 163.129,164.356 163.278,164.373 163.394,164.383 163.502,164.395 163.587,164.4 163.657,164.402 163.707,164.397 163.739,164.385 163.754,164.365 163.762,164.342 163.771,164.319 163.783,164.297 163.801,164.279 163.839,164.275 163.883,164.275 163.914,164.267 163.936,164.255 163.958,164.243 163.977,164.229 163.991,164.212 164.006,164.195 164.018,164.176 164.031,164.157 164.043,164.138 164.055,164.118 164.068,164.1 164.081,164.081 164.093,164.061 164.106,164.041 164.119,164.021 164.132,164.002 164.146,163.983 164.161,163.964 164.176,163.946 164.191,163.927 164.207,163.909 164.224,163.891 164.24,163.873 164.256,163.855 164.272,163.836 164.29,163.819 164.307,163.8 164.326,163.783 164.344,163.767 164.365,163.754 164.384,163.737 164.404,163.721 164.423,163.704 164.443,163.688 164.463,163.67 164.484,163.656 164.507,163.645 164.529,163.632 164.552,163.622 164.575,163.61 164.599,163.6 164.622,163.59 164.646,163.581 164.67,163.571 164.694,163.563 164.719,163.554 164.744,163.547 164.769,163.542 164.794,163.537 164.821,163.539 164.849,163.563 164.873,163.552 164.899,163.561 164.926,163.591 164.951,163.593 164.976,163.611 165,163.626 165,163.624 165.024,163.632 165.048,163.636 165.071,163.638 165.095,163.639 165.119,163.642 165.142,163.649 165.165,163.657 165.187,163.667 165.211,163.669 165.233,163.679 165.255,163.686 165.278,163.693 165.3,163.7 165.329,163.68 165.362,163.649 165.386,163.653 165.412,163.654 165.437,163.655 165.462,163.658 165.486,163.664 165.509,163.674 165.531,163.686 165.553,163.696 165.577,163.704 165.596,163.721 165.615,163.74 165.633,163.758 165.651,163.776 165.667,163.797 165.683,163.817 165.697,163.839 165.713,163.86 165.726,163.882 165.739,163.904 165.751,163.927 165.764,163.949 165.775,163.972 165.783,163.998 165.794,164.02 165.803,164.043 165.811,164.067 165.82,164.089 165.827,164.113 165.834,164.137 165.84,164.16 165.845,164.184 165.851,164.206 165.857,164.229 165.862,164.25 165.867,164.273 165.873,164.293 165.876,164.315 165.882,164.335 165.885,164.357 165.889,164.378 165.894,164.397 165.897,164.417 165.901,164.437 165.906,164.456 165.909,164.475 165.913,164.494 165.923,164.509 165.934,164.524 165.95,164.537 165.971,164.547 165.988,164.56 166.021,164.567 166.076,164.565 166.141,164.562 166.195,164.565 166.264,164.565 166.356,164.559 166.457,164.554 166.586,164.545 166.719,164.539 166.888,164.529 167.065,164.523 167.288,164.514 167.509,164.512 167.787,164.509 168.314,164.475 168.399,164.522 168.724,164.543 169.127,164.566 169.521,164.604 169.99,164.651 170.505,164.712 170.995,164.791 171.566,164.885 172.12,165 172.78,165.136 173.404,165.293 174.152,165.48 174.875,165.691 175.755,165.941 176.601,166.219 177.619,166.549 178.565,166.906 179.683,167.325 180.721,167.772 181.937,168.292 183.062,168.839 184.371,169.472 185.701,170.161 186.903,170.869 188.321,171.687 189.578,172.514 191.01,173.451 192.293,174.398 193.767,175.47 195.193,176.59 196.472,177.716 197.762,178.906 199.267,180.257 200.563,181.583 202.008,183.05 203.259,184.494 204.69,186.103 206.076,187.769 207.262,189.4 208.621,191.21 209.742,192.958 211.005,194.876 212.021,196.716 213.169,198.728 214.085,200.662 215.146,202.788 215.952,204.808 216.891,207.021 217.612,209.146 218.428,211.444 219.014,213.635 219.702,216.011 220.315,218.417 220.684,220.684 221.156,223.151 221.385,225.465 221.682,227.952 221.757,230.292 221.889,232.798 221.803,235.146 221.772,237.665 221.517,240 221.294,242.482 220.875,244.797 220.485,247.259 219.904,249.545 219.34,251.963 218.691,254.357 217.861,256.558 217.048,258.897 216.06,261.03 215.066,263.26 213.924,265.31 212.78,267.465 211.499,269.438 210.202,271.49 208.773,273.342 207.329,275.27 205.77,277.013 204.195,278.829 202.516,280.462 200.813,282.138 199.014,283.619 197.191,285.137 195.312,286.574 193.358,287.83 191.375,289.082 189.33,290.166 187.261,291.248 185.143,292.177 183.003,293.096 180.822,293.859 178.621,294.595 176.391,295.194 174.142,295.733 171.874,296.166 169.593,296.532 167.3,296.758 165,296.895" fill="none" stroke="#f37021" stroke-width="1.6" stroke-linejoin="round"/>
+<polyline points="165,295.354 162.724,295.4 160.447,295.374 158.173,295.269 155.905,295.058 153.651,294.719 151.407,294.325 149.183,293.82 146.973,293.267 144.791,292.593 142.632,291.855 140.514,290.972 138.417,290.064 136.365,289.03 134.338,287.979 132.369,286.782 130.429,285.565 128.561,284.185 126.718,282.819 124.96,281.284 123.225,279.775 121.588,278.091 120.026,276.314 118.478,274.598 117.053,272.691 115.636,270.862 114.357,268.834 113.084,266.892 111.959,264.755 110.834,262.719 109.866,260.495 108.899,258.369 108.101,256.058 107.293,253.861 106.669,251.479 106.034,249.213 105.587,246.775 105.23,244.318 104.852,241.987 104.686,239.482 104.468,237.139 104.474,234.628 104.422,232.279 104.603,229.768 104.734,227.408 105.093,224.907 105.377,222.578 105.894,220.118 106.313,217.842 106.994,215.424 107.559,213.199 108.394,210.839 109.106,208.67 110.079,206.386 111.092,204.166 111.975,202.128 113.124,199.991 114.097,198.057 115.348,196.026 116.411,194.195 117.701,192.308 118.827,190.594 120.184,188.829 121.326,187.253 122.774,185.595 123.974,184.131 125.379,182.64 126.613,181.294 128.119,179.901 129.645,178.572 130.966,177.387 132.491,176.194 133.814,175.133 134.024,174.47 136.617,173.139 138.095,172.209 139.425,171.377 140.876,170.57 142.119,169.864 143.508,169.178 144.721,168.576 146.036,168.004 147.198,167.502 148.425,167.035 149.497,166.629 150.663,166.254 151.772,165.925 152.712,165.644 153.722,165.394 154.52,165.183 155.407,165 156.108,164.845 156.837,164.715 157.443,164.604 158.076,164.516 158.615,164.441 159.174,164.388 159.641,164.342 160.135,164.316 160.582,164.3 160.955,164.287 161.336,164.288 161.658,164.29 161.776,164.256 162.245,164.313 162.504,164.331 162.713,164.344 162.923,164.365 163.09,164.379 163.247,164.396 163.374,164.408 163.497,164.423 163.591,164.431 163.675,164.438 163.74,164.439 163.781,164.431 163.807,164.418 163.817,164.397 163.821,164.373 163.828,164.351 163.839,164.33 163.858,164.314 163.899,164.312 163.937,164.309 163.962,164.3 163.982,164.287 164.001,164.274 164.017,164.259 164.03,164.242 164.041,164.224 164.054,164.206 164.065,164.187 164.076,164.168 164.086,164.147 164.097,164.128 164.108,164.108 164.12,164.088 164.132,164.069 164.144,164.05 164.156,164.029 164.169,164.01 164.183,163.991 164.198,163.973 164.212,163.954 164.227,163.936 164.242,163.917 164.258,163.9 164.275,163.883 164.29,163.864 164.307,163.846 164.324,163.828 164.341,163.811 164.359,163.795 164.379,163.78 164.397,163.764 164.416,163.747 164.434,163.73 164.454,163.714 164.474,163.697 164.495,163.683 164.516,163.672 164.539,163.66 164.561,163.648 164.583,163.636 164.606,163.626 164.629,163.617 164.653,163.607 164.676,163.597 164.7,163.589 164.724,163.581 164.748,163.573 164.773,163.567 164.798,163.563 164.824,163.569 164.852,163.59 164.876,163.578 164.901,163.588 164.928,163.619 164.952,163.618 164.976,163.635 165,163.649 165,163.647 165.024,163.651 165.047,163.655 165.071,163.654 165.094,163.652 165.117,163.657 165.14,163.664 165.163,163.67 165.185,163.68 165.209,163.681 165.232,163.686 165.253,163.697 165.276,163.703 165.298,163.709 165.331,163.672 165.36,163.657 165.384,163.662 165.409,163.663 165.434,163.664 165.459,163.668 165.482,163.675 165.505,163.683 165.527,163.695 165.549,163.706 165.572,163.715 165.592,163.731 165.611,163.748 165.628,163.767 165.646,163.785 165.663,163.805 165.679,163.824 165.695,163.844 165.71,163.865 165.724,163.886 165.738,163.906 165.75,163.929 165.762,163.951 165.773,163.974 165.784,163.997 165.794,164.019 165.804,164.042 165.813,164.065 165.823,164.086 165.83,164.11 165.837,164.133 165.845,164.155 165.851,164.178 165.857,164.201 165.863,164.223 165.87,164.243 165.876,164.265 165.882,164.286 165.887,164.307 165.893,164.327 165.898,164.347 165.904,164.367 165.909,164.387 165.915,164.406 165.919,164.425 165.926,164.444 165.932,164.462 165.939,164.48 165.948,164.496 165.964,164.509 165.982,164.521 166.006,164.531 166.027,164.543 166.067,164.547 166.13,164.543 166.197,164.541 166.254,164.544 166.331,164.542 166.416,164.54 166.534,164.531 166.67,164.521 166.808,164.516 166.986,164.505 167.168,164.5 167.369,164.496 167.606,164.493 167.887,164.491 168.163,164.499 168.505,164.507 168.833,164.529 169.24,164.554 169.632,164.595 170.108,164.643 170.565,164.708 171.109,164.787 171.622,164.884 172.238,165 172.893,165.138 173.519,165.297 174.266,165.486 174.995,165.699 175.877,165.952 176.714,166.231 177.716,166.561 178.664,166.92 179.776,167.34 180.811,167.788 182.014,168.307 183.122,168.852 184.411,169.481 185.576,170.13 186.926,170.875 188.31,171.684 189.366,172.449 190.885,173.411 192.14,174.345 193.599,175.409 194.877,176.469 196.354,177.668 197.629,178.85 199.1,180.182 200.373,181.495 201.823,182.96 203.046,184.386 204.46,185.981 205.639,187.527 206.998,189.247 208.132,190.916 209.432,192.764 210.68,194.665 211.681,196.487 212.81,198.477 213.708,200.389 214.739,202.481 215.541,204.487 216.469,206.679 217.165,208.772 217.971,211.047 218.532,213.2 219.207,215.549 219.645,217.77 220.175,220.175 220.478,222.449 220.848,224.889 221.141,227.351 221.204,229.656 221.336,232.139 221.238,234.448 221.199,236.931 220.932,239.225 220.717,241.688 220.296,243.97 219.911,246.409 219.327,248.657 218.764,251.04 218.022,253.244 217.301,255.587 216.397,257.723 215.503,259.982 214.447,262.044 213.397,264.228 212.258,266.345 210.985,268.283 209.702,270.31 208.287,272.139 206.858,274.043 205.316,275.768 203.756,277.556 202.094,279.164 200.406,280.807 198.625,282.265 196.823,283.766 194.943,285.094 193.036,286.437 191.056,287.585 189.052,288.734 187.006,289.802 184.912,290.719 182.797,291.63 180.641,292.384 178.463,293.095 176.259,293.686 174.037,294.234 171.795,294.649 169.54,294.997 167.273,295.217 165,295.354" fill="none" stroke="#1A1A2E" stroke-width="1.6" stroke-linejoin="round"/>
+<line x1="6" y1="337.4" x2="18" y2="337.4" stroke="#f37021" stroke-width="2"/>
+<text x="21" y="339.9" font-family="Poppins" font-size="7" fill="#1b1d2b">0-180 deg plane</text>
+<line x1="124" y1="337.4" x2="136" y2="337.4" stroke="#1A1A2E" stroke-width="2"/>
+<text x="139" y="339.9" font-family="Poppins" font-size="7" fill="#1b1d2b">90-270 deg plane</text>
+<text x="165" y="10" font-family="Poppins" font-size="7.5" font-weight="700" fill="#1b1d2b" text-anchor="middle">RELATIVE INTENSITY, PERCENT OF PEAK</text>
+</svg></div></div>
+      <div>
+        <table>
+          <tr><th style="width:30%">MOUNTING HEIGHT</th><th class="c">CENTRE ILLUMINANCE</th><th class="c">BEAM DIAMETER, 106&deg;</th></tr>
+          <tr><td class="k">8 ft <span class="mm">(2.4 m)</span></td><td class="c">204 fc <span class="mm">(2,197 lx)</span></td><td class="c">21.3 ft <span class="mm">(6.5 m)</span></td></tr>
+<tr><td class="k">10 ft <span class="mm">(3.0 m)</span></td><td class="c">131 fc <span class="mm">(1,406 lx)</span></td><td class="c">26.7 ft <span class="mm">(8.1 m)</span></td></tr>
+<tr><td class="k">13 ft <span class="mm">(4.0 m)</span></td><td class="c">77 fc <span class="mm">(832 lx)</span></td><td class="c">34.7 ft <span class="mm">(10.6 m)</span></td></tr>
+<tr><td class="k">16 ft <span class="mm">(4.9 m)</span></td><td class="c">51 fc <span class="mm">(549 lx)</span></td><td class="c">42.7 ft <span class="mm">(13.0 m)</span></td></tr>
+<tr><td class="k">20 ft <span class="mm">(6.1 m)</span></td><td class="c">33 fc <span class="mm">(352 lx)</span></td><td class="c">53.3 ft <span class="mm">(16.3 m)</span></td></tr>
+<tr><td class="k">25 ft <span class="mm">(7.6 m)</span></td><td class="c">21 fc <span class="mm">(225 lx)</span></td><td class="c">66.7 ft <span class="mm">(20.3 m)</span></td></tr>
+        </table>
+        <div class="note">Centre illuminance directly below the disk, from the nadir intensity (13,063 cd) of the test file,
+          disk level and aimed straight down. Beam diameter is where the light falls to 50 percent of peak. Mounting height is
+          measured to the lens; on the tripod the lens sits below the overall height H.</div>
+      </div>
+    </div>
+
+    <div class="twocol">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">SET-UP, MD ON THE TRIPOD</h3></div>
+        <ul class="ov">
+          <li>Open the legs fully on level ground and lock every wing nut.</li>
+          <li>Fit the disk on the post adapter at the top of the column and lock it.</li>
+          <li>Turn the crank clockwise to raise the column, counterclockwise to lower it; lock at height.</li>
+          <li>Guy the tripod with the safety cables to the ground stakes, always, outdoors or in wind.</li>
+          <li>Keep the load within 66.1 lb <span class="mm">(30 kg)</span>.</li>
+        </ul>
+        <div class="sec"><h3 style="min-width:0;width:100%">SET-UP, HB</h3></div>
+        <ul class="ov">
+          <li>Screw the lifting hook firmly into the disk.</li>
+          <li>Hang from a hook or support rated for 34.4 lb <span class="mm">(15.6 kg)</span> or more and close the spring clip.</li>
+          <li>Fit the safety chain as a second support, then plug in.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">CERTIFICATION</h3></div>
+        <table>
+          <tr><td class="k" style="width:38%">Safety listing</td><td>ETL listed (multiple listing for LED Connection in progress)</td></tr>
+          <tr><td class="k">Ingress</td><td>IP65</td></tr>
+          <tr><td class="k">Impact</td><td>IK08 (5 J)</td></tr>
+          <tr><td class="k">Location</td><td>MD indoor and outdoor; HB wet location</td></tr>
+        </table>
+        <div class="sec"><h3 style="min-width:0;width:100%">NOTES</h3></div>
+        <ul class="ov">
+          <li>Installation and servicing by qualified personnel. Power off before maintenance.</li>
+          <li>Proper grounding is required; use a grounded outlet.</li>
+          <li>Clean the lens regularly; no harsh solvents.</li>
+          <li>Specifications may change without notice.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+</body></html>

@@ -1,0 +1,535 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8">
+<title>LED Connection Spec Sheet LC-SLOT</title>
+<style>
+@page { size: 8.5in 11in; margin: 0; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Light.ttf"); font-weight:300; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Regular.ttf"); font-weight:400; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Medium.ttf"); font-weight:500; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-SemiBold.ttf"); font-weight:600; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Bold.ttf"); font-weight:700; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-ExtraBold.ttf"); font-weight:800; }
+@font-face { font-family:Poppins; src:url("assets/fonts/Poppins-Black.ttf"); font-weight:900; }
+:root { --navy:#1A1A2E; --orange:#f37021; --ink:#1A1A2E; --grey:#5d6170; --line:#d9dbe1; --soft:#f4f4f6; }
+* { box-sizing:border-box; }
+html, body { margin:0; padding:0; font-family:Poppins, Arial, sans-serif; color:var(--ink);
+  -webkit-print-color-adjust:exact; print-color-adjust:exact; }
+.page { width:8.5in; height:11in; position:relative; overflow:hidden; page-break-after:always; background:#fff; }
+.page:last-child { page-break-after:auto; }
+.foot { position:absolute; left:0; right:0; bottom:0; height:.32in; background:var(--navy);
+  border-top:3px solid var(--orange); color:#fff; display:flex; align-items:center; gap:.28in;
+  padding:0 .45in; font-size:7.6pt; font-weight:500; }
+.foot b { color:var(--orange); font-weight:600; font-size:6.4pt; letter-spacing:.04em; margin-right:4px; }
+.foot .addr { margin-left:auto; }
+/* cover */
+.side { position:absolute; left:0; top:0; bottom:.32in; width:.93in; background:var(--navy); }
+.side .vt { position:absolute; left:50%; bottom:.98in; writing-mode:vertical-rl; transform:translateX(-50%) rotate(180deg); transform-origin:center center;
+  white-space:nowrap; color:var(--orange); font-weight:700; font-size:7.4pt; letter-spacing:.12em; }
+.side img { position:absolute; left:50%; transform:translateX(-50%); bottom:.12in; width:.74in; }
+.art { position:absolute; left:1.15in; top:.52in; right:1.30in; height:4.72in; object-fit:contain; }
+.art.tall { left:3.9in; right:1.3in; top:.42in; height:4.85in; }
+.badges { position:absolute; right:.42in; top:5.40in; display:flex; flex-direction:column; align-items:center; gap:.1in; }
+.badges img { width:.5in; }
+.badges img.cul { width:.72in; }
+.tbadge { width:.78in; border:1.4px solid var(--navy); border-radius:3px; text-align:center; padding:.03in .02in;
+  font-size:5.1pt; font-weight:800; letter-spacing:.03em; line-height:1.25; color:var(--navy); }
+.tbadge i { display:block; font-style:normal; color:var(--orange); font-size:5.6pt; }
+.cv { position:absolute; left:1.25in; top:5.52in; right:.45in; }
+.kick { font-size:12pt; font-weight:500; letter-spacing:.02em; }
+.big { font-family:Poppins; font-weight:900; font-size:44pt; line-height:1; letter-spacing:.01em; margin:.04in 0 .1in; }
+.big.sm { font-size:34pt; }
+.rule { width:2.1in; height:4px; background:var(--orange); margin:.06in 0 .14in; }
+.lpw { color:var(--orange); font-weight:900; font-size:20pt; letter-spacing:.03em; }
+.tag { font-size:7.4pt; color:#454857; letter-spacing:.035em; margin-top:.05in; }
+.strip { display:grid; grid-template-columns:repeat(6,1fr); margin-top:.24in; border-top:1px solid var(--line); }
+.strip div { padding:.11in .07in .04in 0; border-right:1px solid var(--line); margin-right:.09in; }
+.strip div:last-child { border-right:0; }
+.strip small { display:block; color:var(--orange); font-size:5.6pt; font-weight:600; letter-spacing:.07em; }
+.strip span { font-weight:800; font-size:9.8pt; line-height:1.15; }
+.pn { margin-top:.18in; font-size:8pt; color:#454857; }
+.pn b { color:var(--ink); font-weight:700; letter-spacing:.02em; }
+.callout { margin-top:.14in; background:var(--soft); border-left:4px solid var(--orange); padding:.12in .18in; }
+.callout h4 { margin:0 0 .04in; font-size:8.2pt; font-weight:800; letter-spacing:.05em; }
+.callout p { margin:0; font-size:8.2pt; line-height:1.45; }
+.custom { position:absolute; right:.6in; bottom:.45in; font-size:8pt; font-style:italic; font-weight:300; color:#454857; }
+.proj { position:absolute; left:1.25in; right:.45in; top:.30in; font-size:7pt; font-weight:600; letter-spacing:.06em;
+  color:#7a7e8c; }
+/* inner pages */
+.hdr { position:absolute; left:.45in; right:.45in; top:.32in; height:.42in; border-bottom:1px solid var(--line);
+  display:flex; align-items:center; gap:.2in; }
+.hdr .t { color:var(--orange); font-weight:800; font-size:7.6pt; letter-spacing:.06em; }
+.hdr .s { color:#7a7e8c; font-size:7pt; letter-spacing:.04em; }
+.hdr img { margin-left:auto; height:.42in; margin-top:-.08in; }
+.body { position:absolute; left:.45in; right:.45in; top:.95in; bottom:.52in; }
+.h1 { font-size:10pt; font-weight:500; margin-top:.18in; }
+.h1 + .big { font-size:30pt; margin:.02in 0 .02in; }
+.code { color:var(--orange); font-weight:900; font-size:11.5pt; letter-spacing:.03em; }
+.code small { display:block; color:#7a7e8c; font-weight:500; font-size:7.2pt; letter-spacing:.03em; margin-top:1px; }
+.hero2 { position:absolute; right:0; top:.05in; width:2.45in; }
+.hero2.nar { width:1.9in; }
+.wrapn { padding-right:2.65in; }
+.icons { display:flex; gap:.1in; margin-top:.20in; align-items:center; }
+.icons img { height:.62in; }
+.dim0 { width:.58in; height:.58in; border-radius:50%; border:3px solid var(--orange); border-right-color:#f6b08a;
+  display:flex; flex-direction:column; align-items:center; justify-content:center; font-weight:800; font-size:6.2pt;
+  line-height:1.05; text-align:center; color:var(--ink); }
+.hl { margin-top:.26in; background:#fdeee5; border-left:4px solid var(--orange); padding:.1in .16in; }
+.hl h4 { margin:0 0 .03in; font-size:7.8pt; font-weight:800; letter-spacing:.05em; }
+.hl p { margin:0; font-size:8.4pt; line-height:1.4; }
+.sec { display:flex; align-items:center; margin:.18in 0 .09in; }
+.sec h3 { margin:0; background:var(--navy); color:#fff; font-size:9.5pt; font-weight:800; letter-spacing:.08em;
+  padding:.05in .14in; min-width:3.1in; border-left:5px solid var(--orange); }
+.sec::after { content:""; flex:1; height:1px; background:var(--line); align-self:flex-end; }
+p.txt { margin:0; font-size:8.4pt; line-height:1.5; }
+ul.ov { margin:0; padding-left:.18in; font-size:8.2pt; line-height:1.45; }
+ul.ov.two { column-count:2; column-gap:.3in; }
+ul.ov li::marker { color:var(--orange); }
+.dims { display:flex; align-items:flex-start; gap:.25in; }
+.dims img { width:3.1in; }
+.dims .w { font-size:7.6pt; line-height:1.6; color:#454857; }
+.dims .w b { color:var(--ink); }
+/* order logic */
+.olx { font-size:8.4pt; margin-bottom:.09in; }
+.sample { background:var(--navy); color:#fff; padding:.1in .22in .08in; border-left:5px solid var(--orange); }
+.sample small { font-size:6.6pt; letter-spacing:.1em; color:#b9bccb; }
+.segs { display:flex; align-items:flex-end; gap:.05in; margin-top:.02in; font-weight:900; font-size:15pt; letter-spacing:.02em; }
+.segs .sg { display:flex; flex-direction:column; align-items:center; }
+.segs .sg i { font-style:normal; color:var(--orange); font-size:6.2pt; font-weight:600; margin-top:.02in; letter-spacing:.05em; }
+.segs .o { color:var(--orange); }
+.segs .dash { color:#6c7083; font-weight:600; padding-bottom:.12in; }
+.cards { display:grid; gap:.05in; margin-top:.1in; }
+.card { background:var(--soft); font-size:6.8pt; line-height:1.32; }
+.card h5 { margin:0; background:var(--orange); color:#fff; font-size:6.2pt; font-weight:700; letter-spacing:.04em; padding:.04in .05in; }
+.card div { padding:.06in .06in .08in; }
+.card b { display:block; font-weight:800; font-size:7.4pt; }
+.card .op { margin-top:.05in; }
+table { width:100%; border-collapse:collapse; font-size:7.4pt; }
+th { background:var(--navy); color:#fff; font-weight:700; font-size:6.6pt; letter-spacing:.04em; text-align:left; padding:.055in .08in; }
+td { padding:.04in .08in; border-bottom:1px solid #e6e7ec; }
+tr:nth-child(even) td { background:#f6f6f8; }
+td.k { font-weight:800; }
+td.c, th.c { text-align:center; }
+.pass { color:#1b7f4a; font-weight:800; }
+.note { font-size:6.9pt; color:#454857; margin-top:.06in; line-height:1.4; }
+.note b { color:var(--ink); }
+.cfm { color:#b4531a; font-weight:800; }
+.tbar { background:var(--orange); color:#fff; text-align:center; font-weight:800; font-size:7.2pt; letter-spacing:.08em; padding:.06in; margin-top:.14in; }
+.small-h { font-size:7.2pt; font-weight:800; letter-spacing:.05em; margin:.02in 0 .05in; }
+.photo-grid { display:grid; grid-template-columns:1fr 1fr; gap:.22in; margin-top:.05in; }
+.pcard { border:1px solid var(--line); padding:.08in .08in .04in; }
+.pcard h6 { margin:0 0 .04in; font-size:7.2pt; font-weight:800; letter-spacing:.04em; color:var(--navy); }
+.pcard .sub { font-size:6.6pt; color:#7a7e8c; margin-bottom:.04in; }
+.pcard .pw { height:2.45in; }
+.pcard .pw svg { height:100%; width:auto; display:block; margin:0 auto; }
+.twocol { display:grid; grid-template-columns:1fr 1fr; gap:.22in; }
+.band { background:#fdeee5; border-left:4px solid var(--orange); padding:.08in .14in; font-size:7.2pt; line-height:1.45; margin-top:.1in; }
+.band b { font-weight:800; }
+
+.strip span { line-height:1.18; display:block; }
+.mm { font-size:.86em; color:#7a7e8c; font-weight:400; }
+em.sm { font-style:normal; font-weight:500; font-size:6.8pt; color:#5d6170; }
+.segs { font-size:13.5pt; gap:.04in; }
+.segs .dash { padding-bottom:.135in; }
+.card div.op { padding:0; margin-top:.045in; }
+table.spec td { padding:.03in .08in; line-height:1.3; }
+table.spec tr.grp td { background:#fdeee5; color:var(--ink); font-weight:800; font-size:6.6pt; letter-spacing:.06em; padding:.03in .08in; }
+th.grpth { border-left:1px solid #3a3d55; background:#24243c; }
+th.sub { font-size:6pt; padding:.03in .04in; background:#2c2c48; border-left:1px solid #3a3d55; }
+table.sum td { padding:.035in .06in; }
+table.sum td.b { font-weight:700; }
+table.perf { font-size:7pt; }
+table.perf td { padding:.025in .03in; }
+table.perf td.pc { line-height:1.15; border-left:1px solid #eceef2; }
+table.perf td.pc i { display:block; font-style:normal; font-size:5.8pt; color:#7a7e8c; }
+table.perf th { padding:.04in .04in; }
+table.el td, table.dim td { padding:.03in .05in; }
+table.dim td { line-height:1.25; }
+.bgrid { display:grid; grid-template-columns:1fr 1fr; gap:.07in .14in; }
+.bk { display:flex; align-items:center; gap:.1in; border:1px solid var(--line); padding:.05in .08in; }
+.bk .bimg { width:1.75in; height:.62in; display:flex; align-items:center; justify-content:center; flex:none; }
+.bk .bimg img { max-width:100%; max-height:100%; }
+.bk .bt { font-size:6.8pt; line-height:1.35; color:#454857; }
+.bk .bt b { display:block; color:var(--navy); font-size:7.4pt; font-weight:800; letter-spacing:.03em; margin-bottom:.01in; }
+.bk .bt b .o { color:var(--orange); }
+.bk .bt span { display:block; }
+.bk .bt b span.o { display:inline; }
+.bk .bt .wt { color:#7a7e8c; margin-top:.02in; }
+</style>
+</head>
+<body>
+
+<section class="page">
+  <div class="side"><div class="vt">LED CONNECTION &nbsp;&middot;&nbsp; ULTRA AREA LUMINAIRE &nbsp;&middot;&nbsp; 75 W TO 420 W</div><img src="assets/logo_side_w.png" alt=""></div>
+  <div class="proj">OUTDOOR AREA LIGHTING &nbsp;&middot;&nbsp; 75 W TO 420 W &nbsp;&middot;&nbsp; ISSUED 2026-10-19</div>
+  <img src="assets/slot_hero.png" alt="LC OPTIMUS SERIES area luminaire on a square pole" style="position:absolute;left:1.45in;top:.55in;height:4.55in;width:auto">
+  <img src="assets/slot_head.png" alt="LC OPTIMUS SERIES lens and housing" style="position:absolute;left:3.95in;top:2.2in;width:3.05in;height:auto">
+  <div style="position:absolute;left:1.25in;right:1.3in;top:5.12in;text-align:center;font-size:6.8pt;color:#7a7e8c">Shown on a square pole with the straight arm bracket (S). Right: housing and lens detail.</div>
+  <div class="badges" style="top:.95in">
+    <div class="tbadge">DLC<br>STANDARD<i>LISTING IN PROGRESS</i></div>
+    <div class="tbadge">IP66<i>SEALED HOUSING</i></div>
+    <div class="tbadge">IK10<i>IMPACT RATED</i></div>
+    <div class="tbadge">3G<i>VIBRATION</i></div>
+    <div class="tbadge">100-277 OR<br>277-480 VAC<i>NV / HV</i></div>
+    <div class="tbadge">CRI 80<i>3000K 4000K 5000K</i></div>
+  </div>
+  <div class="cv">
+    <div class="kick">ULTRA AREA LUMINAIRE &middot; LC-SLOT</div>
+    <div class="big sm">LC OPTIMUS SERIES</div>
+    <div class="rule"></div>
+    <div class="lpw">75 W TO 420 W &middot; UP TO 170 LM/W</div>
+    <div class="tag">TYPE III, IV AND V OPTICS &middot; 100-277 OR 277-480 VAC &middot; 1-10V DIMMING &middot; DIE-CAST ALUMINUM &middot; FIVE BRACKETS</div>
+    <div class="strip">
+      <div><small>WATTAGE</small><span>75 W to<br>420 W</span></div>
+      <div><small>LUMENS</small><span>11,814<br>to 67,113</span></div>
+      <div><small>EFFICACY</small><span>up to<br>170 lm/W</span></div>
+      <div><small>CCT</small><span>3000K<br>4000K<br>5000K</span></div>
+      <div><small>CRI</small><span>80<br><em class="sm">minimum</em></span></div>
+      <div><small>OPTICS</small><span>Type III<br>IV, V</span></div>
+    </div>
+    <div class="pn">ORDERING EXAMPLE &nbsp;<b>LC-SLOT-S-75W-NV-XX-50-80-TY03-F-BK</b></div>
+    <div class="callout">
+      <h4>ONE HOUSING FAMILY, EIGHT WATTAGES</h4>
+      <p>A slim die-cast aluminum area light for parking lots, streets and loading areas. Three housing sizes cover
+         75 W to 420 W, the lens rotates in the field to set Type III, IV or V, and five brackets fit tenons, arms,
+         poles and flat surfaces. Lumen and efficacy values are DLC-reported (Standard, CRI 80).</p>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">ULTRA AREA LUMINAIRE &middot; LC OPTIMUS SERIES</span><span class="s">LC-SLOT</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body">
+    <img class="hero2" src="assets/slot_head.png" alt="" style="width:2.55in;height:auto;top:.28in;right:0">
+    <div class="wrapn">
+      <div class="h1">ULTRA AREA LUMINAIRE &middot; 75 W TO 420 W</div>
+      <div class="big" style="font-size:26pt">LC OPTIMUS SERIES</div>
+      <div class="code">LC-SLOT-S<small>Small housing &middot; 75 W, 115 W, 145 W</small></div>
+      <div class="code" style="margin-top:.05in">LC-SLOT-L<small>Large housing &middot; 180 W, 200 W, 230 W</small></div>
+      <div class="code" style="margin-top:.05in">LC-SLOT-XL<small>X-Large housing &middot; 300 W, 420 W</small></div>
+      <div class="icons">
+        <div class="dim0"><span>POWER</span><span>75-420</span><span>W</span></div>
+        <div class="dim0"><span>RATING</span><span>IP66</span></div>
+        <div class="dim0"><span>IMPACT</span><span>IK10</span></div>
+        <div class="dim0"><span>CRI</span><span>80</span></div>
+        <div class="dim0"><span>UPLIGHT</span><span>U0</span></div>
+      </div>
+    </div>
+    <div class="hl"><h4>SET THE PATTERN WITHOUT RE-AIMING</h4>
+      <p>The lens rotates in the field, so the light direction changes without moving the luminaire. Brackets are
+         built for single-person installation, and the driver sits behind a tool-free access panel.</p></div>
+
+    <div class="sec"><h3>PRODUCT DESCRIPTION</h3></div>
+    <p class="txt">The LC OPTIMUS SERIES ultra area luminaire is an efficient, cost-effective light for exterior area
+      projects. A rugged die-cast aluminum housing carries high-efficacy 5050 LEDs behind a polycarbonate lens, with a
+      weather-tight driver compartment that opens without tools for easy maintenance. Three housing sizes cover 75 W to
+      420 W, Type III, IV and V distributions come from a field-rotatable lens, and five brackets fit tenons, arms,
+      poles and flat surfaces. The 1-10V dimmable driver is available for 100-277 VAC or 277-480 VAC.</p>
+
+    <div class="sec"><h3>OVERVIEW</h3></div>
+    <ul class="ov two">
+      <li>75 W to 420 W in three housing sizes</li>
+      <li>11,814 to 67,113 lm, DLC-reported</li>
+      <li>Up to 170 lm/W, DLC-reported</li>
+      <li>High-efficacy 5050 LEDs; CRI 80</li>
+      <li>3000K, 4000K or 5000K</li>
+      <li>Type III, IV and V; field-rotatable lens</li>
+      <li>Zero uplight (U0); cut-off</li>
+      <li>NV 100-277 VAC or HV 277-480 VAC</li>
+      <li>1-10V dimming, continuous to 10% or below</li>
+      <li>IP66, IK10, 3G vibration rating</li>
+      <li>Die-cast aluminum, tool-free driver access</li>
+      <li>Limited 5-year warranty; 10-year available</li>
+    </ul>
+
+    <div class="sec"><h3>APPLICATIONS</h3></div>
+    <ul class="ov two">
+      <li>Parking lots</li>
+      <li>Streets and site roadways</li>
+      <li>Loading bays</li>
+      <li>Tennis courts and training fields</li>
+      <li>Residential and commercial areas</li>
+      <li>Paths and jogging tracks</li>
+    </ul>
+
+    <div class="sec"><h3>CONSTRUCTION</h3></div>
+    <ul class="ov two">
+      <li>Die-cast aluminum unibody housing, sealed to IP66</li>
+      <li>Efficient heat-dissipation layer</li>
+      <li>LED board behind an optical-grade polycarbonate lens</li>
+      <li>Lens rotates in the field for Type III, IV or V</li>
+      <li>Driver behind a tool-free buckled access panel</li>
+      <li>1-10V dimmable driver, NV or HV</li>
+      <li>Surge protection device</li>
+      <li>Bracket access panel for wiring; exchangeable bracket</li>
+    </ul>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">ULTRA AREA LUMINAIRE &middot; LC OPTIMUS SERIES</span><span class="s">LC-SLOT</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>ORDER LOGIC</h3></div>
+    <div class="olx">Build the LED Connection ordering code from left to right, one choice per segment.</div>
+    <div class="sample"><small>EXAMPLE</small>
+      <div class="segs"><div class="sg"><span class="o">LC-SLOT</span><i>[01]</i></div><span class="dash">-</span><div class="sg"><span>S</span><i>[02]</i></div><span class="dash">-</span><div class="sg"><span>75W</span><i>[03]</i></div><span class="dash">-</span><div class="sg"><span>NV</span><i>[04]</i></div><span class="dash">-</span><div class="sg"><span>XX</span><i>[05]</i></div><span class="dash">-</span><div class="sg"><span>50</span><i>[06]</i></div><span class="dash">-</span><div class="sg"><span>80</span><i>[07]</i></div><span class="dash">-</span><div class="sg"><span>TY03</span><i>[08]</i></div><span class="dash">-</span><div class="sg"><span>F</span><i>[09]</i></div><span class="dash">-</span><div class="sg"><span>BK</span><i>[10]</i></div></div>
+    </div>
+    <div class="cards" style="grid-template-columns:repeat(5,1fr)">
+      <div class="card"><h5>01 FAMILY</h5><div><b>LC-SLOT</b>LC OPTIMUS SERIES ultra area luminaire</div></div>
+      <div class="card"><h5>02 SIZE</h5><div><b>S</b>Small, 75 to 145 W<div class="op"><b>L</b>Large, 180 to 230 W</div><div class="op"><b>XL</b>X-Large, 300 and 420 W</div></div></div>
+      <div class="card"><h5>03 WATTAGE</h5><div><b>S: 75W 115W 145W</b><div class="op"><b>L: 180W 200W 230W</b></div><div class="op"><b>XL: 300W 420W</b></div><div class="op">Nominal; input watts on page 5</div></div></div>
+      <div class="card"><h5>04 VOLTAGE</h5><div><b>NV</b>100-277 VAC<div class="op"><b>HV</b>277-480 VAC</div></div></div>
+      <div class="card"><h5>05 SENSOR</h5><div><b>XX</b>No sensor (Standard)<div class="op">Sensor and photocell versions: contact LED Connection</div></div></div>
+      <div class="card"><h5>06 CCT</h5><div><b>30</b>3000K<div class="op"><b>40</b>4000K</div><div class="op"><b>50</b>5000K</div></div></div>
+      <div class="card"><h5>07 CRI</h5><div><b>80</b>CRI 80 minimum</div></div>
+      <div class="card"><h5>08 DISTRIBUTION</h5><div><b>TY03</b>Type III<div class="op"><b>TY04</b>Type IV</div><div class="op"><b>TY05</b>Type V</div></div></div>
+      <div class="card"><h5>09 BRACKET</h5><div><b>F</b>Slip fitter<div class="op"><b>R</b>Adjustable arm</div><div class="op"><b>U</b>Yoke</div><div class="op"><b>S</b>Straight arm, square or round pole</div><div class="op"><b>T</b>Trunnion</div></div></div>
+      <div class="card"><h5>10 COLOR</h5><div><b>BK</b>Black<div class="op"><b>BR</b>Bronze</div><div class="op"><b>WH</b>White</div></div></div>
+    </div>
+    <div class="note"><b>Notes:</b> Sensor and photocell versions: contact LED Connection. Additional lens options will carry
+      their own distribution code. Where the supply voltage can fluctuate to 240 V or more, HV (277-480 VAC) is recommended.
+      Bracket fit and weights are on page 6.</div>
+
+    <div class="sec"><h3>WATTAGE SELECTION &middot; 4000K, TYPE III</h3></div>
+    <table class="sum">
+      <tr><th rowspan="2" style="width:9%">WATTAGE</th><th rowspan="2" class="c" style="width:7%">SIZE</th>
+          <th colspan="3" class="c grpth">NV &middot; 100-277 VAC</th><th colspan="3" class="c grpth">HV &middot; 277-480 VAC</th>
+          <th rowspan="2" class="c">BUG RATING</th></tr>
+      <tr><th class="c sub">INPUT</th><th class="c sub">LUMENS</th><th class="c sub">LM/W</th>
+          <th class="c sub">INPUT</th><th class="c sub">LUMENS</th><th class="c sub">LM/W</th></tr>
+      <tr><td class="k">75W</td><td class="c">S</td><td class="c">77.9 W</td><td class="c b">12,801 lm</td><td class="c">164</td><td class="c">75.0 W</td><td class="c b">12,345 lm</td><td class="c">164</td><td class="c">B2-U0-G2</td></tr>
+<tr><td class="k">115W</td><td class="c">S</td><td class="c">115.7 W</td><td class="c b">18,122 lm</td><td class="c">156</td><td class="c">115.0 W</td><td class="c b">18,048 lm</td><td class="c">156</td><td class="c">B3-U0-G3</td></tr>
+<tr><td class="k">145W</td><td class="c">S</td><td class="c">145.1 W</td><td class="c b">22,013 lm</td><td class="c">151</td><td class="c">145.0 W</td><td class="c b">22,042 lm</td><td class="c">152</td><td class="c">B3-U0-G3</td></tr>
+<tr><td class="k">180W</td><td class="c">L</td><td class="c">182.4 W</td><td class="c b">30,019 lm</td><td class="c">164</td><td class="c">180.0 W</td><td class="c b">29,683 lm</td><td class="c">164</td><td class="c">B3-U0-G3</td></tr>
+<tr><td class="k">200W</td><td class="c">L</td><td class="c">198.3 W</td><td class="c b">32,754 lm</td><td class="c">165</td><td class="c">200.0 W</td><td class="c b">33,100 lm</td><td class="c">165</td><td class="c">B4-U0-G4</td></tr>
+<tr><td class="k">230W</td><td class="c">L</td><td class="c">229.2 W</td><td class="c b">36,770 lm</td><td class="c">160</td><td class="c">230.0 W</td><td class="c b">36,972 lm</td><td class="c">160</td><td class="c">B4-U0-G4</td></tr>
+<tr><td class="k">300W</td><td class="c">XL</td><td class="c">302.5 W</td><td class="c b">48,772 lm</td><td class="c">161</td><td class="c">300.0 W</td><td class="c b">48,466 lm</td><td class="c">161</td><td class="c">B4-U0-G4</td></tr>
+<tr><td class="k">420W</td><td class="c">XL</td><td class="c">420.4 W</td><td class="c b">65,008 lm</td><td class="c">154</td><td class="c">420.0 W</td><td class="c b">65,076 lm</td><td class="c">154</td><td class="c">B5-U0-G5</td></tr>
+    </table>
+    <div class="note">Delivered lumens, efficacy, input watts and BUG ratings are <b>DLC-reported</b> values for the CRI 80
+      Standard models (DLC qualified product data, 2026-08-28), shown whole, never rounded up. They replace the CRI 70
+      figures on the 2023 LED Connection sheet. All CCTs and distributions are on page 5. Actual performance may vary by up
+      to 10 percent; site conditions and options affect performance.</div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">ULTRA AREA LUMINAIRE &middot; LC OPTIMUS SERIES</span><span class="s">LC-SLOT</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>SPECIFICATIONS</h3></div>
+    <table class="spec">
+      <tr><th style="width:26%">ITEM</th><th>LC OPTIMUS SERIES &middot; LC-SLOT</th></tr>
+      <tr class="grp"><td colspan="2">PERFORMANCE</td></tr>
+      <tr><td class="k">Nominal wattage</td><td>S: 75, 115, 145 W &middot; L: 180, 200, 230 W &middot; XL: 300, 420 W</td></tr>
+      <tr><td class="k">Delivered lumens</td><td>11,814 to 67,113 lm, DLC-reported (page 5)</td></tr>
+      <tr><td class="k">Efficacy</td><td>145 to 170 lm/W, DLC-reported</td></tr>
+      <tr><td class="k">Colour temperature</td><td>3000K, 4000K or 5000K (segment 06)</td></tr>
+      <tr><td class="k">Colour rendering</td><td>CRI 80 minimum; DLC-reported Ra 82.5 to 84.7</td></tr>
+      <tr><td class="k">Distribution</td><td>Type III (80 x 155&deg;), Type IV (90 x 150&deg;), Type V (160&deg;); field-rotatable lens</td></tr>
+      <tr><td class="k">Uplight</td><td>U0 on every model (DLC-reported); 0 percent uplight at 0&deg; tilt</td></tr>
+      <tr><td class="k">Rated life</td><td>L70 greater than 100,000 h at 25 C ambient</td></tr>
+      <tr class="grp"><td colspan="2">ELECTRICAL</td></tr>
+      <tr><td class="k">Input voltage</td><td>NV: 100-277 VAC &middot; HV: 277-480 VAC. HV is recommended where the supply can fluctuate to 240 V or more.</td></tr>
+      <tr><td class="k">Power factor</td><td>0.90 or higher (DLC-reported 0.90 to 0.96)</td></tr>
+      <tr><td class="k">THD</td><td>15 percent or lower (DLC-reported 8.4 to 15 percent)</td></tr>
+      <tr><td class="k">Dimming</td><td>1-10V, continuous dimming to 10 percent or below</td></tr>
+      <tr><td class="k">Surge protection</td><td>Surge protection device; 10 kV or 20 kV versions available, contact LED Connection</td></tr>
+      <tr><td class="k">Wiring</td><td>Pre-wired with a 27.6 in <span class="mm">(70 cm)</span> cable; other lengths on request</td></tr>
+      <tr><td class="k">Sensor</td><td>None (XX). Sensor and photocell versions: contact LED Connection.</td></tr>
+      <tr class="grp"><td colspan="2">MECHANICAL</td></tr>
+      <tr><td class="k">Housing</td><td>Heavy-duty die-cast aluminum unibody; tool-free buckled driver access panel</td></tr>
+      <tr><td class="k">Lens</td><td>Optical-grade polycarbonate, field-rotatable</td></tr>
+      <tr><td class="k">LEDs</td><td>High-efficacy 5050 LEDs</td></tr>
+      <tr><td class="k">Finish</td><td>Anti-UV thermosetting polyester; epoxy primer plus polyester for very corrosive sites</td></tr>
+      <tr><td class="k">Colour</td><td>Black (BK), bronze (BR), white (WH)</td></tr>
+      <tr><td class="k">Mounting</td><td>Slip fitter (F), adjustable arm (R), yoke (U), straight arm (S), trunnion (T); page 6</td></tr>
+      <tr><td class="k">EPA, side</td><td>S 0.32 ft&sup2; <span class="mm">(0.030 m&sup2;)</span> &middot; L 0.36 ft&sup2; <span class="mm">(0.033 m&sup2;)</span> &middot; XL 0.50 ft&sup2; <span class="mm">(0.047 m&sup2;)</span></td></tr>
+      <tr><td class="k">Mounting height</td><td>Generally 13.1 ft to 39.4 ft <span class="mm">(4 to 12 m)</span>, to suit the project</td></tr>
+      <tr class="grp"><td colspan="2">ENVIRONMENT AND COMPLIANCE</td></tr>
+      <tr><td class="k">Ingress / impact</td><td>IP66 (EN 60529) / IK10 (EN 62262)</td></tr>
+      <tr><td class="k">Vibration</td><td>3G (IEC 60068-2-6)</td></tr>
+      <tr><td class="k">Operating ambient</td><td>-40 F <span class="mm">(-40 C)</span> to 122 F <span class="mm">(50 C)</span></td></tr>
+      <tr><td class="k">Safety and EMC</td><td>cULus Listed; FCC; RoHS</td></tr>
+      <tr><td class="k">DLC</td><td>DLC listing for LED Connection in progress (Standard)</td></tr>
+      <tr><td class="k">Warranty</td><td>Limited 5-year warranty; 10-year warranty available. Terms: www.ledconnection.com/warranty</td></tr>
+    </table>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">ULTRA AREA LUMINAIRE &middot; LC OPTIMUS SERIES</span><span class="s">LC-SLOT</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>PERFORMANCE &middot; NV, 100-277 VAC</h3></div>
+    <table class="perf"><tr><th rowspan="2" style="width:7%%">WATTS</th><th rowspan="2" class="c" style="width:6%%">SIZE</th><th rowspan="2" class="c" style="width:10%%">INPUT W</th><th colspan="3" class="c grpth">TY03 &middot; Type III</th><th colspan="3" class="c grpth">TY04 &middot; Type IV</th><th colspan="3" class="c grpth">TY05 &middot; Type V</th></tr><tr><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th></tr><tr><td class="k">75W</td><td class="c">S</td><td class="c">76.4-77.9</td><td class="c pc">12,551<i>161 lm/W</i></td><td class="c pc">12,801<i>164 lm/W</i></td><td class="c pc">13,052<i>167 lm/W</i></td><td class="c pc">12,122<i>156 lm/W</i></td><td class="c pc">12,261<i>159 lm/W</i></td><td class="c pc">12,399<i>162 lm/W</i></td><td class="c pc">12,487<i>161 lm/W</i></td><td class="c pc">12,736<i>164 lm/W</i></td><td class="c pc">12,986<i>167 lm/W</i></td></tr>
+<tr><td class="k">115W</td><td class="c">S</td><td class="c">115.7</td><td class="c pc">17,767<i>153 lm/W</i></td><td class="c pc">18,122<i>156 lm/W</i></td><td class="c pc">18,477<i>159 lm/W</i></td><td class="c pc">17,418<i>150 lm/W</i></td><td class="c pc">17,767<i>153 lm/W</i></td><td class="c pc">18,115<i>156 lm/W</i></td><td class="c pc">17,970<i>155 lm/W</i></td><td class="c pc">18,330<i>158 lm/W</i></td><td class="c pc">18,689<i>161 lm/W</i></td></tr>
+<tr><td class="k">145W</td><td class="c">S</td><td class="c">145.1</td><td class="c pc">21,581<i>148 lm/W</i></td><td class="c pc">22,013<i>151 lm/W</i></td><td class="c pc">22,444<i>154 lm/W</i></td><td class="c pc">21,159<i>145 lm/W</i></td><td class="c pc">21,581<i>148 lm/W</i></td><td class="c pc">22,004<i>151 lm/W</i></td><td class="c pc">21,829<i>150 lm/W</i></td><td class="c pc">22,265<i>153 lm/W</i></td><td class="c pc">22,702<i>156 lm/W</i></td></tr>
+<tr><td class="k">180W</td><td class="c">L</td><td class="c">182.4</td><td class="c pc">29,430<i>161 lm/W</i></td><td class="c pc">30,019<i>164 lm/W</i></td><td class="c pc">30,608<i>167 lm/W</i></td><td class="c pc">28,853<i>158 lm/W</i></td><td class="c pc">29,430<i>161 lm/W</i></td><td class="c pc">30,008<i>164 lm/W</i></td><td class="c pc">29,768<i>163 lm/W</i></td><td class="c pc">30,363<i>166 lm/W</i></td><td class="c pc">30,959<i>169 lm/W</i></td></tr>
+<tr><td class="k">200W</td><td class="c">L</td><td class="c">198.3</td><td class="c pc">32,111<i>161 lm/W</i></td><td class="c pc">32,754<i>165 lm/W</i></td><td class="c pc">33,396<i>168 lm/W</i></td><td class="c pc">31,483<i>158 lm/W</i></td><td class="c pc">32,111<i>161 lm/W</i></td><td class="c pc">32,741<i>165 lm/W</i></td><td class="c pc">32,480<i>163 lm/W</i></td><td class="c pc">33,129<i>167 lm/W</i></td><td class="c pc">33,779<i>170 lm/W</i></td></tr>
+<tr><td class="k">230W</td><td class="c">L</td><td class="c">229.2</td><td class="c pc">36,049<i>157 lm/W</i></td><td class="c pc">36,770<i>160 lm/W</i></td><td class="c pc">37,491<i>163 lm/W</i></td><td class="c pc">35,343<i>154 lm/W</i></td><td class="c pc">36,049<i>157 lm/W</i></td><td class="c pc">36,756<i>160 lm/W</i></td><td class="c pc">36,463<i>159 lm/W</i></td><td class="c pc">37,192<i>162 lm/W</i></td><td class="c pc">37,921<i>165 lm/W</i></td></tr>
+<tr><td class="k">300W</td><td class="c">XL</td><td class="c">302.5</td><td class="c pc">47,816<i>158 lm/W</i></td><td class="c pc">48,772<i>161 lm/W</i></td><td class="c pc">49,728<i>164 lm/W</i></td><td class="c pc">46,880<i>154 lm/W</i></td><td class="c pc">47,816<i>158 lm/W</i></td><td class="c pc">48,753<i>161 lm/W</i></td><td class="c pc">48,364<i>159 lm/W</i></td><td class="c pc">49,331<i>163 lm/W</i></td><td class="c pc">50,299<i>166 lm/W</i></td></tr>
+<tr><td class="k">420W</td><td class="c">XL</td><td class="c">420.4</td><td class="c pc">63,733<i>151 lm/W</i></td><td class="c pc">65,008<i>154 lm/W</i></td><td class="c pc">66,283<i>157 lm/W</i></td><td class="c pc">62,482<i>148 lm/W</i></td><td class="c pc">63,733<i>151 lm/W</i></td><td class="c pc">64,983<i>154 lm/W</i></td><td class="c pc">64,464<i>153 lm/W</i></td><td class="c pc">65,754<i>156 lm/W</i></td><td class="c pc">67,043<i>159 lm/W</i></td></tr></table>
+    <div class="sec"><h3>PERFORMANCE &middot; HV, 277-480 VAC</h3></div>
+    <table class="perf"><tr><th rowspan="2" style="width:7%%">WATTS</th><th rowspan="2" class="c" style="width:6%%">SIZE</th><th rowspan="2" class="c" style="width:10%%">INPUT W</th><th colspan="3" class="c grpth">TY03 &middot; Type III</th><th colspan="3" class="c grpth">TY04 &middot; Type IV</th><th colspan="3" class="c grpth">TY05 &middot; Type V</th></tr><tr><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th><th class="c sub">3000K</th><th class="c sub">4000K</th><th class="c sub">5000K</th></tr><tr><td class="k">75W</td><td class="c">S</td><td class="c">75.0-75.6</td><td class="c pc">12,103<i>161 lm/W</i></td><td class="c pc">12,345<i>164 lm/W</i></td><td class="c pc">12,587<i>167 lm/W</i></td><td class="c pc">11,814<i>156 lm/W</i></td><td class="c pc">12,050<i>159 lm/W</i></td><td class="c pc">12,287<i>162 lm/W</i></td><td class="c pc">12,098<i>161 lm/W</i></td><td class="c pc">12,340<i>164 lm/W</i></td><td class="c pc">12,582<i>167 lm/W</i></td></tr>
+<tr><td class="k">115W</td><td class="c">S</td><td class="c">115.0</td><td class="c pc">17,694<i>153 lm/W</i></td><td class="c pc">18,048<i>156 lm/W</i></td><td class="c pc">18,402<i>160 lm/W</i></td><td class="c pc">17,347<i>150 lm/W</i></td><td class="c pc">17,694<i>153 lm/W</i></td><td class="c pc">18,041<i>156 lm/W</i></td><td class="c pc">17,897<i>155 lm/W</i></td><td class="c pc">18,255<i>158 lm/W</i></td><td class="c pc">18,613<i>161 lm/W</i></td></tr>
+<tr><td class="k">145W</td><td class="c">S</td><td class="c">145.0</td><td class="c pc">21,609<i>149 lm/W</i></td><td class="c pc">22,042<i>152 lm/W</i></td><td class="c pc">22,474<i>154 lm/W</i></td><td class="c pc">21,186<i>146 lm/W</i></td><td class="c pc">21,609<i>149 lm/W</i></td><td class="c pc">22,033<i>151 lm/W</i></td><td class="c pc">21,857<i>150 lm/W</i></td><td class="c pc">22,294<i>153 lm/W</i></td><td class="c pc">22,732<i>156 lm/W</i></td></tr>
+<tr><td class="k">180W</td><td class="c">L</td><td class="c">180.0</td><td class="c pc">29,101<i>161 lm/W</i></td><td class="c pc">29,683<i>164 lm/W</i></td><td class="c pc">30,265<i>168 lm/W</i></td><td class="c pc">28,531<i>158 lm/W</i></td><td class="c pc">29,101<i>161 lm/W</i></td><td class="c pc">29,672<i>164 lm/W</i></td><td class="c pc">29,435<i>163 lm/W</i></td><td class="c pc">30,024<i>166 lm/W</i></td><td class="c pc">30,613<i>170 lm/W</i></td></tr>
+<tr><td class="k">200W</td><td class="c">L</td><td class="c">200.0</td><td class="c pc">32,451<i>162 lm/W</i></td><td class="c pc">33,100<i>165 lm/W</i></td><td class="c pc">33,749<i>168 lm/W</i></td><td class="c pc">31,815<i>159 lm/W</i></td><td class="c pc">32,451<i>162 lm/W</i></td><td class="c pc">33,088<i>165 lm/W</i></td><td class="c pc">32,824<i>164 lm/W</i></td><td class="c pc">33,480<i>167 lm/W</i></td><td class="c pc">34,137<i>170 lm/W</i></td></tr>
+<tr><td class="k">230W</td><td class="c">L</td><td class="c">230.0</td><td class="c pc">36,247<i>157 lm/W</i></td><td class="c pc">36,972<i>160 lm/W</i></td><td class="c pc">37,697<i>163 lm/W</i></td><td class="c pc">35,536<i>154 lm/W</i></td><td class="c pc">36,247<i>157 lm/W</i></td><td class="c pc">36,958<i>160 lm/W</i></td><td class="c pc">36,663<i>159 lm/W</i></td><td class="c pc">37,396<i>162 lm/W</i></td><td class="c pc">38,130<i>165 lm/W</i></td></tr>
+<tr><td class="k">300W</td><td class="c">XL</td><td class="c">300.0</td><td class="c pc">47,515<i>158 lm/W</i></td><td class="c pc">48,466<i>161 lm/W</i></td><td class="c pc">49,416<i>164 lm/W</i></td><td class="c pc">46,584<i>155 lm/W</i></td><td class="c pc">47,515<i>158 lm/W</i></td><td class="c pc">48,447<i>161 lm/W</i></td><td class="c pc">48,060<i>160 lm/W</i></td><td class="c pc">49,021<i>163 lm/W</i></td><td class="c pc">49,983<i>166 lm/W</i></td></tr>
+<tr><td class="k">420W</td><td class="c">XL</td><td class="c">420.0</td><td class="c pc">63,800<i>151 lm/W</i></td><td class="c pc">65,076<i>154 lm/W</i></td><td class="c pc">66,352<i>157 lm/W</i></td><td class="c pc">62,549<i>148 lm/W</i></td><td class="c pc">63,800<i>151 lm/W</i></td><td class="c pc">65,051<i>154 lm/W</i></td><td class="c pc">64,532<i>153 lm/W</i></td><td class="c pc">65,822<i>156 lm/W</i></td><td class="c pc">67,113<i>159 lm/W</i></td></tr></table>
+    <div class="note">Each cell: delivered lumens, then efficacy. <b>DLC-reported</b> values for the CRI 80 Standard models
+      (DLC qualified product data, 2026-08-28), shown whole, never rounded up. INPUT W is the DLC-reported input power
+      across the nine CCT and distribution options of that wattage.</div>
+    <div class="twocol" style="grid-template-columns:.8fr 1.2fr">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">BUG RATING (TM-15)</h3></div>
+        <table>
+          <tr><th style="width:22%">WATTS</th><th class="c">TY03</th><th class="c">TY04</th><th class="c">TY05</th></tr>
+          <tr><td class="k">75W</td><td class="c">B2-U0-G2</td><td class="c">B3-U0-G2</td><td class="c">B4-U0-G2</td></tr>
+<tr><td class="k">115W</td><td class="c">B3-U0-G3</td><td class="c">B3-U0-G3</td><td class="c">B4-U0-G2</td></tr>
+<tr><td class="k">145W</td><td class="c">B3-U0-G3</td><td class="c">B3-U0-G3</td><td class="c">B5-U0-G3</td></tr>
+<tr><td class="k">180W</td><td class="c">B3-U0-G3</td><td class="c">B3-U0-G4</td><td class="c">B5-U0-G3</td></tr>
+<tr><td class="k">200W</td><td class="c">B4-U0-G4</td><td class="c">B4-U0-G4</td><td class="c">B5-U0-G4</td></tr>
+<tr><td class="k">230W</td><td class="c">B4-U0-G4</td><td class="c">B4-U0-G4</td><td class="c">B5-U0-G4</td></tr>
+<tr><td class="k">300W</td><td class="c">B4-U0-G4</td><td class="c">B4-U0-G5</td><td class="c">B5-U0-G5</td></tr>
+<tr><td class="k">420W</td><td class="c">B5-U0-G5</td><td class="c">B5-U0-G5</td><td class="c">B5-U0-G5</td></tr>
+        </table>
+        <div class="note">DLC-reported; the same for every CCT and for NV and HV.</div>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">ELECTRICAL BY WATTAGE</h3></div>
+        <table class="el">
+          <tr><th rowspan="2" style="width:13%">WATTS</th><th colspan="3" class="c grpth">NV &middot; 100-277 VAC</th><th colspan="3" class="c grpth">HV &middot; 277-480 VAC</th></tr>
+          <tr><th class="c sub">INPUT W</th><th class="c sub">PF MIN</th><th class="c sub">THD MAX</th><th class="c sub">INPUT W</th><th class="c sub">PF MIN</th><th class="c sub">THD MAX</th></tr>
+          <tr><td class="k">75W</td><td class="c">76.4-77.9</td><td class="c">0.93</td><td class="c">14.02%</td><td class="c">75.0-75.6</td><td class="c">0.93</td><td class="c">11.29%</td></tr>
+<tr><td class="k">115W</td><td class="c">115.7</td><td class="c">0.93</td><td class="c">13.48%</td><td class="c">115.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+<tr><td class="k">145W</td><td class="c">145.1</td><td class="c">0.93</td><td class="c">14.22%</td><td class="c">145.0</td><td class="c">0.93</td><td class="c">14.22%</td></tr>
+<tr><td class="k">180W</td><td class="c">182.4</td><td class="c">0.91</td><td class="c">10.94%</td><td class="c">180.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+<tr><td class="k">200W</td><td class="c">198.3</td><td class="c">0.95</td><td class="c">9.79%</td><td class="c">200.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+<tr><td class="k">230W</td><td class="c">229.2</td><td class="c">0.96</td><td class="c">8.73%</td><td class="c">230.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+<tr><td class="k">300W</td><td class="c">302.5</td><td class="c">0.96</td><td class="c">8.40%</td><td class="c">300.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+<tr><td class="k">420W</td><td class="c">420.4</td><td class="c">0.96</td><td class="c">9.75%</td><td class="c">420.0</td><td class="c">0.90</td><td class="c">15.00%</td></tr>
+        </table>
+        <div class="note">DLC-reported, lowest power factor and highest THD of the nine options.</div>
+      </div>
+    </div>
+  </div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+
+<section class="page">
+  <div class="hdr"><span class="t">ULTRA AREA LUMINAIRE &middot; LC OPTIMUS SERIES</span><span class="s">LC-SLOT</span><img src="assets/logo_head.png" alt="LED Connection"></div>
+  <div class="body" style="top:.85in">
+    <div class="sec" style="margin-top:.1in"><h3>DIMENSIONS</h3></div>
+    <div style="width:6.4in;margin:0 auto"><svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 190" width="100%">
+<defs><marker id="a" viewBox="0 0 6 6" refX="3" refY="3" markerWidth="5" markerHeight="5" orient="auto-start-reverse"><path d="M0,0 L6,3 L0,6 z" fill="#1A1A2E"/></marker></defs>
+<rect x="10" y="76" width="34" height="34" rx="3" fill="#9aa0ae" stroke="#1A1A2E" stroke-width="0.8"/>
+<rect x="40" y="22" width="220" height="142" rx="12" fill="#3b3f52" stroke="#1A1A2E" stroke-width="0.9"/>
+<rect x="102" y="36" width="144" height="114" rx="6" fill="#eef0f4" stroke="#1A1A2E" stroke-width="0.7"/>
+<circle cx="120" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="120" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="120" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="120" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="120" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="139.5" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="139.5" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="139.5" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="139.5" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="139.5" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="159" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="159" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="159" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="159" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="159" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="178.5" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="178.5" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="178.5" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="178.5" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="178.5" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="198" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="198" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="198" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="198" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="198" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="217.5" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="217.5" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="217.5" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="217.5" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="217.5" cy="134" r="3.2" fill="#c9ccd6"/>
+<circle cx="237" cy="52" r="3.2" fill="#c9ccd6"/>
+<circle cx="237" cy="72.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="237" cy="93" r="3.2" fill="#c9ccd6"/>
+<circle cx="237" cy="113.5" r="3.2" fill="#c9ccd6"/>
+<circle cx="237" cy="134" r="3.2" fill="#c9ccd6"/>
+<rect x="50" y="44" width="44" height="98" rx="4" fill="#4a4f63" stroke="#1A1A2E" stroke-width="0.6"/>
+<line x1="10" y1="178" x2="260" y2="178" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="135" y="175" font-family="Poppins" font-size="10" font-weight="700" fill="#f37021" text-anchor="middle">A</text>
+<line x1="274" y1="22" x2="274" y2="164" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="280" y="97" font-family="Poppins" font-size="10" font-weight="700" fill="#f37021">B</text>
+<text x="135" y="12" font-family="Poppins" font-size="7.5" font-weight="600" fill="#7a7e8c" text-anchor="middle">BOTTOM VIEW, LENS SIDE</text>
+<path d="M340,82 L460,82 C530,83 560,88 576,94 L576,99 L340,101 Z" fill="#3b3f52" stroke="#1A1A2E" stroke-width="0.9"/>
+<rect x="362" y="101" width="96" height="9" rx="2" fill="#4a4f63" stroke="#1A1A2E" stroke-width="0.6"/>
+<path d="M306,66 L340,66 L340,96 C330,98 318,122 306,146 Z" fill="#9aa0ae" stroke="#1A1A2E" stroke-width="0.8"/>
+<line x1="306" y1="52" x2="576" y2="52" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="440" y="48" font-family="Poppins" font-size="10" font-weight="700" fill="#f37021" text-anchor="middle">A</text>
+<line x1="576" y1="146" x2="590" y2="146" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="576" y1="66" x2="590" y2="66" stroke="#9aa0ae" stroke-width="0.5" stroke-dasharray="2 2"/>
+<line x1="586" y1="66" x2="586" y2="146" stroke="#1A1A2E" stroke-width="0.7" marker-start="url(#a)" marker-end="url(#a)"/>
+<text x="591" y="110" font-family="Poppins" font-size="10" font-weight="700" fill="#f37021">C</text>
+<text x="440" y="166" font-family="Poppins" font-size="7.5" font-weight="600" fill="#7a7e8c" text-anchor="middle">SIDE VIEW, WITH STRAIGHT ARM BRACKET</text>
+</svg></div>
+    <div class="note" style="text-align:right;margin-top:-.04in">Schematic, not to scale; dimensions govern.</div>
+    <table class="dim" style="margin-top:.04in">
+      <tr><th style="width:17%">SIZE</th><th class="c">A &middot; LENGTH</th><th class="c">B &middot; WIDTH</th><th class="c">C &middot; HEIGHT</th><th class="c">WEIGHT</th><th class="c">EPA, SIDE</th></tr>
+      <tr><td class="k">S &middot; Small<br><span class="mm">75 W, 115 W, 145 W</span></td><td class="c">20.0 in <span class="mm">(507 mm)</span></td><td class="c">12.9 in <span class="mm">(327 mm)</span></td><td class="c">7.3 in <span class="mm">(185 mm)</span></td><td class="c" rowspan="1">up to 10.6 lb <span class="mm">(4.8 kg)</span></td><td class="c" rowspan="1">0.32 ft&sup2; <span class="mm">(0.030 m&sup2;)</span></td></tr>
+<tr><td class="k">L &middot; Large<br><span class="mm">180 W, 200 W, 230 W</span></td><td class="c">23.6 in <span class="mm">(600 mm)</span></td><td class="c">16.1 in <span class="mm">(410 mm)</span></td><td class="c">7.3 in <span class="mm">(185 mm)</span></td><td class="c" rowspan="1">up to 12.3 lb <span class="mm">(5.6 kg)</span></td><td class="c" rowspan="1">0.36 ft&sup2; <span class="mm">(0.033 m&sup2;)</span></td></tr>
+<tr><td class="k">XL &middot; 300 W</td><td class="c">25.6 in <span class="mm">(650 mm)</span></td><td class="c">16.7 in <span class="mm">(423 mm)</span></td><td class="c">15.0 in <span class="mm">(380 mm)</span></td><td class="c" rowspan="2">up to 23.2 lb <span class="mm">(10.5 kg)</span></td><td class="c" rowspan="2">0.50 ft&sup2; <span class="mm">(0.047 m&sup2;)</span></td></tr>
+<tr><td class="k">XL &middot; 420 W</td><td class="c">25.6 in <span class="mm">(650 mm)</span></td><td class="c">17.3 in <span class="mm">(440 mm)</span></td><td class="c">15.4 in <span class="mm">(390 mm)</span></td></tr>
+    </table>
+    <div class="note">Overall sizes. Weight is the heaviest of the size range. A safety rope is supplied with 300 W and 420 W;
+      order it separately for lower wattages.</div>
+
+    <div class="sec"><h3>BRACKETS &middot; SEGMENT 09</h3></div>
+    <div class="bgrid">
+      <div class="bk"><div class="bimg"><img src="assets/br_F.png" alt=""></div><div class="bt"><b><span class="o">F</span> &middot; SLIP FITTER</b><span>2-3/8 in (60 mm) OD tenon. 40 mm and 76 mm sizes on request.</span><span class="wt">Bracket weight 2.4 lb <span class="mm">(1.1 kg)</span></span></div></div>
+<div class="bk"><div class="bimg"><img src="assets/br_R.png" alt=""></div><div class="bt"><b><span class="o">R</span> &middot; ADJUSTABLE ARM</b><span>Square pole, 4 in minimum.</span><span class="wt">Bracket weight 4.4 lb <span class="mm">(2.0 kg)</span></span></div></div>
+<div class="bk"><div class="bimg"><img src="assets/br_U.png" alt=""></div><div class="bt"><b><span class="o">U</span> &middot; YOKE</b><span>Yoke mount, cold-rolled steel.</span><span class="wt">Bracket weight 2.0 lb / 2.2 lb / 3.3 lb <span class="mm">(0.9 / 1.0 / 1.5 kg)</span></span></div></div>
+<div class="bk"><div class="bimg"><img src="assets/br_S.png" alt=""></div><div class="bt"><b><span class="o">S</span> &middot; STRAIGHT ARM</b><span>3 to 4 in round pole, or square pole 3 in minimum.</span><span class="wt">Bracket weight 2.4 lb <span class="mm">(1.1 kg)</span></span></div></div>
+<div class="bk"><div class="bimg"><img src="assets/br_T.png" alt=""></div><div class="bt"><b><span class="o">T</span> &middot; TRUNNION</b><span>Mounting base 5.5 in minimum.</span><span class="wt">Bracket weight 3.1 lb <span class="mm">(1.4 kg)</span></span></div></div>
+    </div>
+    <div class="note">Yoke weight by size: S / L / XL. Brackets are drawn with the luminaire; contact LED Connection for
+      pole drilling templates and other pole adapters.</div>
+
+    <div class="twocol" style="margin-top:.02in">
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">INSTALLATION</h3></div>
+        <ul class="ov">
+          <li>Installation and service by a qualified electrician, to local code.</li>
+          <li>Power off before installing, servicing or opening the driver panel.</li>
+          <li>Ground the luminaire. Choose NV or HV to suit the supply.</li>
+        </ul>
+      </div>
+      <div>
+        <div class="sec"><h3 style="min-width:0;width:100%">NOTES</h3></div>
+        <ul class="ov">
+          <li>All dimensions and specifications are subject to change without notice.</li>
+          <li>LED Connection, LLC is not responsible for claims from improper loading, use, foundation design or installation.</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+  <div class="custom">For custom solutions please contact our sales representative.</div>
+  <div class="foot"><span><b>PHONE:</b>702.847.7680</span><span><b>WEB:</b>www.ledconnection.com</span><span><b>EMAIL:</b>bids@ledconnection.com</span><span class="addr">915 E Dale Ave Ste 110 Henderson, NV 89044</span></div>
+</section>
+
+</body></html>
