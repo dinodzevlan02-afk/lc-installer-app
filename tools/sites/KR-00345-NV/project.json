@@ -129,7 +129,7 @@
   },
   "poleAt": {},
   "placeAt": {
-    "why": "Dino 2026-10-21 (screenshots of the live map): fuel-canopy heads as a symmetrical array under the canopy, downlights under the building canopies in straight lines, wall packs on the walls, not in the air. Measured from his screenshots: each fitted to the pins' own coordinates (similarity fit, 24/32/11 pins, residual under 1.3 px = 0.11 m, 0.085 m/px), then canopy edges and wall faces read off the aerial in them. Fuel canopy 2 x 12 (CP2 in the middle of the first row); downlights on even spacing along each canopy's line; wall packs on the wall face. The four downlights at the north end were not in the screenshots and keep their audit spots.",
+    "why": "Dino 2026-10-21 (screenshots of the live map): fuel-canopy heads as a symmetrical array under the canopy, downlights under the building canopies in straight lines, wall packs on the walls, not in the air. Measured from his screenshots: each fitted to the pins' own coordinates (similarity fit, 24/32/11 pins, residual under 1.3 px = 0.11 m, 0.085 m/px), then canopy edges and wall faces read off the aerial in them. Fuel canopy 2 x 12 (CP2 in the middle of the first row); downlights on even spacing along each canopy's line; wall packs on the wall face. The four downlights at the north end were not in the screenshots and keep their audit spots. Then (same day, his line drawn on the plan): the four north store-front downlights 20502-20505 move east onto the line he marked, about 1.4 m.",
     "heads": {
       "20247": {
         "lat": 36.26124703,
@@ -278,23 +278,23 @@
       },
       "20502": {
         "lat": 36.26140794,
-        "lng": -115.15416241,
-        "why": "store-front canopy: one straight line, even spacing"
+        "lng": -115.15414721,
+        "why": "store-front canopy: one straight line on Dino's marked line, even spacing"
       },
       "20503": {
         "lat": 36.26137831,
-        "lng": -115.15416241,
-        "why": "store-front canopy: one straight line, even spacing"
+        "lng": -115.15414721,
+        "why": "store-front canopy: one straight line on Dino's marked line, even spacing"
       },
       "20504": {
         "lat": 36.26134868,
-        "lng": -115.15416241,
-        "why": "store-front canopy: one straight line, even spacing"
+        "lng": -115.15414721,
+        "why": "store-front canopy: one straight line on Dino's marked line, even spacing"
       },
       "20505": {
         "lat": 36.26131905,
-        "lng": -115.15416241,
-        "why": "store-front canopy: one straight line, even spacing"
+        "lng": -115.15414721,
+        "why": "store-front canopy: one straight line on Dino's marked line, even spacing"
       },
       "20506": {
         "lat": 36.26126019,
