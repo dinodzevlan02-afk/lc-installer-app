@@ -1,0 +1,246 @@
+{
+ "_about": "FROZEN self-test fixture: the desk's build_lc_fl_ws.py as data, must render identical to LC-FL-WS-3CCT.reference.pdf (pages 2-3, page 1 header). Do not edit for product changes: the live file is tools/specs/LC-FL-WS-3CCT.json.",
+ "sku": "LC-FL-WS-3CCT",
+ "family": "Selectable Floodlight",
+ "product_type": "LED Flood Light",
+ "product_type_label": "LED Flood Light, Selectable",
+ "category": "lighting",
+ "draft": true,
+ "vendor_pdf": "../../../../tools/specs/sources/LC-FL-WS-3CCT/vendor-datasheet.pdf",
+ "out": "_selftest/LC-FL-WS-3CCT.pdf",
+ "source_note": "vendor 9th Gen flood datasheet (80W platform) and its quotation",
+ "vendor_words": [
+  "torshare",
+  "ledman",
+  "fl0903",
+  "fl0908",
+  "fl0912",
+  "fl0930",
+  "ts-fl0908",
+  "9th gen",
+  "gen 9"
+ ],
+ "extracted": {
+  "wattage": {
+   "values": [
+    "40W",
+    "60W",
+    "80W"
+   ],
+   "src": "field selectable; CONFLICT: datasheet says 50/60/80W, quote and LC item say 40/60/80W"
+  },
+  "voltage": {
+   "values": [
+    "120-277VAC"
+   ],
+   "src": "datasheet table"
+  },
+  "efficacy": {
+   "values": [
+    "120 lm/W"
+   ],
+   "src": "datasheet table; CONFLICT: quote says >140 lm/W"
+  },
+  "cct": {
+   "values": [
+    "3000K",
+    "4000K",
+    "5000K"
+   ],
+   "src": "field selectable"
+  },
+  "cri": {
+   "values": [
+    "Ra >70"
+   ],
+   "src": "datasheet table; CONFLICT: cover badge says Ra >80"
+  },
+  "lifetime": {
+   "values": [
+    "30,000 h"
+   ],
+   "src": "datasheet table, rated life"
+  },
+  "ip_rating": {
+   "values": [
+    "IP65, wet location"
+   ],
+   "src": "datasheet features + table"
+  },
+  "power_factor": {
+   "values": [
+    ">0.9"
+   ],
+   "src": "datasheet cover badge"
+  },
+  "current": {
+   "values": [
+    "0.733 A at 80W"
+   ],
+   "src": "datasheet table, 80W platform"
+  },
+  "controls": {
+   "values": [
+    "0-10V dimming (purple DIM+, pink DIM-)"
+   ],
+   "src": "datasheet wiring diagram"
+  },
+  "adjustment": {
+   "values": [
+    "Wattage and CCT switches under a rear cover"
+   ],
+   "src": "datasheet power adjustment steps"
+  },
+  "mounting": {
+   "values": [
+    "Yoke (Y)",
+    "Slip-fitter (SF), pole up to 2-3/8 in (60 mm), aiming 0-90 deg"
+   ],
+   "src": "datasheet installation pages"
+  },
+  "material": {
+   "values": [
+    "ADC12 die-cast aluminium, integrated heat-sink fins, drainage groove"
+   ],
+   "src": "datasheet features"
+  },
+  "finish": {
+   "values": [
+    "Bronze (grey-brown)",
+    "Black"
+   ],
+   "src": "datasheet features"
+  },
+  "operating_temp": {
+   "values": [
+    "-40 F to +104 F"
+   ],
+   "src": "datasheet table"
+  },
+  "storage_temp": {
+   "values": [
+    "-40 F to +158 F"
+   ],
+   "src": "datasheet table"
+  }
+ },
+ "certifications": {},
+ "cover": {
+  "subtitle": "DRAFT - PLACEHOLDER FAMILY NAME - REQUIRES DINO'S APPROVAL",
+  "tagline": "SELECTABLE POWER. SELECTABLE CCT. YOKE OR SLIP-FITTER.",
+  "chips": {
+   "WATTAGE": "40/60/80W",
+   "VOLTAGE": "120-277V",
+   "LIFESPAN": "30,000 h",
+   "WARRANTY": "Pending",
+   "CRI": ">70",
+   "CCT": "30/40/50K"
+  },
+  "headline_efficacy": "120 LM/W",
+  "positioning": "A die-cast flood for building, sign and site lighting. Power and colour temperature are set in the field, and the same fixture ships on a yoke or a slip-fitter. For custom solutions please contact our sales representative."
+ },
+ "badges": [
+  "3 WATTAGES",
+  "3 CCTS",
+  "IP65",
+  "0-10V"
+ ],
+ "quality_line": "ADC12 die-cast aluminium with integrated fins, IP65 with a drainage groove, wet-location rated.",
+ "description": "The Selectable Floodlight is a die-cast aluminium flood for building, sign and site lighting. Power (40, 60 or 80W) and colour temperature (3000, 4000 or 5000K) are set on switches under a rear cover, so one fixture covers several designs. It runs on 120-277VAC with 0-10V dimming, is IP65 and wet-location rated, and mounts on a yoke or a slip-fitter (pole up to 2-3/8 in, aiming 0-90 deg). On a 480V circuit it needs a step-down transformer to 277V.",
+ "overview_drop": [
+  "Current",
+  "Adjustment"
+ ],
+ "overview_max": 9,
+ "overview_add": [
+  "Input: 120-277VAC only. A 480V circuit needs a step-down transformer to 277V."
+ ],
+ "order_logic": {
+  "sample_code": "LC - FL - WS - 3CCT - Y",
+  "segments": [
+   {
+    "n": "01",
+    "name": "BRAND",
+    "options": [
+     [
+      "LC",
+      "LED Connection - fixed, every SKU"
+     ]
+    ]
+   },
+   {
+    "n": "02",
+    "name": "SERIES",
+    "options": [
+     [
+      "FL",
+      "Floodlight"
+     ]
+    ]
+   },
+   {
+    "n": "03",
+    "name": "WATTAGE",
+    "options": [
+     [
+      "WS",
+      "40/60/80W selectable"
+     ]
+    ]
+   },
+   {
+    "n": "04",
+    "name": "CCT",
+    "options": [
+     [
+      "3CCT",
+      "3000/4000/5000K selectable"
+     ]
+    ]
+   },
+   {
+    "n": "05",
+    "name": "MOUNTING",
+    "options": [
+     [
+      "Y",
+      "Yoke"
+     ],
+     [
+      "SF",
+      "Slip-fitter"
+     ]
+    ]
+   }
+  ]
+ },
+ "hero": {
+  "page": 0,
+  "clip": [
+   46,
+   274,
+   548,
+   612
+  ]
+ },
+ "dims_panel": {
+  "drawing": {
+   "page": 2,
+   "clip": [
+    14,
+    414,
+    386,
+    590
+   ]
+  },
+  "text": "YOKE (E x F x D)\n9.61 x 10.07 x 3.23 in\n(244 mm x 256 mm x 82 mm)\n\nSLIP-FITTER (A x B x D)\n9.42 x 14.35 x 3.23 in\n(239 mm x 364 mm x 82 mm)\n\nWEIGHT  4.96 lb (2.25 kg)"
+ },
+ "electrical_note": "Draft: the supplier documents disagree on wattage, CRI and efficacy. See DRAFT CONFLICTS below.",
+ "conflicts": [
+  "Wattage: supplier sheet 50/60/80W; supplier quote and LC item 40/60/80W; Kroger 345 FL1 is set at 40W. Printed 40/60/80W, confirm the 40W setting with the supplier.",
+  "CRI: parameter table Ra >70, cover badge Ra >80. Printed >70.",
+  "Efficacy: supplier sheet 120 lm/W, supplier quote >140 lm/W. Printed 120 lm/W.",
+  "Photocell: mentioned in the supplier's feature text, not in its table or our part number. Not on this sheet.",
+  "Warranty: the supplier's badge says 5 years. LED Connection sets its own warranty; shown as Pending."
+ ]
+}
