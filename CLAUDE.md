@@ -496,6 +496,22 @@ never by writing its container.
    filter counts with the schedule to find the missing head (likely a
    design head with no audit pin, or one excluded that should not be).
 
+## Installable app (Dino, 2026-10-21: "a standalone app, like the customer portal")
+- Icon: the LED Connection logo (app/lc-logo.png, the portal's file) on the
+  dark tile with the orange frame, and a cyan open-end wrench under it, so it
+  reads as the installer's app next to the portal and the LED Audit App.
+  Source and rebuild: tools/icon/ (icon-192/512, maskable in the 80% safe
+  zone, apple-touch-icon-180, favicon-16/32).
+- INSTALL APP in the BETA banner (lci.js) when the browser offers the
+  install (beforeinstallprompt: Edge / Chrome desktop, Android) and the page
+  is not already the app. On iPad / iPhone there is no prompt, so the button
+  shows a tip: Share, then Add to Home Screen.
+- Manifest: start_url index.html, handle_links preferred (app links open in
+  it), launch_handler navigate-existing, a "My jobs" shortcut. Served as
+  application/manifest+json (staticwebapp.config mimeTypes), as in the portal.
+- sw.js stays NETWORK FIRST and never touches /api/; CACHE lci-shell-v2 after
+  the icon change. Removing the BETA banner removes INSTALL APP with it.
+
 ## Conventions
 
 - Dark HUD look from the portal (lci.css): orange `#f37021`, cyan `#22d3ee`,
