@@ -122,6 +122,29 @@ the way the customer portal sends through Outlook.
   (POST /api/relay/test, LC only, audit mail.test) proves the route without
   filing a claim.
 
+## Everything on site is emailed to the same list (Dino, 2026-10-21)
+
+"Send claim ... and also when I do the sign off ... and everything that I do
+install, if someone is reporting a problem or flagging something, I want
+that to be reaching out to all of these emails."
+- Same recipients and route as a claim (claimmail.js deliver: LED
+  Connection's list on To, the job's installers + client on CC, Outlook
+  relay), same rule: the record is saved first, a failed email never fails
+  it, `mail` on the record says how it went.
+- MATERIAL SIGN-OFF: "[job] Material signed off: everything received" or
+  ": N short, M damaged", a table per product (part no., tags, expected,
+  received, short, over, damaged), who signed, what is next.
+- FLAG A PROBLEM (new): a button on every pin card, also after submit. Kinds
+  pole / power / access / fit / other, note and up to 6 photos (note or
+  photo required). POST /api/jobs/{id}/flags -> jobs/{id}/flags/FL-....json;
+  email "[FL-...] Install problem: {kind} - {job}" with tag, pole, fixture,
+  product + part no., note, photos attached. Listed on the pin card and
+  under PROBLEMS FLAGGED. Reset clears flags with the rest of the work.
+- SUBMIT: "[job] Install submitted: N fixtures", plus how many claims /
+  flags are still open.
+- Installers never see the addresses: API replies and stored records carry
+  only sent / queued / how many (jobs.js forViewer); LC admins see all.
+
 ## Deleting a project (Dino, 2026-10-21)
 
 "Delete ... only by LED Connection user ... asked, are you sure? ...
@@ -378,7 +401,7 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 223 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 234 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

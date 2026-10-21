@@ -153,4 +153,101 @@ async function notifyClaim(req, id, job, site, claim, user, partOf) {
   }
 }
 
-module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, recipients, NOTIFY_PATH };
+/* ── The other emails (Dino, 2026-10-21): "when I do the sign off ... and
+   everything that I do install, if someone is reporting a problem or
+   flagging something, I want that to be reaching out to all of these
+   emails". Same recipients as a claim (LED Connection's list, CC the
+   job's installers and client), same way out, same rule: the record is
+   saved first and a failed email never fails it. ─────────────────────── */
+async function photoAttachments(id, prefix, names) {
+  const out = [];
+  let room = MAIL.ATTACH_BUDGET;
+  for (const [i, name] of (names || []).entries()) {
+    const got = await P.store().getBytes(J.paths.photo(id, name)).catch(() => null);
+    if (!got || got.buf.length > room) continue;
+    room -= got.buf.length;
+    out.push({ name: prefix + "-photo-" + (i + 1) + ".jpg", contentType: "image/jpeg", bytes: got.buf });
+  }
+  return out;
+}
+const CELL = 'style="padding:5px 8px;border:1px solid #d9dde5"';
+const HEAD = 'style="padding:5px 8px;border:1px solid #d9dde5;background:#f3f4f7;text-align:left"';
+function page(title, color, rows, table, note, link, linkText) {
+  return '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="font-family:Segoe UI,Arial,sans-serif;font-size:14px;color:#1f2430">' +
+    '<tr><td style="padding:0 0 10px;font-size:18px;font-weight:700;color:' + color + '">' + esc(title) + '</td></tr>' +
+    rows.filter(Boolean).map(r => '<tr><td style="padding:3px 0"><b>' + esc(r[0]) + ':</b> ' + esc(r[1]) + '</td></tr>').join("") +
+    (table ? '<tr><td style="padding:12px 0 0">' + table + '</td></tr>' : "") +
+    (note ? '<tr><td style="padding:12px 0 0"><b>What happened:</b><br>' + esc(note).replace(/\n/g, "<br>") + '</td></tr>' : "") +
+    '<tr><td style="padding:16px 0 0"><a href="' + esc(link) + '" style="color:#f37021;font-weight:700">' + esc(linkText) + '</a></td></tr></table>';
+}
+const byLine = u => (u.name || u.username) + (u.company ? " (" + u.company + ")" : "") + (u.phone ? ", " + u.phone : "");
+async function deliver(req, id, job, user, msg, action, detail) {
+  let to = defaultList(), cc = [];
+  try {
+    ({ to, cc } = await recipients(job));
+    const r = await MAIL.sendMail(Object.assign({ to, cc }, msg));
+    const out = r.sent ? { sent: true, queued: !!r.queued, local: !!r.local, to, cc, attached: (msg.attachments || []).length }
+                       : { sent: false, reason: r.reason, to, cc, attached: 0 };
+    await P.audit(req, user.username, action, "job:" + id, Object.assign({ to, cc, sent: out.sent, queued: out.queued }, detail));
+    return out;
+  } catch (e) {
+    console.error("[claimmail] " + action + ": " + e.message);
+    return { sent: false, reason: "The email could not be sent.", to, cc, attached: 0 };
+  }
+}
+const mailRecord = n => ({ sent: n.sent, queued: !!n.queued, to: n.to, cc: n.cc || [], attached: n.attached || 0, at: new Date().toISOString(), reason: n.reason || null });
+
+/* Material signed off: what arrived against the design, line by line. */
+async function notifySignoff(req, id, job, site, approved, user, partOf) {
+  const jobName = job.name || id, tagsOf = Object.fromEntries(site.bom.map(b => [b.key, b.tags]));
+  const bad = v => v ? ' bgcolor="#fde8e8"' : "";
+  const table = '<table cellpadding="0" cellspacing="0" style="border-collapse:collapse;font-size:13px"><tr><th ' + HEAD + '>Product</th><th ' + HEAD + '>Part no.</th><th ' + HEAD + '>Tags</th><th ' + HEAD +
+    '>Expected</th><th ' + HEAD + '>Received</th><th ' + HEAD + '>Short</th><th ' + HEAD + '>Over</th><th ' + HEAD + '>Damaged</th></tr>' +
+    approved.summary.map(l => '<tr><td ' + CELL + '>' + esc(l.name) + '</td><td ' + CELL + '>' + esc(partOf(l.sku) || l.sku || "-") + '</td><td ' + CELL + '>' + esc((tagsOf[l.key] || []).join(", ") || "-") +
+      '</td><td ' + CELL + '>' + l.expected + '</td><td ' + CELL + '>' + l.received + '</td><td ' + CELL + bad(l.short) + '><b>' + l.short + '</b></td><td ' + CELL + '>' + l.over +
+      '</td><td ' + CELL + bad(l.damaged) + '><b>' + l.damaged + '</b></td></tr>').join("") + '</table>';
+  const clean = !approved.short && !approved.damaged;
+  const subject = "[" + jobName + "] Material signed off: " + (clean ? "everything received" : [approved.short ? approved.short + " short" : "", approved.damaged ? approved.damaged + " damaged" : ""].filter(Boolean).join(", "));
+  const html = page("Material signed off", clean ? "#15803d" : "#b45309", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Result", clean ? "Every product received as designed" : (approved.short ? approved.short + " short" : "") + (approved.short && approved.damaged ? ", " : "") + (approved.damaged ? approved.damaged + " damaged" : "")],
+    approved.over ? ["Over", approved.over + " more than the design"] : null,
+    ["Signed off by", byLine(user) + ", " + new Date(approved.at).toUTCString()],
+    ["Next", clean ? "The install is unlocked." : "The install is unlocked; the shortage or damage needs a claim (REPORT A PROBLEM) if one was not filed."]
+  ], table, "", INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id), "Open the job in the Installer App");
+  return deliver(req, id, job, user, { subject, html }, "material.notify", { short: approved.short, damaged: approved.damaged });
+}
+
+/* A problem flagged on one fixture during the install. */
+const FLAG_KINDS = { pole: "Pole or arm damaged", power: "No power / wiring problem", access: "Cannot reach it (access, lift)",
+                     fit: "Fixture does not fit the bracket or arm", other: "Other" };
+async function notifyFlag(req, id, job, site, flag, user) {
+  const jobName = job.name || id;
+  const attachments = await photoAttachments(id, flag.ref, flag.photos);
+  const subject = "[" + flag.ref + "] Install problem: " + flag.kindLabel + " - " + jobName;
+  const html = page("Install problem " + flag.ref, "#b91c1c", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Problem", flag.kindLabel],
+    ["Fixture", [flag.tag, flag.poleId ? "pole " + flag.poleId : "", "fixture " + flag.fid].filter(Boolean).join(" · ")],
+    ["Product", (flag.product || "-") + (flag.partNo ? " (" + flag.partNo + ")" : "")],
+    ["Photos", !flag.photos.length ? "none" : attachments.length === flag.photos.length ? flag.photos.length + " (attached)" : flag.photos.length + " (" + attachments.length + " attached, the rest are on the job page)"],
+    ["Reported by", byLine(user) + ", " + new Date(flag.at).toUTCString()]
+  ], "", flag.note, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App");
+  return deliver(req, id, job, user, { subject, html, attachments }, "flag.notify", { ref: flag.ref, attached: attachments.length });
+}
+
+/* The installer submitted the job: every head saved as installed. */
+async function notifySubmit(req, id, job, site, submitted, user, open) {
+  const jobName = job.name || id;
+  const subject = "[" + jobName + "] Install submitted: " + submitted.heads + " fixtures";
+  const html = page("Install submitted", "#15803d", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Installed", submitted.heads + " of " + submitted.heads + " fixtures, each with a photo"],
+    ["Submitted by", byLine(user) + ", " + new Date(submitted.at).toUTCString()],
+    open.claims || open.flags ? ["Still open", [open.claims ? open.claims + " material claim" + (open.claims > 1 ? "s" : "") : "", open.flags ? open.flags + " install problem" + (open.flags > 1 ? "s" : "") : ""].filter(Boolean).join(", ")] : null
+  ], "", "", INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App");
+  return deliver(req, id, job, user, { subject, html }, "submit.notify", { heads: submitted.heads });
+}
+
+module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, recipients, NOTIFY_PATH,
+                   notifySignoff, notifyFlag, notifySubmit, FLAG_KINDS, mailRecord };
