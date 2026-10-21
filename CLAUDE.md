@@ -112,6 +112,15 @@ the way the customer portal sends through Outlook.
   email (on unless unticked, so one added later hears too) and the client
   contacts typed there. There are no client logins in this app; installers
   never see who else is emailed.
+- Three sets on the project's EMAILS dialog, each with an x and an add
+  (Dino, 2026-10-21: "add also LED Connection contact ... installer
+  contact ... I can remove them"): LED Connection (the panel's list; x takes
+  someone off THIS project only, job.notify.lcOff, shown under "Not on this
+  project" with a put-back; adds are @ledconnection.com, job.notify.lc, on
+  To), Installers (logins, x = installersOff; plus contacts of any domain,
+  job.notify.installer, on CC), Client (on CC). A project keeps at least one
+  LED Connection address. Nothing saves until SAVE; an address typed but
+  not ADDed goes in with it.
 - Default LED Connection list (Dino, 2026-10-21, "for the testing
   purposes"): Cassie, Dino, David X. Williams (davidw@) and Sergei
   Vasilyev (sergeiv@). A list saved on the EMAIL panel replaces it.

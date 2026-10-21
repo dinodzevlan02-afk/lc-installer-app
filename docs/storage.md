@@ -131,10 +131,15 @@ An Optimus `pn` always passes the order logic (api/shared/parts.js).
 
 To: system/notify.json `{ to: [address], at, by }` (home page EMAIL panel,
 @ledconnection.com only; absent = INSTALLER_NOTIFY_TO, else cassieh@ +
-dinod@). CC: the job's own `notify` on jobs/{projectId}.json,
-`{ installersOff: [username], client: [{ name, email }] }` (the project's
-EMAILS dialog): every installer on the job whose login has an email, except
-those unticked, and the client contacts.
+dinod@), less the project's `notify.lcOff`, plus its `notify.lc`. The job's
+own `notify` on jobs/{projectId}.json (the project's EMAILS dialog):
+`{ lcOff: [address], lc: [{ name, email }] (@ledconnection.com),
+installersOff: [username], installer: [{ name, email }],
+client: [{ name, email }], installs: "each" | "off" }`. CC: every installer
+on the job whose login has an email, except those taken off, then the
+installer contacts, then the client contacts. A project keeps at least one
+LED Connection address (if the panel's list changes under it and none is
+left, the panel's whole list is used).
 
 ## jobs/{projectId}/claims/{ref}.json
 

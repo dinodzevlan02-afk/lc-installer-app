@@ -70,6 +70,17 @@
   .dlg h3 { margin: 16px 0 6px; font-family: var(--mono); font-size: 10px; letter-spacing: .14em; text-transform: uppercase; color: var(--text-3); }
   .dlg .pick label .em { font-family: var(--mono); font-size: 11px; color: var(--text-3); }
   .crow { display: flex; gap: 8px; margin-bottom: 6px; }
+  .ntsec { margin-top: 18px; padding-top: 4px; }
+  .ntsec h3 { margin-bottom: 2px; }
+  .ntnote { font-family: var(--mono); font-size: 11px; color: var(--text-3); line-height: 1.5; }
+  .chip .nm { font-family: var(--body, inherit); font-weight: 600; }
+  .chip .nm + .ad { color: var(--text-3); }
+  .chip.na { opacity: .55; padding-right: 10px; }
+  .ntoff { font-family: var(--mono); font-size: 11px; color: var(--text-3); margin: 0 0 6px; }
+  .ntoff:empty, .ntsec [hidden] { display: none !important; }
+  .ntoff button { min-height: 0; padding: 2px 8px; margin: 0 4px 4px 0; font-size: 10.5px; }
+  .ntadd { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
+  .ntadd input { flex: 1; min-width: 150px; width: auto; }
   .crow input { flex: 1; min-width: 0; }
   @media (pointer: coarse) { .chip button { min-width: 44px; min-height: 44px; } }
   .delsec { margin-top: 16px; }
@@ -172,16 +183,32 @@
 
   <div class="ov" id="ovNotify" hidden>
     <div class="dlg" role="dialog" aria-labelledby="ntTitle">
-      <h2 id="ntTitle">Claim emails</h2>
-      <div class="sub">Who gets this project's material claim emails, the moment an installer sends one. Photos, note and missing quantities included.</div>
-      <h3>LED Connection (every project)</h3>
-      <div class="chips" id="ntLc"></div>
-      <label class="pick" style="margin:10px 0 0"><span><input type="checkbox" id="ntInstalls"> Email each installed fixture, with its photo</span></label>
-      <h3>Installers on this job</h3>
-      <div class="pick" id="ntInst"></div>
-      <h3>Client</h3>
-      <div id="ntClient"></div>
-      <button type="button" class="small" id="ntAddClient">+ Add a client contact</button>
+      <h2 id="ntTitle">Project emails</h2>
+      <div class="sub">Who gets this project's emails: material claims and sign-off, problems flagged, installed fixtures, submit and approval. LED Connection on To, installers and client on CC. Installers never see the list.</div>
+      <div class="ntsec" data-sec="lc">
+        <h3>LED Connection</h3>
+        <div class="ntnote">The EMAIL panel's list, for every project. &times; takes someone off this project only.</div>
+        <div class="chips" data-chips></div>
+        <div class="ntoff" data-off></div>
+        <div class="ntadd" data-add hidden><input placeholder="Name" maxlength="80" data-n><input type="email" placeholder="name@ledconnection.com" data-e><button type="button" class="primary" data-addgo>Add</button><button type="button" class="small" data-addno aria-label="Close">&times;</button></div>
+        <button type="button" class="small" data-addopen>+ Add LED Connection contact</button>
+      </div>
+      <div class="ntsec" data-sec="installer">
+        <h3>Installers</h3>
+        <div class="ntnote">The job's installers by their login email, plus anyone else on the crew side (office, foreman without a login).</div>
+        <div class="chips" data-chips></div>
+        <div class="ntoff" data-off></div>
+        <div class="ntadd" data-add hidden><input placeholder="Name" maxlength="80" data-n><input type="email" placeholder="email@installer.com" data-e><button type="button" class="primary" data-addgo>Add</button><button type="button" class="small" data-addno aria-label="Close">&times;</button></div>
+        <button type="button" class="small" data-addopen>+ Add installer contact</button>
+      </div>
+      <div class="ntsec" data-sec="client">
+        <h3>Client</h3>
+        <div class="chips" data-chips></div>
+        <div class="ntadd" data-add hidden><input placeholder="Name" maxlength="80" data-n><input type="email" placeholder="email@client.com" data-e><button type="button" class="primary" data-addgo>Add</button><button type="button" class="small" data-addno aria-label="Close">&times;</button></div>
+        <button type="button" class="small" data-addopen>+ Add client contact</button>
+      </div>
+      <label class="pick" style="margin:16px 0 0"><span><input type="checkbox" id="ntInstalls"> Email each installed fixture, with its photo</span></label>
+      <div class="msg err" id="ntMsg" hidden role="alert"></div>
       <div class="row-actions">
         <button type="button" id="ntCancel">Cancel</button>
         <button type="button" class="primary" id="ntSave">Save</button>
@@ -635,43 +662,108 @@
     saveLcList(LC_LIST.filter(function (x) { return x !== a; }));
   });
 
-  /* ── A project's claim emails: its installers and its client ──────── */
-  var notifying = null;
-  function clientRow(c) {
-    return '<div class="crow"><input placeholder="Name" maxlength="80" value="' + esc(c.name || '') + '" data-cn>' +
-      '<input type="email" placeholder="email@client.com" value="' + esc(c.email || '') + '" data-ce>' +
-      '<button type="button" class="small" data-cdel aria-label="Remove">&times;</button></div>';
+  /* ── A project's emails: three sets, each with an x and an add ──────
+     (Dino, 2026-10-21). LED Connection = the EMAIL panel's list less
+     whoever is taken off here (lcOff), plus anyone added for this project
+     (lc); installers = the job's logins (installersOff) plus contacts
+     (installer); client. Nothing is saved until SAVE; the server checks it
+     all again (claimmail.js cleanJobNotify). */
+  var notifying = null, NT = null;
+  var RE_MAIL = /^[^\s@<>",;()]+@[^\s@<>",;()]+\.[a-z]{2,}$/i;
+  function ntSec(k) { return $('ovNotify').querySelector('.ntsec[data-sec="' + k + '"]'); }
+  function chip(label, email, del, cls) {
+    return '<span class="chip' + (cls ? ' ' + cls : '') + '">' + (label ? '<span class="nm">' + esc(label) + '</span>' : '') +
+      '<span class="ad">' + esc(email) + '</span>' +
+      (del ? '<button type="button" data-del="' + esc(del) + '" aria-label="Remove ' + esc(email) + '" title="Remove from this project">&times;</button>' : '') + '</span>';
   }
-  function openNotify(p) {
-    notifying = p;
-    var n = (p.job && p.job.notify) || { installersOff: [], client: [] };
-    $('ntTitle').textContent = 'Claim emails · ' + p.name;
-    $('ntLc').innerHTML = LC_LIST.map(function (a) { return '<span class="chip ro">' + esc(a) + '</span>'; }).join('') || '<span class="small-text">Set on the EMAIL panel.</span>';
-    var inst = (p.job && p.job.installers) || [];
-    $('ntInst').innerHTML = inst.map(function (u) {
+  function lcHas() {
+    return LC_LIST.filter(function (a) { return NT.lcOff.indexOf(a) < 0; }).length + NT.lc.length;
+  }
+  function renderNotify() {
+    var lastLc = lcHas() <= 1;
+    var s = ntSec('lc');
+    s.querySelector('[data-chips]').innerHTML =
+      LC_LIST.filter(function (a) { return NT.lcOff.indexOf(a) < 0; }).map(function (a) { return chip('', a, lastLc ? '' : 'lcOff:' + a); }).join('') +
+      NT.lc.map(function (c, i) { return chip(c.name, c.email, lastLc ? '' : 'lc:' + i); }).join('') ||
+      '<span class="ntnote">Nobody yet.</span>';
+    s.querySelector('[data-off]').innerHTML = NT.lcOff.filter(function (a) { return LC_LIST.indexOf(a) >= 0; }).length
+      ? 'Not on this project: ' + NT.lcOff.filter(function (a) { return LC_LIST.indexOf(a) >= 0; }).map(function (a) {
+          return '<button type="button" class="small" data-back="lcOff:' + esc(a) + '" title="Put back">' + esc(a) + ' &#8634;</button>'; }).join('') : '';
+    var inst = (notifying.job && notifying.job.installers) || [];
+    var on = [], off = [];
+    inst.forEach(function (u) {
       var rec = USERS.filter(function (x) { return x.username === u; })[0] || { username: u };
       var ok = !!rec.email && !rec.disabled;
-      return '<label><input type="checkbox" value="' + esc(u) + '"' + (ok && n.installersOff.indexOf(u) < 0 ? ' checked' : '') + (ok ? '' : ' disabled') + '>' +
-        esc(rec.name || u) + ' <span class="em">' + (rec.disabled ? 'switched off' : ok ? esc(rec.email) : 'no email on the login: add it under Logins') + '</span></label>';
-    }).join('') || '<span class="small-text">No installers on this job yet (INSTALLERS on its row).</span>';
-    $('ntClient').innerHTML = (n.client || []).map(clientRow).join('');
+      if (!ok) on.push(chip(rec.name || u, rec.disabled ? 'login switched off' : 'no email on the login (add it under Logins)', '', 'na'));
+      else if (NT.installersOff.indexOf(u) >= 0) off.push('<button type="button" class="small" data-back="instOff:' + esc(u) + '" title="Put back">' + esc(rec.name || u) + ' &#8634;</button>');
+      else on.push(chip(rec.name || u, rec.email, 'instOff:' + u));
+    });
+    s = ntSec('installer');
+    s.querySelector('[data-chips]').innerHTML = on.concat(NT.installer.map(function (c, i) { return chip(c.name, c.email, 'installer:' + i); })).join('') ||
+      '<span class="ntnote">' + (inst.length ? 'Nobody emailed.' : 'No installers on this job yet (INSTALLERS on its row), and no contacts.') + '</span>';
+    s.querySelector('[data-off]').innerHTML = off.length ? 'Not emailed: ' + off.join('') : '';
+    ntSec('client').querySelector('[data-chips]').innerHTML = NT.client.map(function (c, i) { return chip(c.name, c.email, 'client:' + i); }).join('') ||
+      '<span class="ntnote">No client contacts yet.</span>';
+  }
+  function ntSay(t) { $('ntMsg').textContent = t || ''; $('ntMsg').hidden = !t; }
+  function openNotify(p) {
+    notifying = p;
+    var n = (p.job && p.job.notify) || {};
+    NT = { lcOff: (n.lcOff || []).slice(), lc: (n.lc || []).slice(), installersOff: (n.installersOff || []).slice(),
+           installer: (n.installer || []).slice(), client: (n.client || []).slice() };
+    $('ntTitle').textContent = 'Project emails · ' + p.name;
     $('ntInstalls').checked = n.installs !== 'off';
+    Array.prototype.forEach.call($('ovNotify').querySelectorAll('[data-add]'), function (d) { d.hidden = true; d.querySelector('[data-n]').value = ''; d.querySelector('[data-e]').value = ''; });
+    Array.prototype.forEach.call($('ovNotify').querySelectorAll('[data-addopen]'), function (b) { b.hidden = false; });
+    ntSay(''); renderNotify();
     $('ovNotify').hidden = false;
   }
-  $('ntAddClient').addEventListener('click', function () {
-    $('ntClient').insertAdjacentHTML('beforeend', clientRow({}));
-    var ins = $('ntClient').querySelectorAll('input[data-cn]'); ins[ins.length - 1].focus();
+  /* Add what is typed in one section's add line. -> true when added (or
+     nothing typed), false with the reason shown. */
+  function ntAdd(sec) {
+    var k = sec.getAttribute('data-sec'), d = sec.querySelector('[data-add]');
+    var name = d.querySelector('[data-n]').value.trim(), email = d.querySelector('[data-e]').value.trim().toLowerCase();
+    if (!name && !email) return true;
+    if (!RE_MAIL.test(email)) { ntSay('"' + (email || name) + '" is not an email address.'); d.querySelector('[data-e]').focus(); return false; }
+    if (k === 'lc' && !/@ledconnection\.com$/.test(email)) { ntSay(email + ' is not an @ledconnection.com address: put it under Installers or Client.'); return false; }
+    if (k === 'lc' && LC_LIST.indexOf(email) >= 0) NT.lcOff = NT.lcOff.filter(function (a) { return a !== email; });
+    else if (!NT[k].some(function (c) { return c.email === email; })) NT[k].push({ name: name, email: email });
+    d.querySelector('[data-n]').value = ''; d.querySelector('[data-e]').value = '';
+    ntSay(''); renderNotify(); return true;
+  }
+  $('ovNotify').addEventListener('click', function (e) {
+    var sec = e.target.closest('.ntsec'), b;
+    if ((b = e.target.closest('[data-del]'))) {
+      var v = b.getAttribute('data-del'), i = v.indexOf(':'), kind = v.slice(0, i), val = v.slice(i + 1);
+      if (kind === 'lcOff') NT.lcOff.push(val);
+      else if (kind === 'instOff') NT.installersOff.push(val);
+      else NT[kind].splice(+val, 1);
+      renderNotify();
+    } else if ((b = e.target.closest('[data-back]'))) {
+      var w = b.getAttribute('data-back'), j = w.indexOf(':'), key = w.slice(0, j) === 'lcOff' ? 'lcOff' : 'installersOff', x = w.slice(j + 1);
+      NT[key] = NT[key].filter(function (a) { return a !== x; });
+      renderNotify();
+    } else if (sec && e.target.closest('[data-addopen]')) {
+      sec.querySelector('[data-add]').hidden = false; e.target.closest('[data-addopen]').hidden = true;
+      sec.querySelector('[data-add] [data-e]').focus();
+    } else if (sec && e.target.closest('[data-addgo]')) {
+      ntAdd(sec);
+    } else if (sec && e.target.closest('[data-addno]')) {
+      sec.querySelector('[data-add]').hidden = true; sec.querySelector('[data-addopen]').hidden = false; ntSay('');
+    }
   });
-  $('ntClient').addEventListener('click', function (e) { var b = e.target.closest('button[data-cdel]'); if (b) b.parentNode.remove(); });
+  $('ovNotify').addEventListener('keydown', function (e) {
+    if (e.key === 'Enter' && e.target.closest('[data-add]')) { e.preventDefault(); ntAdd(e.target.closest('.ntsec')); }
+  });
   $('ntCancel').addEventListener('click', function () { $('ovNotify').hidden = true; });
   $('ntSave').addEventListener('click', function () {
-    var off = Array.prototype.filter.call($('ntInst').querySelectorAll('input[type=checkbox]:not(:disabled)'), function (c) { return !c.checked; }).map(function (c) { return c.value; });
-    var client = Array.prototype.map.call($('ntClient').querySelectorAll('.crow'), function (r) {
-      return { name: r.querySelector('[data-cn]').value.trim(), email: r.querySelector('[data-ce]').value.trim() };
-    }).filter(function (c) { return c.name || c.email; });
+    /* An address typed but not yet added goes in with the save. */
+    var secs = $('ovNotify').querySelectorAll('.ntsec');
+    for (var i = 0; i < secs.length; i++) if (!ntAdd(secs[i])) return;
     $('ntSave').disabled = true;
-    LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { installersOff: off, client: client, installs: $('ntInstalls').checked ? 'each' : 'off' } })
-      .then(function () { $('ovNotify').hidden = true; say('Claim emails saved for ' + notifying.name + '.', true); return loadProjects(); }, function (e) { say(e.message); })
+    LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { lcOff: NT.lcOff, lc: NT.lc, installersOff: NT.installersOff,
+      installer: NT.installer, client: NT.client, installs: $('ntInstalls').checked ? 'each' : 'off' } })
+      .then(function () { $('ovNotify').hidden = true; say('Emails saved for ' + notifying.name + '.', true); return loadProjects(); }, function (e) { ntSay(e.message); })
       .then(function () { $('ntSave').disabled = false; });
   });
   $('relayCmd').value = [
