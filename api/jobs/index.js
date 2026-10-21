@@ -132,7 +132,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     try { await P.store().put(J.paths.job(pid), job, { ifNoneMatch: "*" }); }
     catch (e) { if (e.code === "CONFLICT") throw new ApiError(409, "There is already a job for " + pid + "."); throw e; }
     await P.audit(req, user.username, "job.create", "job:" + pid, { installers: job.installers });
-    return send(201, { job: J.publicJob(job, user) });
+    const assigned = job.installers.length ? await CLAIMMAIL.notifyAssigned(req, pid, job, job.installers, user) : null;
+    return send(201, { job: J.publicJob(job, user), assigned });
   }
 
   if (method === "PATCH") {
@@ -169,7 +170,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     job.updated = new Date().toISOString(); job.updatedBy = user.username;
     await P.store().put(J.paths.job(id), job, { ifMatch: etag });
     await P.audit(req, user.username, "job.update", "job:" + id, logged);
-    return send(200, { job: J.publicJob(job, user) });
+    const assigned = logged.added && logged.added.length ? await CLAIMMAIL.notifyAssigned(req, id, job, logged.added, user) : null;
+    return send(200, { job: J.publicJob(job, user), assigned });
   }
 
   throw new ApiError(405, "Method not allowed.");

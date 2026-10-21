@@ -11,8 +11,10 @@
    POST  /api/users                { username, name, email?, phone?, company?, role }
                                    Issues a one-time set-password link
                                    (shared/invite.js) and returns it ONCE for
-                                   the admin to pass on (text or email). No
-                                   email goes out from here yet.
+                                   the admin to pass on (text or email) only
+                                   when it cannot be emailed: no email on the
+                                   login, mail not set up, or the Outlook
+                                   relay has not checked in (see deliverLink).
    PATCH /api/users/{username}     { name?, email?, phone?, company?, role?, disabled?, sendInvite? }
                                    sendInvite: a new invite, or for someone who
                                    already has a password, a reset link.
@@ -24,6 +26,7 @@
    can never be left with no one able to manage it. */
 const P = require("../shared/app");
 const INV = require("../shared/invite");
+const MAIL = require("../shared/mail");
 const { A, ApiError } = P;
 
 const RE_EMAIL = /^[^\s@<>"]+@[^\s@<>"]+\.[^\s@<>"]+$/;
@@ -48,10 +51,35 @@ function cleanPhone(v) {
 
 /* The link goes back to the admin, once, in this response only. It is a key
    to someone else's login: pass it on by one channel and do not keep it. */
+/* Issues the link and emails it (Dino, 2026-10-21, "immediately send them
+   an email ... same like the customer portal"). The link comes back to the
+   admin only when the email will not reach them: no email on the login
+   (installers may have only a phone), mail not set up or failed, or queued
+   for the Outlook relay while the relay has not checked in for 15 minutes
+   (it would sit in the queue). One channel otherwise. */
+const RELAY_STALE = 15 * 60000;
 async function issueLink(req, user) {
   const kind = user.password ? "reset" : "invite";
   const { link, expires } = await INV.issue(req, user, kind);
-  return { kind, link, expires, to: user.email || user.phone || "", name: user.name || "", username: user.username };
+  return { kind, link, expires };
+}
+/* After the login is saved: email the link. -> what the page is told */
+async function deliverLink(user, issued, actor) {
+  const { kind, link, expires } = issued;
+  const base = { kind, expires, to: user.email || user.phone || "", name: user.name || "", username: user.username };
+  if (!user.email) return Object.assign(base, { emailSent: false, reason: "No email on this login", link });
+  let mail;
+  try {
+    mail = await MAIL.sendMail(MAIL.inviteEmail({ to: user.email, name: user.name, username: user.username, link, kind,
+      role: user.role, company: user.company, invitedBy: actor && actor.name, expiresDays: INV.INVITE_DAYS }));
+  } catch (e) { console.error("[users] invite mail: " + e.message); mail = { sent: false, reason: "The email could not be sent." }; }
+  if (!mail.sent) return Object.assign(base, { emailSent: false, reason: mail.reason, link });
+  const out = Object.assign(base, { emailSent: true, queued: !!mail.queued, local: !!mail.local });
+  if (mail.queued) {
+    const seen = await P.store().get("system/relay-seen.json").catch(() => null);
+    if (!seen || Date.now() - (seen.data.at || 0) > RELAY_STALE) Object.assign(out, { relayIdle: true, link });
+  }
+  return out;
 }
 
 module.exports = P.handler(async ({ req, method, body, params, send }) => {
@@ -86,13 +114,13 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     };
     /* A password set directly (API only, not offered in the pages) is a
        temporary one: they must change it on first sign-in. */
-    let invite = null;
+    let invite = null, issued = null;
     if (body.password !== undefined) {
       A.checkPasswordPolicy(body.password);
       rec.password = await A.hashPassword(body.password);
       rec.mustChangePassword = true;
     } else {
-      invite = await issueLink(req, rec);
+      issued = await issueLink(req, rec);
     }
     try { await P.store().put(P.paths.user(username), rec, { ifNoneMatch: "*" }); }
     catch (e) {
@@ -100,7 +128,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       if (e.code === "CONFLICT") throw new ApiError(409, "Username \"" + username + "\" is already taken.");
       throw e;
     }
-    await P.audit(req, actor.username, "user.create", "user:" + username, { role, invite: !!invite });
+    if (issued) invite = await deliverLink(rec, issued, actor);
+    await P.audit(req, actor.username, "user.create", "user:" + username, { role, invite: invite && { emailSent: invite.emailSent, queued: !!invite.queued } });
     return send(201, { user: P.publicUser(rec), invite });
   }
 
@@ -141,17 +170,18 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
     }
 
     Object.assign(t, changes, { updated: new Date().toISOString(), updatedBy: actor.username });
-    let invite = null;
+    let invite = null, issued = null;
     if (body.sendInvite) {
       if (self) throw new ApiError(400, "Use Change password for your own login.");
       if (t.disabled) throw new ApiError(400, "Switch this login on before sending it a link.");
-      invite = await issueLink(req, t);
+      issued = await issueLink(req, t);
     }
     if (endSessions) t.sessionVersion = (t.sessionVersion || 0) + 1;
     await P.store().put(P.paths.user(uname), t, { ifMatch: cur.etag });
+    if (issued) invite = await deliverLink(t, issued, actor);
     const logged = Object.assign({}, changes);
     if (body.password !== undefined) logged.passwordReset = true;
-    if (invite) logged.invite = invite.kind;
+    if (invite) logged.invite = { kind: invite.kind, emailSent: invite.emailSent, queued: !!invite.queued };
     await P.audit(req, actor.username, "user.update", "user:" + uname, logged);
     return send(200, { user: P.publicUser(t), invite });
   }

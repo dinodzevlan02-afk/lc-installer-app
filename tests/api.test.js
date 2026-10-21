@@ -206,6 +206,25 @@ async function main() {
   check((await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } } })).status === 400, "sign-off needs the confirm box");
   const outDir = path.join(store, "outbox");
   const outbox = () => (fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : []).map(f => JSON.parse(fs.readFileSync(path.join(outDir, f), "utf8")));
+
+  console.log("a new login is emailed its invite (Dino, 2026-10-21: same as the customer portal)");
+  const nv = await lc("POST", "users", { username: "dave.test", name: "Dave Test", email: "Dave.Test@crew-b.example", company: "Crew B" });
+  const nvm = outbox().find(m => m.subject === "Your LED Connection Installer App access" && [].concat(m.to).includes("dave.test@crew-b.example")) || {};
+  check(nv.status === 201 && nv.body.invite.emailSent === true && nv.body.invite.link === undefined, "with an email on the login, the invite is emailed and the link is not shown");
+  check(/as <b>installer<\/b> \(Crew B\)/.test(nvm.html || "") && /dave\.test/.test(nvm.html) && /index\.html\?invite=/.test(nvm.html), "the email names the role, company and username, with the set-password link");
+  const nvTok = ((nvm.html || "").match(/invite=([A-Za-z0-9_-]+)/) || [])[1];
+  check((await anon("GET", "invite?token=" + encodeURIComponent(nvTok))).body.username === "dave.test", "the emailed link opens that login");
+  const na = await lc("POST", "users", { username: "ops.admin", name: "Ops Admin", email: "ops.admin@ledconnection.com", role: "lc-admin" });
+  check(na.status === 201 && /as <b>LED Connection admin<\/b>/.test((outbox().find(m => [].concat(m.to).includes("ops.admin@ledconnection.com")) || {}).html || ""), "an LED Connection admin's invite says so");
+  const obN = outbox().length;
+  check((await lc("POST", "users", { username: "dave.test", email: "someone@else.example" })).status === 409 && outbox().length === obN, "a refused duplicate emails nobody");
+  const nr = await lc("PATCH", "users/dave.test", { sendInvite: true });
+  check(nr.status === 200 && nr.body.invite.emailSent && outbox().length === obN + 1, "NEW LINK emails a fresh invite");
+  const onJob = (await lc("GET", "jobs/TEST-SITE-01")).body.job.installers;
+  const asg = await lc("PATCH", "jobs/TEST-SITE-01", { installers: onJob.concat(["dave.test"]) });
+  const asm = outbox().find(m => /New install job for you$/.test(m.subject || "")) || {};
+  check(asg.status === 200 && asg.body.assigned.emailed === 1 && JSON.stringify(asm.to) === '["dave.test@crew-b.example"]' && !asm.cc, "putting an installer on a job emails them the job, to them alone");
+  await lc("PATCH", "jobs/TEST-SITE-01", { installers: onJob });
   const ap = await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true });
   check(ap.status === 200 && ap.body.material.approved.short === 1 && ap.body.material.approved.damaged === 1, "installer signs off; one short and one damaged recorded against the site's own quantities");
   const som = outbox().find(m => /\] Material signed off: 1 short, 1 damaged$/.test(m.subject || "")) || {};

@@ -334,5 +334,33 @@ async function notifySentBack(req, id, job, back, user) {
   return deliver(req, id, job, user, { subject, html }, "sendback.notify", {});
 }
 
-module.exports = { notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, lcTo, recipients, NOTIFY_PATH,
+/* An installer was put on a job (Dino, 2026-10-21: "who I'm assigning it
+   ... immediately send them an email"). To that installer only, never a
+   list: installers do not see each other's addresses. -> { emailed, noEmail } */
+async function notifyAssigned(req, id, job, usernames, actor) {
+  const out = { emailed: 0, noEmail: [] };
+  const link = INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id);
+  for (const u of usernames) {
+    const rec = await P.store().get(P.paths.user(u)).catch(() => null);
+    const who = rec && rec.data;
+    if (!who || who.disabled || !RE_EMAIL.test(who.email || "")) { out.noEmail.push((who && who.name) || u); continue; }
+    const jobName = job.name || id;
+    const html = page("New install job: " + jobName, "#f37021", [
+      ["Job", jobName],
+      job.address ? ["Address", job.address] : null,
+      ["Assigned by", (actor.name || actor.username) + ", LED Connection"],
+      ["Your login", who.username + (who.password ? "" : " (set your password from the invite email first)")],
+      ["First step", "The material check: count what arrived against the design, report anything short or damaged, then sign off."]
+    ], "", "", link, "Open the job in the Installer App",
+    { href: link, text: "OPEN THE JOB", hint: "Sign in with your Installer App login." });
+    try {
+      const r = await MAIL.sendMail({ to: [who.email], subject: "[" + jobName + "] New install job for you", html });
+      if (r.sent) out.emailed++; else out.noEmail.push(who.name || u);
+      await P.audit(req, actor.username, "job.assign.notify", "job:" + id, { to: u, sent: !!r.sent, queued: !!r.queued });
+    } catch (e) { console.error("[claimmail] assign: " + e.message); out.noEmail.push(who.name || u); }
+  }
+  return out;
+}
+
+module.exports = { notifyAssigned, notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, lcTo, recipients, NOTIFY_PATH,
                    notifySignoff, notifyFlag, notifySubmit, notifyInstalled, notifyAccepted, notifySentBack, FLAG_KINDS, mailRecord };

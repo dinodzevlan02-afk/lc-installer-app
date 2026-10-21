@@ -156,4 +156,40 @@ async function sendMail(msg) {
 
 const esc = s => String(s == null ? "" : s).replace(/[&<>"']/g, c => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" }[c]));
 
-module.exports = { relayConfigured, relayHashes, relayForget, sendMail, mailConfigured: configured, esc, ATTACH_BUDGET };
+/* ── A new login: the one-time set-password link, worded for the role ──
+   The customer portal's invite email, in this app's words (Dino,
+   2026-10-21: "when I'm creating new logins ... immediately send them an
+   email ... same like the customer portal"). No passwords in email, only
+   the link; no em dashes (house rule for outbound mail). */
+const ROLE_WORDS = {
+  installer: { label: "installer", what: "It holds your install jobs: the material check, the install map with every fixture, photos, and the job sheets." },
+  "lc-admin": { label: "LED Connection admin", what: "You manage projects, installers, logins and project emails, and approve finished installs." }
+};
+function inviteEmail({ to, name, username, link, kind, role, company, invitedBy, expiresDays }) {
+  const reset = kind === "reset";
+  const rw = ROLE_WORDS[role] || ROLE_WORDS.installer;
+  const subject = reset ? "Reset your LED Connection Installer App password" : "Your LED Connection Installer App access";
+  const hello = name ? "Hello " + esc(name.split(" ")[0]) + "," : "Hello,";
+  const lead = reset
+    ? "A password reset was requested for your LED Connection Installer App login."
+    : (invitedBy ? esc(invitedBy) + " has" : "LED Connection has") + " given you access to the LED Connection Installer App as <b>" +
+      esc(rw.label) + "</b>" + (company ? " (" + esc(company) + ")" : "") + ". " + rw.what;
+  const button = reset ? "Reset your password" : "Set your password";
+  const html =
+    '<table role="presentation" width="100%" cellpadding="0" cellspacing="0" style="background:#0a0e1a;padding:32px 12px;font-family:Segoe UI,Arial,sans-serif">' +
+    '<tr><td align="center"><table role="presentation" width="100%" style="max-width:520px;background:#0f1626;border:1px solid #3a2a1f;border-radius:12px" cellpadding="0" cellspacing="0">' +
+    '<tr><td style="padding:28px 32px 8px;font-size:12px;letter-spacing:3px;font-weight:700;color:#f37021">LED CONNECTION</td></tr>' +
+    '<tr><td style="padding:0 32px;font-size:22px;font-weight:600;color:#ffffff">Installer App</td></tr>' +
+    '<tr><td style="padding:20px 32px 0;font-size:15px;line-height:1.6;color:#d6dae4">' + hello + '<br><br>' + lead + '</td></tr>' +
+    '<tr><td style="padding:16px 32px 0;font-size:14px;color:#9aa3b8">Your username: <b style="color:#ffffff;font-family:Consolas,monospace">' + esc(username) + '</b></td></tr>' +
+    '<tr><td style="padding:24px 32px"><a href="' + esc(link) + '" style="display:inline-block;background:#f37021;color:#0a0e1a;text-decoration:none;font-weight:700;font-size:14px;letter-spacing:1px;padding:13px 26px;border-radius:8px">' + button + '</a></td></tr>' +
+    '<tr><td style="padding:0 32px;font-size:12px;line-height:1.6;color:#8a93a8">This link works once and expires in ' + expiresDays + ' days. If the button does not work, paste this address into your browser:<br>' +
+    '<a href="' + esc(link) + '" style="color:#22d3ee;word-break:break-all">' + esc(link) + '</a></td></tr>' +
+    '<tr><td style="padding:22px 32px 28px;font-size:12px;line-height:1.6;color:#6b7488">' +
+    (reset ? "If you did not ask for this, you can ignore this email; your password stays the same." : "If you were not expecting this, you can ignore this email.") +
+    ' Questions? LED Connection, 702.847.7680.</td></tr>' +
+    '</table></td></tr></table>';
+  return { to: [to], toName: name, subject, html };
+}
+
+module.exports = { relayConfigured, relayHashes, relayForget, sendMail, mailConfigured: configured, esc, inviteEmail, ATTACH_BUDGET };
