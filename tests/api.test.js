@@ -230,7 +230,15 @@ async function main() {
 
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [] })).status === 400, "a pin is not saved as installed without a photo");
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinOff.id, { photos: [ph.body.name] })).status === 404, "an excluded head cannot be installed");
-  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "ok", serial: "SN1" })).status === 200, "installer saves a pin with its photo");
+  const pa = await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "ok", serial: "SN1" });
+  check(pa.status === 200, "installer saves a pin with its photo");
+  const instMails = () => outbox().filter(m => /\] Installed: /.test(m.subject || ""));
+  const im = instMails()[0] || {};
+  check(pa.body.notify && pa.body.notify.sent && instMails().length === 1 && new RegExp("Installed: " + pinA.tag).test(im.subject) && / \(1 of 8\)$/.test(im.subject) &&
+        (im.attachments || []).length === 1 && /SN1/.test(im.html) && JSON.stringify(im.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]',
+        "each installed fixture is emailed to the list with its photo as proof and the progress");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "ok, updated", serial: "SN1" })).status === 200 && instMails().length === 1,
+        "updating an installed fixture sends no second email");
   check((await inst("POST", "jobs/TEST-SITE-01/submit")).status === 400, "cannot submit with heads left");
   check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "nonsense", note: "x" })).status === 400, "a flag needs a known problem");
   check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: "nope", kind: "pole", note: "x" })).status === 400, "a flag needs a fixture on this site");
@@ -248,11 +256,29 @@ async function main() {
   check((await anon("GET", "jobs/TEST-SITE-01/photos/" + ph.body.name)).status === 401, "photos need a session");
   const sb = await inst("POST", "jobs/TEST-SITE-01/submit");
   check(sb.status === 200 && sb.body.job.submitted.heads === 8, "job submitted with every head installed");
-  const sbm = outbox().find(m => /\] Install submitted: 8 fixtures$/.test(m.subject || "")) || {};
+  const sbm = outbox().find(m => /\] Install complete: 8 fixtures - approval needed$/.test(m.subject || "")) || {};
+  check(/REVIEW AND APPROVE/.test(sbm.html || "") && /job\.html\?id=TEST-SITE-01&amp;review=1/.test(sbm.html || ""), "the complete email asks for approval with a button into the app");
   check(sb.body.notify.sent && JSON.stringify(sbm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Still open/.test(sbm.html), "the submit is emailed to the same list, with what is still open");
   check((await inst("GET", "jobs/TEST-SITE-01")).body.flags.length >= 1, "the job shows its flags");
   check((await inst("POST", "jobs/TEST-SITE-01/flags", { pinId: pinA.id, kind: "power", note: "No power after submit" })).status === 201, "a problem can still be flagged after submit");
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name] })).status === 409, "a submitted job is locked");
+  check(instMails().length === 8, "eight fixtures, eight install emails");
+  check((await inst("POST", "jobs/TEST-SITE-01/accept", {})).status === 403, "an installer cannot approve the install");
+  check((await lc("POST", "jobs/TEST-SITE-01/sendback", { reason: "" })).status === 400, "sending back needs a reason");
+  const sbk = await lc("POST", "jobs/TEST-SITE-01/sendback", { reason: "Photo of pole P1 is blurry, retake it" });
+  const sbkm = outbox().find(m => /\] Install sent back: /.test(m.subject || "")) || {};
+  check(sbk.status === 200 && sbk.body.job.submitted === null && sbk.body.job.sentBack.reason === "Photo of pole P1 is blurry, retake it" && /blurry/.test(sbkm.html || ""),
+        "LC sends it back with a reason: the job opens again and the list is emailed");
+  check((await inst("GET", "jobs/TEST-SITE-01")).body.job.sentBack.reason.includes("blurry"), "the installer sees why it came back");
+  check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [ph.body.name], note: "retaken" })).status === 200 && instMails().length === 8, "the installer can fix it (no new install email for an update)");
+  check((await lc("POST", "jobs/TEST-SITE-01/accept", {})).status === 409, "nothing to approve until it is submitted again");
+  check((await inst("POST", "jobs/TEST-SITE-01/submit")).status === 200, "the installer submits again");
+  const accR = await lc("POST", "jobs/TEST-SITE-01/accept", { note: "Looks good" });
+  const accm = outbox().find(m => /\] Install approved: 8 fixtures$/.test(m.subject || "")) || {};
+  check(accR.status === 200 && accR.body.job.accepted && accR.body.job.accepted.by === "dino" && /Looks good/.test(accm.html || "") && JSON.stringify(accm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]',
+        "LC approves: done, and the list is emailed");
+  check((await lc("POST", "jobs/TEST-SITE-01/accept", {})).status === 409, "it cannot be approved twice");
+  check((await inst("GET", "jobs/TEST-SITE-01")).body.job.accepted.mail.to === undefined, "the installer sees the approval, not the addresses");
   const lst = await lc("GET", "jobs");
   check(lst.body.jobs[0].heads === 8 && lst.body.jobs[0].pinsSaved === 8 && lst.body.jobs[0].materialApproved, "LC admin's list shows progress");
   check((await lc("PATCH", "jobs/TEST-SITE-01", { reopenMaterial: true })).status === 200, "LC admin can reopen the material check");
@@ -367,6 +393,9 @@ async function main() {
   check((await inst("PATCH", "jobs/TEST-OWN-01", { notify: { client: [] } })).status === 403, "an installer cannot set a project's emails");
   check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { client: [{ name: "Jim", email: "not-an-email" }] } })).status === 400, "a client email must be an email");
   check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: ["nobody.here"] } })).status === 400, "only the job's own installers can be unticked");
+  check((await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installs: "sometimes" } })).status === 400, "the install-email switch takes each or off");
+  const nOff = await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installs: "off" } });
+  check(nOff.status === 200 && nOff.body.job.notify.installs === "off", "LC can switch the per-fixture emails off for a project");
   const jn = await o2("PATCH", "jobs/TEST-OWN-01", { notify: { installersOff: [], client: [{ name: "Jim Green", email: "Jim.Green@Client.example" }] } });
   check(jn.status === 200 && jn.body.job.notify.client[0].email === "jim.green@client.example", "LC admin adds the client contact to the project");
   check((await inst("GET", "jobs/TEST-OWN-01")).body.job.notify === undefined, "installers never see who else is emailed");

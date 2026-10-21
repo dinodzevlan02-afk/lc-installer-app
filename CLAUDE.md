@@ -145,6 +145,29 @@ that to be reaching out to all of these emails."
 - Installers never see the addresses: API replies and stored records carry
   only sent / queued / how many (jobs.js forViewer); LC admins see all.
 
+## Installed fixtures, approval of a finished job (Dino, 2026-10-21)
+
+"A notification for every fixture that is installed ... the proof being
+uploaded a photo ... and a big one where the project is done ... asking
+approval ... a link where they will enter the app and approve it and it's a
+done deal."
+- Each fixture's FIRST save as installed emails the list: "[job] Installed:
+  {tag} · pole {pole} (n of N)" with its photo(s) attached, product + part
+  no., serial, note. An update or an undo sends nothing. Per project switch
+  in EMAILS ("Email each installed fixture", job.notify.installs each | off,
+  default each): Kroger 345 is 88 emails.
+- SUBMIT now sends "[job] Install complete: N fixtures - approval needed"
+  with a REVIEW AND APPROVE button to /job.html?id=..&review=1 (opens the
+  install view; sign-in first, the login redirect keeps the query). No
+  approve-by-link token: a forwarded email cannot approve anything.
+- LC admins see "waiting for your approval" on the job: APPROVE (optional
+  note; POST /api/jobs/{id}/accept -> job.accepted, "Install approved"
+  email, job done) or SEND BACK (reason required; POST .../sendback ->
+  job.sentBack[], submitted cleared, "Install sent back" email; the
+  installer sees why, fixes, submits again). Installers cannot do either.
+  Home page badges: Waiting approval / Approved. Reset clears accepted too.
+- Judgment call: "our end" = LED Connection admins approve, not the client.
+
 ## Deleting a project (Dino, 2026-10-21)
 
 "Delete ... only by LED Connection user ... asked, are you sure? ...
@@ -401,7 +424,7 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 234 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 250 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

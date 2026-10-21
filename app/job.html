@@ -88,6 +88,15 @@
   .partsbox .actions { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-top: 10px; }
   .claims h3 { font-family: var(--display); font-size: 13px; letter-spacing: .14em; margin: 26px 0 10px; text-transform: uppercase; }
   .claim.flag { border-color: rgba(248,113,113,.45); }
+  /* Approval of a submitted install (Dino, 2026-10-21). */
+  .approval { padding: 12px 16px; border-bottom: 1px solid var(--border); display: flex; gap: 10px 14px; align-items: center; flex-wrap: wrap; font-size: 14px; }
+  .approval[hidden] { display: none; }
+  .approval .t { flex: 1; min-width: 240px; }
+  .approval .t b { font-family: var(--display); letter-spacing: .08em; text-transform: uppercase; font-size: 13px; }
+  .approval.wait { background: rgba(245,158,11,.10); border-bottom-color: rgba(245,158,11,.45); }
+  .approval.done { background: rgba(34,197,94,.10); border-bottom-color: rgba(34,197,94,.45); }
+  .approval.back { background: rgba(248,113,113,.10); border-bottom-color: rgba(248,113,113,.45); }
+  .approval button { min-height: 44px; }
   .claim { padding: 12px 14px; border: 1px solid var(--border); border-radius: 10px; margin-bottom: 8px; background: var(--panel); font-size: 14px; }
   .claim .ref { font-family: var(--mono); color: var(--orange); font-weight: 800; }
 
@@ -190,6 +199,7 @@
   <button class="step on" id="stMaterial" type="button"><span class="num">1</span>Material check</button>
   <button class="step" id="stInstall" type="button" disabled><span class="num">2</span>Install</button>
 </div>
+<div class="approval" id="approval" hidden></div>
 
 <main>
   <div class="loading" id="vLoading">Loading the job…</div>

@@ -527,7 +527,7 @@
     return api('PUT', 'pins/' + id, body).then(function (r) {
       D.pins[id] = r.pin;
       restyle(); renderFilters(); renderProgress(); renderCard();
-      toast(installed ? 'Saved: ' + r.pin.tag + ' installed.' : 'Marked not installed.');
+      toast(installed ? 'Saved: ' + r.pin.tag + ' installed.' + (r.notify && r.notify.sent ? ' LED Connection emailed with the photo.' : '') : 'Marked not installed.');
     }).catch(function (e) { toast(e.message, true); });
   }
 
@@ -612,9 +612,58 @@
     if (!confirm('Submit this job to LED Connection? Every fixture is saved as installed.')) return;
     api('POST', 'submit').then(function (r) {
       D.job = Object.assign(D.job, r.job);
-      renderProgress(); renderCard();
-      toast('Job submitted' + (r.notify && r.notify.sent ? ' and LED Connection emailed' : '') + '. Thank you.');
+      renderProgress(); renderCard(); renderApproval();
+      toast('Job submitted' + (r.notify && r.notify.sent ? '. LED Connection has been asked to approve it' : '') + '. Thank you.');
     }).catch(function (e) { toast(e.message, true); });
+  });
+
+  /* ══ Approval (Dino, 2026-10-21) ════════════════════════════════════
+     Submitted -> LED Connection reviews and APPROVES (done) or SENDS BACK
+     with a reason (the job opens again). The submit email's REVIEW AND
+     APPROVE button lands here with ?review=1. */
+  function isLcUser() { return !!(ME && ME.can && ME.can.manageUsers); }
+  function renderApproval() {
+    var j = D.job, el = $('approval'), h = '', cls = '';
+    var openN = (D.claims || []).filter(function (c) { return c.status === 'open'; }).length + (D.flags || []).filter(function (f) { return f.status === 'open'; }).length;
+    if (j.accepted) {
+      cls = 'done';
+      h = '<div class="t"><b>Approved</b> · ' + esc(j.accepted.byName || j.accepted.by) + ' · ' + esc(new Date(j.accepted.at).toLocaleString()) +
+        (j.accepted.note ? '<div>' + esc(j.accepted.note) + '</div>' : '') + '</div>';
+    } else if (j.submitted) {
+      cls = 'wait';
+      h = '<div class="t"><b>' + (isLcUser() ? 'Install complete: waiting for your approval' : 'Submitted: waiting for LED Connection to approve') + '</b><div>' +
+        j.submitted.heads + ' fixtures, submitted by ' + esc(j.submitted.byName || j.submitted.by) + ' · ' + esc(new Date(j.submitted.at).toLocaleString()) +
+        (openN ? ' · <span style="color:#fca5a5">' + openN + ' claim / problem still open</span>' : '') + '</div></div>' +
+        (isLcUser() ? '<button type="button" class="danger" data-sendback>Send back</button><button type="button" class="primary" data-accept>Approve</button>' : '');
+    } else if (j.sentBack) {
+      cls = 'back';
+      h = '<div class="t"><b>Sent back by LED Connection</b> · ' + esc(j.sentBack.byName || j.sentBack.by) + ' · ' + esc(new Date(j.sentBack.at).toLocaleString()) +
+        '<div>' + esc(j.sentBack.reason) + '</div><div class="muted">Fix it, then submit the job again.</div></div>';
+    }
+    el.className = 'approval ' + cls;
+    el.innerHTML = h;
+    el.hidden = !h;
+  }
+  $('approval').addEventListener('click', function (e) {
+    var b = e.target.closest('button');
+    if (!b) return;
+    if (b.hasAttribute('data-accept')) {
+      var note = prompt('Approve this install? It closes the job and emails everyone.\n\nNote (optional):', '');
+      if (note === null) return;
+      b.disabled = true;
+      api('POST', 'accept', { note: note }).then(function (r) {
+        D.job = Object.assign(D.job, r.job); renderApproval();
+        toast('Approved' + (r.notify && r.notify.sent ? ' and emailed' : '') + '. The job is done.');
+      }).catch(function (err) { toast(err.message, true); b.disabled = false; });
+    } else if (b.hasAttribute('data-sendback')) {
+      var reason = prompt('What needs fixing? The installer gets the job back with this note.', '');
+      if (reason === null) return;
+      b.disabled = true;
+      api('POST', 'sendback', { reason: reason }).then(function (r) {
+        D.job = Object.assign(D.job, r.job); renderApproval(); renderProgress(); renderCard();
+        toast('Sent back' + (r.notify && r.notify.sent ? ' and emailed' : '') + '.');
+      }).catch(function (err) { toast(err.message, true); b.disabled = false; });
+    }
   });
 
   /* ══ Steps ══════════════════════════════════════════════════════════ */
@@ -639,7 +688,7 @@
 
   /* ══ Start ══════════════════════════════════════════════════════════ */
   LCI.me().then(function (me) {
-    if (!me || me.user.mustChangePassword) { location.replace('./index.html?next=' + encodeURIComponent('./job.html?id=' + JOB_ID)); return null; }
+    if (!me || me.user.mustChangePassword) { location.replace('./index.html?next=' + encodeURIComponent('./job.html' + location.search + location.hash)); return null; }
     ME = me;
     $('who').innerHTML = '<b>' + esc(me.user.name || me.user.username) + '</b>';
     return api('GET');
@@ -651,8 +700,9 @@
     $('jobName').textContent = d.job.name;
     $('jobAddr').textContent = d.job.address || d.job.id;
     $('vLoading').hidden = true;
-    renderContact(); renderParts(); renderMaterial(); renderSteps();
-    show(approved() && location.hash === '#install' ? 'install' : 'material');
+    renderContact(); renderParts(); renderMaterial(); renderSteps(); renderApproval();
+    var review = /[?&]review=1\b/.test(location.search);
+    show(approved() && (review || location.hash === '#install') ? 'install' : 'material');
   }).catch(function (e) {
     $('vLoading').innerHTML = '<p class="msg err">' + esc(e.message) + '</p><p><a href="./home.html">Back to jobs</a></p>';
   });

@@ -38,7 +38,8 @@ module.exports = P.handler(async ({ req, send }) => {
     if (!j) return null;
     const [mat, pins] = await Promise.all([P.store().get(J.paths.material(j.id)), P.store().list(J.paths.pins(j.id))]);
     return { installers: j.installers || [], materialApproved: !!(mat && mat.data.approved), pinsSaved: pins.length, submitted: j.submitted || null,
-             notify: { installersOff: (j.notify && j.notify.installersOff) || [], client: (j.notify && j.notify.client) || [] } };
+             accepted: j.accepted || null,
+             notify: { installersOff: (j.notify && j.notify.installersOff) || [], installs: (j.notify && j.notify.installs) || "each", client: (j.notify && j.notify.client) || [] } };
   }
   const fromPortal = metas.filter(m => !ownIds.has(m.id)).map(async m => {
     const site = m.site || {};
