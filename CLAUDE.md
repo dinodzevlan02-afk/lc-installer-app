@@ -112,6 +112,15 @@ the way the customer portal sends through Outlook.
   email (on unless unticked, so one added later hears too) and the client
   contacts typed there. There are no client logins in this app; installers
   never see who else is emailed.
+- Default LED Connection list (Dino, 2026-10-21, "for the testing
+  purposes"): Cassie, Dino, David X. Williams (davidw@) and Sergei
+  Vasilyev (sergeiv@). A list saved on the EMAIL panel replaces it.
+- Why nothing arrived at first (2026-10-21): claims were queued, but the
+  relay on Dino's PC still ran the old script (portal only). The EMAIL panel
+  now shows the one PowerShell command (pull + restart) whenever a relay is
+  paired but has not checked in for 15 minutes, and SEND TEST EMAIL
+  (POST /api/relay/test, LC only, audit mail.test) proves the route without
+  filing a claim.
 
 ## Deleting a project (Dino, 2026-10-21)
 
@@ -369,7 +378,7 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 221 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 223 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no

@@ -212,7 +212,8 @@ async function main() {
   const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }], note: "Lens cracked", photos: [ph.body.name] });
   check(cl.status === 201 && /^MC-\d{6}-[0-9A-F]{4}$/.test(cl.body.claim.ref) && cl.body.claim.lines[0].expected === 6, "claim filed with a reference and the expected quantity from the site");
   check(cl.body.notify && cl.body.notify.sent && cl.body.notify.local && cl.body.notify.attached === 1 &&
-        JSON.stringify(cl.body.notify.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com"]', "the claim is emailed to Cassie and Dino with its photo (dev: outbox)");
+        JSON.stringify(cl.body.notify.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]',
+        "the claim is emailed to Cassie, Dino, David and Sergei with its photo (dev: outbox)");
   const outDir = path.join(store, "outbox");
   const outJson = fs.existsSync(outDir) ? fs.readdirSync(outDir).filter(f => f.endsWith(".json")) : [];
   const mail = outJson.length ? JSON.parse(fs.readFileSync(path.join(outDir, outJson[0]), "utf8")) : {};
@@ -318,6 +319,9 @@ async function main() {
 
   console.log("claim email through the Outlook relay (paired here, its own key)");
   check((await inst("POST", "relay/pair", {})).status === 403, "an installer cannot pair a mail relay");
+  check((await inst("POST", "relay/test", {})).status === 403, "an installer cannot send a test email");
+  const tm = await o2("POST", "relay/test", {});
+  check(tm.status === 200 && tm.body.sent && tm.body.to.includes("sergeiv@ledconnection.com"), "LC admin sends a test email to the LED Connection list");
   check((await anon("GET", "relay/outbox")).status === 404, "no outbox before a relay is paired");
   const pr = await o2("POST", "relay/pair", { from: "dinod@ledconnection.com" });
   check(pr.status === 200 && /^[a-f0-9]{40}$/.test(pr.body.key), "LC admin pairs a relay; the key comes back once");
