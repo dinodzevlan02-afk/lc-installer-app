@@ -81,6 +81,10 @@
   .ntoff button { min-height: 0; padding: 2px 8px; margin: 0 4px 4px 0; font-size: 10.5px; }
   .ntadd { display: flex; gap: 8px; flex-wrap: wrap; margin: 6px 0; }
   .ntadd input { flex: 1; min-width: 150px; width: auto; }
+  /* Page messages float over the page, so an answer is never 1,000 px below
+     the button that asked for it (Dino, 2026-10-21). */
+  #msg { position: fixed; left: 50%; bottom: 18px; transform: translateX(-50%); z-index: 60; width: max-content; max-width: min(640px, calc(100vw - 32px));
+         margin: 0; box-shadow: 0 10px 30px rgba(0,0,0,.5); backdrop-filter: blur(6px); }
   .crow input { flex: 1; min-width: 0; }
   @media (pointer: coarse) { .chip button { min-width: 44px; min-height: 44px; } }
   .delsec { margin-top: 16px; }
@@ -255,7 +259,7 @@
         <div><label for="adUser">Username</label><input id="adUser" autocapitalize="none" spellcheck="false" required></div>
         <div><label for="adName">Full name</label><input id="adName"></div>
         <div><label for="adPhone">Phone</label><input id="adPhone" type="tel"></div>
-        <div><label for="adEmail">Email</label><input id="adEmail" type="email"></div>
+        <div><label for="adEmail">Email</label><input id="adEmail" type="email" placeholder="the invite is emailed here"></div>
         <div><label for="adCompany">Company / crew</label><input id="adCompany"></div>
         <div><label for="adRole">Role</label><select id="adRole"><option value="installer">Installer</option><option value="lc-admin">LED Connection admin</option></select></div>
       </div>
@@ -263,6 +267,7 @@
     </form>
     <div class="link-box" id="linkBox" hidden>
       <div class="mono" id="linkFor"></div>
+      <div class="mono" id="linkWhy" style="font-size:11px;color:#fca5a5;margin:4px 0 6px"></div>
       <input id="linkVal" readonly>
       <button type="button" class="small" id="btnCopy">Copy link</button>
       <span class="muted mono" style="font-size:11px">Shown once. Send it to them by one channel only; it expires in 7 days.</span>
@@ -294,18 +299,33 @@
   var $ = function (id) { return document.getElementById(id); };
   var esc = LCI.esc, ME = null;
 
+  var sayTimer = null;
   function say(text, ok) {
     var m = $('msg');
     m.textContent = text || '';
     m.className = 'msg ' + (ok ? 'ok' : 'err');
     m.hidden = !text;
+    clearTimeout(sayTimer);
+    if (text && ok) sayTimer = setTimeout(function () { m.hidden = true; }, 7000);
   }
 
+  /* The invite is emailed from the app; the link shows here only when the
+     email will not reach them (no email on the login, mail not set up, or
+     queued while the Outlook relay is not checking in). */
   function showLink(inv) {
-    if (!inv || !inv.link) { $('linkBox').hidden = true; return; }
-    $('linkFor').textContent = (inv.kind === 'reset' ? 'Reset link for ' : 'Invite link for ') + (inv.name || inv.username) + (inv.to ? ' · ' + inv.to : '');
+    if (!inv) { $('linkBox').hidden = true; return; }
+    var who = inv.name || inv.username, what = inv.kind === 'reset' ? 'Reset link' : 'Invite';
+    if (inv.emailSent && !inv.link) {
+      $('linkBox').hidden = true;
+      say(what + (inv.queued ? ' queued for Outlook to ' : ' emailed to ') + who + ' · ' + inv.to + '.', true);
+      return;
+    }
+    $('linkFor').textContent = (inv.kind === 'reset' ? 'Reset link for ' : 'Invite link for ') + who + (inv.to ? ' · ' + inv.to : '');
+    $('linkWhy').textContent = inv.relayIdle ? 'Queued for Outlook, but the relay on Dino\'s PC has not checked in for 15 minutes: send this link yourself so they are not kept waiting.'
+      : 'Not emailed: ' + (inv.reason || 'no email on this login') + '. Send it to them yourself.';
     $('linkVal').value = inv.link;
     $('linkBox').hidden = false;
+    $('linkBox').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
   }
 
   function renderUsers(list) {
@@ -611,7 +631,14 @@
     var call = assigning.job ? LCI.api('PATCH', 'jobs/' + encodeURIComponent(assigning.id), { installers: inst })
                              : LCI.api('POST', 'jobs', { projectId: assigning.id, installers: inst });
     $('asSave').disabled = true;
-    call.then(function () { $('ovAssign').hidden = true; addOpen = false; say(assigning.job ? 'Installers saved.' : 'Job started on ' + assigning.name + '.', true); return loadProjects(); })
+    call.then(function (r) {
+      $('ovAssign').hidden = true; addOpen = false;
+      var a = r && r.assigned, extra = '';
+      if (a) extra = (a.emailed ? ' ' + a.emailed + ' installer' + (a.emailed > 1 ? 's' : '') + ' emailed the job.' : '') +
+                     (a.noEmail.length ? ' Not emailed (no email on the login): ' + a.noEmail.join(', ') + '.' : '');
+      say((assigning.job ? 'Installers saved.' : 'Job started on ' + assigning.name + '.') + extra, !(a && a.noEmail.length && !a.emailed));
+      return loadProjects();
+    })
       .catch(function (err) { say(err.message); }).then(function () { $('asSave').disabled = false; });
   });
 

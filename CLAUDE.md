@@ -406,9 +406,19 @@ approach). Keep it in step with the portal when either changes.
 - First admin via one-time setup with INSTALLER_SETUP_KEY; system/setup.json
   is a create-only write, so it works once.
 - New logins get a one-time set-password link (7 days, only its SHA-256
-  stored). No email goes out yet: the link comes back to the LC admin ONCE
-  to pass on (installers may have only a phone). Add mail later the
-  portal's way (api/shared/mail.js, docs/email-setup.md there).
+  stored), EMAILED at once (Dino, 2026-10-21, "mandatory ... same like the
+  customer portal"): api/users deliverLink -> mail.js inviteEmail, worded
+  for the role (installer + company, or LED Connection admin), same route
+  as every app email (Graph, else the Outlook relay), Dino BCC'd. Sent
+  only after the login is saved. NEW LINK / RESET LINK email too. The link
+  shows on the page (once) only when the email will not reach them: no
+  email on the login (installers may have only a phone), mail not set up
+  or failed, or queued while the relay has not checked in for 15 minutes.
+- Putting an installer on a job (INSTALLERS, or START JOB with them ticked)
+  emails that installer "[job] New install job for you" with an OPEN THE
+  JOB button, to them alone (claimmail.js notifyAssigned).
+- Page messages on the home page are a floating toast (#msg fixed at the
+  bottom), so a result never lands out of sight.
 - Guard rails: nobody switches themselves off or changes their own role;
   the last active LC admin cannot be removed.
 - Everything is written to audit/{yyyy-mm}/ (append-only).
