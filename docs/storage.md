@@ -28,6 +28,8 @@ installer-app/
   mailqueue/pending/{id}.json       an email waiting for the Outlook relay (photos inside, base64)
   mailqueue/sent/{id}.json          sent by the relay (attachments dropped, sentAt)
   mailqueue/failed/{id}.json        given up after 5 tries (error)
+  deleted/{stamp}-{id}.json         a deleted project's manifest: who, when, why, files, restores
+  deleted/{stamp}-{id}/files/{path} every file of that project, under its own path
 ```
 
 Every job record (job, material, claim, pin) carries `"v": 1`, the shape it
@@ -145,6 +147,18 @@ page and never stored.
 
 `pinId` = first 20 hex of sha1(datasetId + NUL + fixture id).
 `{ pinId, fid, tag, poleId, product, sku, installed, note, serial, photos: [name], at, by, byName }`
+
+## deleted/{key}.json and deleted/{key}/files/
+
+A project deleted from the home page (api/deleted, LC admins only). `key` =
+`{yyyymmddThhmmssZ}-{projectId}`. Every file of the project (jobs/{id}.json,
+everything under jobs/{id}/, and for a site uploaded here sites/{id}.json and
+sites/{id}/) is COPIED to files/{its own path} and checked there before any
+original is removed. Manifest:
+`{ v, key, id, name, address, customer, source: installer|portal, installers, at, by, byName, reason, files: [path], counts: { claims, pins, photos, material, parts, site }, restored: [{ at, by, byName }] }`.
+`state: "archiving"` means the delete stopped half way; it can still be
+restored. A restore copies the files back (the job record last) and keeps
+the archive. Nothing here is ever removed by the app.
 
 ## audit/{yyyy-mm}/{stamp}.json
 

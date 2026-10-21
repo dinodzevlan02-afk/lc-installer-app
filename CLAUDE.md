@@ -99,6 +99,24 @@ the way the customer portal sends through Outlook.
   /api/relay/status feeds the panel. Until paired, claims are saved and NOT
   emailed (on Azure there is no local outbox).
 
+## Deleting a project (Dino, 2026-10-21)
+
+"Delete ... only by LED Connection user ... asked, are you sure? ...
+activity log ... save everything in backend in a case I need to return
+back."
+- DELETE on each Projects row (LC only; the API refuses installers). The
+  dialog lists what goes (job and its installers, material check, claims,
+  installed heads, photos, part numbers, the uploaded site) and needs
+  "DELETE" typed; an optional reason is kept.
+- api/deleted copies every file to deleted/{stamp}-{id}/files/ and checks
+  the copy BEFORE removing anything; removes the job record first so nobody
+  saves into it mid-delete, then archives anything saved in between. A
+  portal project's own data is never touched: it returns to the ADD picker.
+- Activity log: audit job.delete / job.restore with who, plus the DELETED
+  PROJECTS list on the home page (who, when, why, restored by whom).
+- RESTORE puts it all back as it was (job record last) and keeps the
+  archive; refused while a project with that id is there again.
+
 ## UL-listed part numbers (Dino, 2026-10-20)
 
 "Change all the codes that are on the design ... apply these codes first."
@@ -319,12 +337,12 @@ never by writing its container.
 - `npm test` = tests/sites.test.js (KR-00345-NV build against the A-02
   schedule, upload check) + tests/site.test.js (7 unit tests of the site reader: product
   names as the portal shows them, counts, excluded heads, moved pins, no
-  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 169 checks through the real HTTP API on a throwaway
+  internal fields) + tests/parts.test.js (order logic) + tests/guides.test.js + tests/api.test.js, 190 checks through the real HTTP API on a throwaway
   store: setup once, CSRF header, cookie flags, invite once, lockout,
   installer cannot manage logins, switch-off and password change end
   sessions, last admin, audit, token never stored; jobs: visibility, no
   pricing/vendor/notes, BOM counts, moved pins, material sign-off, claims,
-  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack); uploaded sites (LC only, nothing internal stored,
+  photos, pins, submit; claim email (outbox, note, missing, photo) and the Outlook relay (pair LC only, key hash only, queue, fetch, ack); delete and restore (LC only, confirmation, archive complete before removal, audit, portal untouched); uploaded sites (LC only, nothing internal stored,
   same pin ids on replace). Runs in CI before every deploy.
 
 ## Open items
