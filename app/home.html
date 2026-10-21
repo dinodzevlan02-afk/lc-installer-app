@@ -193,9 +193,15 @@
     </div>
     <div class="small-text" style="margin-top:6px">Installers and the client are added per project: EMAILS on its row above.</div>
     <div class="addline" style="margin-top:12px">
+      <button type="button" class="small" id="btnTestMail">Send test email</button>
       <button type="button" class="small" id="btnPair">Pair a separate relay</button>
     </div>
     <div id="pairKey" hidden></div>
+    <div id="relayFix" class="link-box" hidden>
+      <div class="small-text" style="color:var(--text-1)"><b>The relay on Dino's PC has not picked up this app yet.</b> Claims wait in the queue until it does. On that PC, open PowerShell and run this once (it updates the customer portal's relay and restarts it):</div>
+      <textarea id="relayCmd" readonly rows="4" class="mono" style="width:100%;margin-top:8px;font-size:11px"></textarea>
+      <button type="button" class="small" id="btnCopyCmd">Copy</button>
+    </div>
   </section>
 
   <section class="panel" id="pLogins" hidden>
@@ -560,6 +566,9 @@
         (m.lastSent ? ' (last ' + esc(new Date(m.lastSent).toLocaleString()) + ')' : '') + (m.failed ? ' · <span style="color:#fca5a5">failed ' + m.failed + '</span>' : '') +
         (m.relay && m.pending && (!m.seenAt || Date.now() - m.seenAt > 15 * 60000)
           ? '<br><span style="color:#fca5a5">Waiting for the relay on Dino\'s PC: update and restart it (see the note in the customer portal repo, tools/outlook-relay.ps1).</span>' : '');
+      /* The portal's relay has never come for this app's mail (or not for
+         15 minutes): show the one command that fixes it. */
+      $('relayFix').hidden = !(m.relay && !m.graph && (!m.seenAt || Date.now() - m.seenAt > 15 * 60000));
       LC_LIST = m.notifyTo.slice();
       renderLcList();
     }, function (e) { $('mailStatus').textContent = e.message; });
@@ -625,6 +634,25 @@
     LCI.api('PATCH', 'jobs/' + encodeURIComponent(notifying.id), { notify: { installersOff: off, client: client } })
       .then(function () { $('ovNotify').hidden = true; say('Claim emails saved for ' + notifying.name + '.', true); return loadProjects(); }, function (e) { say(e.message); })
       .then(function () { $('ntSave').disabled = false; });
+  });
+  $('relayCmd').value = [
+    "$t  = Get-ScheduledTask | ? { \"$($_.Actions.Arguments)\" -match 'outlook-relay\\.ps1' } | select -First 1",
+    "$ps = [regex]::Match(\"$($t.Actions.Arguments)\", '[A-Za-z]:\\\\[^\"]*outlook-relay\\.ps1').Value",
+    "git -C (Split-Path (Split-Path $ps)) pull",
+    "Stop-ScheduledTask -TaskName $t.TaskName -TaskPath $t.TaskPath; Start-ScheduledTask -TaskName $t.TaskName -TaskPath $t.TaskPath"
+  ].join('\n');
+  $('btnCopyCmd').addEventListener('click', function () {
+    $('relayCmd').select();
+    (navigator.clipboard ? navigator.clipboard.writeText($('relayCmd').value) : Promise.reject()).then(function () { say('Command copied.', true); },
+      function () { document.execCommand('copy'); say('Command copied.', true); });
+  });
+  $('btnTestMail').addEventListener('click', function () {
+    $('btnTestMail').disabled = true;
+    LCI.api('POST', 'relay/test', {}).then(function (r) {
+      say(r.sent ? (r.queued ? 'Test email queued for ' + r.to.join(', ') + '. It leaves through Outlook the next time the relay checks in.' : 'Test email sent to ' + r.to.join(', ') + '.')
+                 : 'The test email did not go out: ' + (r.reason || 'not set up') + '.', r.sent);
+      return loadMail();
+    }, function (e) { say(e.message); }).then(function () { $('btnTestMail').disabled = false; });
   });
   $('btnPair').addEventListener('click', function () {
     if (!confirm('Pair a separate relay with its own key? Not needed while the customer portal\'s relay sends these emails.')) return;

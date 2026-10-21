@@ -99,6 +99,21 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       notifyTo: list.to, notifySaved: list.saved, notifyAt: list.at || null, notifyBy: list.by || null
     });
   }
+  /* POST /api/relay/test  LC admin: a short test email to LED Connection's
+     list, the same way a claim goes, so the route can be checked without
+     filing a claim. */
+  if (action === "test") {
+    if (method !== "POST") throw new ApiError(405, "Method not allowed.");
+    const { user } = await P.requireLc(req);
+    const CM = require("../shared/claimmail");
+    const to = (await CM.lcList()).to;
+    const when = new Date().toUTCString();
+    const r = await MAIL.sendMail({ to, subject: "[Installer App] Test email",
+      html: '<p style="font-family:Segoe UI,Arial,sans-serif;font-size:14px">This is a test from the LC Installer App, sent by ' + MAIL.esc(user.name || user.username) +
+            ' at ' + MAIL.esc(when) + '. Material claims reach this list the same way.</p>' });
+    await P.audit(req, user.username, "mail.test", "system:notify", { to, sent: r.sent, queued: !!r.queued });
+    return send(200, { sent: r.sent, queued: !!r.queued, local: !!r.local, reason: r.reason || null, to });
+  }
   /* POST /api/relay/notify { to: [address] }  LC admin: LED Connection's
      list for every claim email. @ledconnection.com only; installers and
      the client are set per project. */

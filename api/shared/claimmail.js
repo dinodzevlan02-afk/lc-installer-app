@@ -7,7 +7,9 @@
    who is going to be client"):
    - To: LED Connection's list, the same for every project. Edited on the
      home page EMAIL panel (system/notify.json), @ledconnection.com only;
-     until then INSTALLER_NOTIFY_TO, else cassieh@ + dinod@.
+     until then INSTALLER_NOTIFY_TO, else cassieh@, dinod@, davidw@ and
+     sergeiv@ (Dino, 2026-10-21: Cassie, him, David X. Williams and Sergei
+     "for the testing purposes").
    - CC, per project (job.notify, set in the project's EMAILS dialog): the
      job's installers whose login has an email (unless unticked there), and
      the client contacts typed for that project.
@@ -18,7 +20,7 @@ const J = require("./jobs");
 const MAIL = require("./mail");
 const INV = require("./invite");
 
-const NOTIFY_DEFAULT = ["cassieh@ledconnection.com", "dinod@ledconnection.com"];
+const NOTIFY_DEFAULT = ["cassieh@ledconnection.com", "dinod@ledconnection.com", "davidw@ledconnection.com", "sergeiv@ledconnection.com"];
 const NOTIFY_PATH = "system/notify.json";
 const RE_EMAIL = /^[^\s@<>",;()]+@[^\s@<>",;()]+\.[a-z]{2,}$/i;
 const RE_LC = /@ledconnection\.com$/i;
