@@ -47,8 +47,15 @@ the session; if they are not there, say so rather than guessing.
    design: expected = heads of that product, received / damaged steppers
    (autosave), MATCH / SHORT / OVER / DAMAGED. REPORT A PROBLEM files a claim
    (short / damaged / wrong / other, lines, note, up to 6 photos; damaged
-   needs a photo). The contact strip at the bottom (LED Connection, 702.847.7680,
-   dinod@) comes from INSTALLER_CONTACT_PHONE / _EMAIL. The installer SIGNS
+   needs a photo). Layout (Dino, 2026-10-23, from the Claude Design canvas
+   "Installer App · Material Check (iPad)"): full width, one compact row per
+   product with bigger text, the documents behind one DOCUMENTS button (a
+   pop-up with the set up in full, guide, spec sheet, job sheet, catalog
+   PDFs), and NO phone / email strip under the list ("remove here contact
+   number and my emails"). Next, waiting on Dino: a short "Set up" line in
+   the row (full text in the pop-up), a desktop table layout, and RECORD A
+   MESSAGE (voice / camera / screen to the project's LC list; needs an
+   upload + email endpoint; Safari on iPad cannot record the screen). The installer SIGNS
    OFF the counted quantities (confirm box); that unlocks the install even
    when something is short (judgment call: the claim covers it). Signed-off
    counts lock; an LC admin can reopen them (PATCH reopenMaterial).
