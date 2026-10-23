@@ -116,7 +116,8 @@
     var d = document.createElement('div');
     d.id = 'lciBeta';
     d.setAttribute('role', 'note');
-    d.innerHTML = '<b>BETA</b><span>Installer App in testing<span class="long">: features and data may change. Report anything odd to LED Connection.</span></span>' +
+    /* Wording: Dino, 2026-10-23 (no "testing", no problems mentioned). */
+    d.innerHTML = '<b>BETA</b><span>LED Connection Installer App<span class="long">, early access. New features arrive as we go.</span></span>' +
                   '<button type="button" id="lciInstall" hidden title="Install the Installer App on this device: its own icon and window">INSTALL APP</button>';
     document.body.insertBefore(d, document.body.firstChild);
   }

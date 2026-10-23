@@ -46,17 +46,35 @@
 
   function product(key) { return D.site.bom.filter(function (b) { return b.key === key; })[0] || null; }
 
-  /* Spec sheet and manual buttons for a product line. */
+  /* A product's documents: installation guide, spec sheet, job sheet, then
+     the catalog's own PDFs. The pin card shows them as buttons; the material
+     check puts them behind one DOCUMENTS button (openDocs). */
+  function docList(b) {
+    var out = [], g = b && b.partNo && b.partNo.guide;
+    if (!b) return out;
+    if (g && g.ready) out.push({ label: 'Installation guide (PDF)', note: g.bracketName || '', url: g.url, primary: true, tab: true });
+    if (b.specSheetUrl) out.push({ label: 'Spec sheet', url: b.specSheetUrl, tab: true });
+    out.push({ label: 'Job sheet', url: './manual.html?job=' + encodeURIComponent(JOB_ID) + '&p=' + encodeURIComponent(b.key) });
+    ((b.catalog && b.catalog.docs) || []).forEach(function (d) { out.push({ label: d.label, url: d.url, tab: true, more: true }); });
+    return out;
+  }
+  function docLink(d, full) {
+    return '<a class="btn' + (d.primary ? ' primary' : '') + '"' + (d.tab ? ' target="_blank" rel="noopener"' : '') + ' href="' + esc(d.url) + '">' +
+      (full ? '<span>' + esc(d.label) + '</span>' + (d.note ? '<span style="font-weight:600;letter-spacing:.04em;text-transform:none">' + esc(d.note) + '</span>' : '') : esc(d.label)) + '</a>';
+  }
   function docButtons(b) {
-    if (!b) return '';
-    var h = '', g = b.partNo && b.partNo.guide;
-    if (g && g.ready) h += '<a class="btn primary" target="_blank" rel="noopener" href="' + esc(g.url) + '">Installation guide (PDF)</a>';
-    if (b.specSheetUrl) h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(b.specSheetUrl) + '">Spec sheet</a>';
-    h += '<a class="btn" href="./manual.html?job=' + encodeURIComponent(JOB_ID) + '&p=' + encodeURIComponent(b.key) + '">Job sheet</a>';
-    ((b.catalog && b.catalog.docs) || []).forEach(function (d) {
-      h += '<a class="btn" target="_blank" rel="noopener" href="' + esc(d.url) + '">' + esc(d.label) + '</a>';
-    });
-    return h;
+    return docList(b).map(function (d) { return docLink(d, false); }).join('');
+  }
+  function openDocs(key) {
+    var b = product(key);
+    if (!b) return;
+    var list = docList(b), main = list.filter(function (d) { return !d.more; }), more = list.filter(function (d) { return d.more; });
+    $('dcTitle').textContent = b.name;
+    $('dcPn').textContent = b.partNo ? b.partNo.pn : b.sku;
+    $('dcBody').innerHTML = (b.partNo && b.partNo.setup ? '<div class="docsetup"><div class="k">SET UP</div>' + esc(b.partNo.setup) + '</div>' : '') +
+      '<div class="doclist">' + main.map(function (d) { return docLink(d, true); }).join('') +
+      (more.length ? '<div class="k">MORE DOCUMENTS</div>' + more.map(function (d) { return docLink(d, true); }).join('') : '') + '</div>';
+    $('ovDocs').hidden = false;
   }
 
   /* ══ 1. Material check ══════════════════════════════════════════════ */
@@ -84,7 +102,7 @@
 
   function partLine(b) {
     if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' +
-      (b.partNo.setup ? '<div class="psku setup">Set up: ' + esc(b.partNo.setup) + '</div>' : '');
+      (b.partNo.setup ? '<div class="psku setup"><b>Set up</b> ' + esc(b.partNo.setup) + '</div>' : '');
     return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
   }
 
@@ -127,17 +145,17 @@
     $('lines').innerHTML = D.site.bom.map(function (b) {
       var c = counts[b.key] || {};
       return '<div class="line" data-line="' + esc(b.key) + '">' +
-        '<div><div class="pname">' + esc(b.name) + '</div>' + partLine(b) +
-          '<div class="chips">' + b.tags.map(function (t) {
+        '<div class="info"><div class="head"><span class="pname">' + esc(b.name) + '</span>' +
+          '<span class="chips">' + b.tags.map(function (t) {
             var n = b.tagCounts && b.tagCounts[t];
             return '<span class="chip tag">' + esc(t) + (n && b.tags.length > 1 ? ' &times; ' + n : '') + '</span>';
           }).join('') +
-            (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</div>' +
-          '<div class="docs">' + docButtons(b) + '</div></div>' +
+            (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</span>' +
+          '<span class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</span></div>' + partLine(b) + '</div>' +
+        '<button type="button" class="docbtn" data-docs="' + esc(b.key) + '">Documents · ' + docList(b).length + '</button>' +
         '<div class="counts"><div class="cbox"><div class="cl">Expected</div><div class="expected">' + b.qty + '</div></div>' +
           '<div class="cbox"><div class="cl">Received</div>' + stepper(b.key, 'received', c.received, locked) + '</div>' +
-          '<div class="cbox"><div class="cl">Damaged</div>' + stepper(b.key, 'damaged', c.damaged || 0, locked) + '</div></div>' +
-        '<div class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</div></div>';
+          '<div class="cbox"><div class="cl">Damaged</div>' + stepper(b.key, 'damaged', c.damaged || 0, locked) + '</div></div></div>';
     }).join('') || '<p class="muted">This site has no LC products to install.</p>';
 
     var a = D.material.approved;
@@ -174,12 +192,15 @@
     }).join('');
   }
 
-  function renderContact() {
-    var c = D.contact, subj = encodeURIComponent('Installer: ' + D.job.name + ' (' + D.job.id + ')');
-    $('contact').innerHTML = '<b>Missing or damaged material?</b> ' + esc(c.company) +
-      ' · <a href="tel:' + esc(c.phone.replace(/[^0-9+]/g, '')) + '">' + esc(c.phone) + '</a>' +
-      ' · <a href="mailto:' + esc(c.email) + '?subject=' + subj + '">' + esc(c.email) + '</a>';
-  }
+  /* No phone number or email under the material check (Dino, 2026-10-23:
+     "remove here contact number and my emails"). REPORT A PROBLEM reaches
+     LED Connection's list. */
+  $('lines').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-docs]');
+    if (t) openDocs(t.getAttribute('data-docs'));
+  });
+  $('dcClose').addEventListener('click', function () { $('ovDocs').hidden = true; });
+  $('ovDocs').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
 
   /* Counts save themselves a moment after the last change. */
   var saveTimer = null, saving = Promise.resolve();
@@ -700,7 +721,7 @@
     $('jobName').textContent = d.job.name;
     $('jobAddr').textContent = d.job.address || d.job.id;
     $('vLoading').hidden = true;
-    renderContact(); renderParts(); renderMaterial(); renderSteps(); renderApproval();
+    renderParts(); renderMaterial(); renderSteps(); renderApproval();
     var review = /[?&]review=1\b/.test(location.search);
     show(approved() && (review || location.hash === '#install') ? 'install' : 'material');
   }).catch(function (e) {
