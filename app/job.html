@@ -13,7 +13,7 @@
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@700;800;900&family=Barlow:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600;700;800&display=swap" rel="stylesheet">
-<link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" crossorigin="">
+<link rel="stylesheet" href="vendor/leaflet/leaflet.css">
 <link rel="stylesheet" href="lci.css">
 <!-- One job, tablet first (2026-10-20, Dino). Two steps:
        1 MATERIAL  count what arrived against the design's quantities, report
@@ -231,12 +231,24 @@
          border: 1px solid rgba(255,255,255,.25); white-space: nowrap; transform: translate(-50%, -150%); display: inline-block; }
   .leaflet-div-icon.lbl-wrap { background: none; border: 0; }
 
+  .tomap { display: none; }
   /* Portrait tablet / phone: the panel becomes a sheet under the map. */
   @media (max-width: 899px), (orientation: portrait) {
     #vInstall:not([hidden]) { flex-direction: column; }
     #map { flex: 1 1 55%; }
     .side { width: auto; flex: 1 1 45%; border-left: 0; border-top: 1px solid var(--border-2); }
     .filters { max-height: 18vh; }
+    .tomap { display: inline-flex; margin-bottom: 8px; }
+    /* A picked head takes the panel: no progress or filters above it. */
+    #vInstall.picked #map { flex: 1 1 36%; }
+    #vInstall.picked .side { flex: 1 1 64%; }
+    #vInstall.picked .prog, #vInstall.picked .filters { display: none; }
+  }
+  /* Gloves (QA 2026-10-27, M4): every control in the install view reaches
+     44 px on a touch screen, the map's own zoom buttons too. */
+  @media (pointer: coarse) {
+    .flt, .pole button, .tomap { min-height: 44px; }
+    .leaflet-touch .leaflet-bar a { width: 44px; height: 44px; line-height: 44px; font-size: 22px; }
   }
 
   /* ── Dialogs ────────────────────────────────────────────────────── */
@@ -263,7 +275,7 @@
   table.sum th { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; color: var(--text-3); }
   .dlg .actions { display: flex; gap: 10px; justify-content: flex-end; margin-top: 16px; flex-wrap: wrap; }
   .dlg .actions button { min-height: 48px; }
-  .toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); z-index: 3000; padding: 12px 18px; border-radius: 10px;
+  .toast { position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%); z-index: 3000; padding: 12px 18px; border-radius: 10px;
            font-family: var(--mono); font-size: 13px; background: #0d1322; border: 1px solid var(--border-2); max-width: 90vw; }
   .toast.err { border-color: rgba(248,113,113,.6); color: #fecaca; }
   .hidden-file { display: none; }
@@ -315,7 +327,7 @@
         <button type="button" class="recbtn bigbtn" data-rec>Record a message</button>
       </div>
       <div class="filters" id="filters"></div>
-      <div class="card" id="card"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
+      <div class="card" id="card" tabindex="0" aria-label="Selected fixture"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
       <div class="claims" id="flags"></div>
       <div class="claims msglist"></div>
     </aside>
@@ -426,7 +438,7 @@
 </div>
 
 <input type="file" accept="image/*" capture="environment" class="hidden-file" id="pinPhoto">
-<script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" crossorigin=""></script>
+<script src="vendor/leaflet/leaflet.js"></script>
 <script src="lci.js"></script>
 <script src="lci-job.js"></script>
 </body>

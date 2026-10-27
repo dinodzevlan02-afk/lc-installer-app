@@ -67,7 +67,10 @@ const b64url = buf => Buffer.from(buf).toString("base64").replace(/\+/g, "-").re
 function signSession(user) {
   const now = Math.floor(Date.now() / 1000);
   const h = b64url(JSON.stringify({ alg: "HS256", typ: "JWT" }));
-  const p = b64url(JSON.stringify({ sub: user.username, sv: user.sessionVersion || 0, iat: now, exp: now + SESSION_HOURS * 3600 }));
+  /* sid names this one sign-in, so SIGN OUT can end it on the server
+     (user.endedSessions) without signing the same login out elsewhere. */
+  const p = b64url(JSON.stringify({ sub: user.username, sv: user.sessionVersion || 0, sid: crypto.randomBytes(9).toString("hex"),
+                                    iat: now, exp: now + SESSION_HOURS * 3600 }));
   const sig = b64url(crypto.createHmac("sha256", secret()).update(h + "." + p).digest());
   return h + "." + p + "." + sig;
 }

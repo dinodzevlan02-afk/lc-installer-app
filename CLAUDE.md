@@ -564,6 +564,35 @@ never by writing its container.
    filter counts with the schedule to find the missing head (likely a
    design head with no audit pin, or one excluded that should not be).
 
+## QA pass and fixes (Dino, 2026-10-27: "test this app like a proper tester ... fix everything")
+Black-box pass on a local copy of main (the live site is blocked from these
+sessions): Anthropic's webapp-testing skill, SFDPOT, OWASP WSTG authorization
+and upload tests, axe-core. Scripts in tools/qa/ (README there), re-runnable.
+385 checks + 47 screens; access control held everywhere. Found and fixed:
+- M1 recordings: the media blob name was the client's upload id, so an
+  upload id equal to an existing recording replaced it. Now sha256(job, user,
+  upload id); a name that exists is refused (409), never replaced.
+- M2 sign-out: the session token carries a `sid`; SIGN OUT writes it to the
+  login's `endedSessions` (until its expiry) and requireSession refuses it,
+  so a copied cookie dies at once. Other devices stay signed in. Tokens made
+  before this have no sid and simply run out (12 h).
+- M3 phone / portrait: the pin card had a 34 px sliver under progress and
+  filters. A picked head now takes the panel (#vInstall.picked hides them,
+  map 36 %); BACK TO ALL FIXTURES returns them.
+- M4 / L8 touch: under (pointer: coarse) every button is also 44 px wide, and
+  the filter chips, HEAD buttons and the map's + / - reach 44 px.
+- L1 no signal: lci.js turns a request that never reached the server into
+  "No signal: ..."; unsaved counts retry on `online` and every 20 s and say
+  so. L2 a 401 mid-work goes to sign-in and back (index.html?next=).
+- L3 a recording upload with a missing part is a 400, not a 500.
+- L4 count boxes and +/- carry aria-labels; the pin card is focusable.
+- L5 Leaflet 1.9.4 ships in app/vendor/leaflet (BSD-2, LICENSE beside it),
+  cached by sw.js (CACHE lci-shell-v3): the map no longer needs unpkg.com.
+- L6 map tags: a tag that would cover another is hidden (declutter on every
+  move / zoom / pin size), the selected head's tag first.
+- L7 "1 short, 1 damaged"; job-page toasts sit above the footer bar.
+Not tested: the live Azure site, real iPad / iPhone Safari, real tiles / GPS.
+
 ## Installable app (Dino, 2026-10-21: "a standalone app, like the customer portal")
 - Icon: the LED Connection logo (app/lc-logo.png, the portal's file) on the
   dark tile with the orange frame, and a cyan open-end wrench under it, so it

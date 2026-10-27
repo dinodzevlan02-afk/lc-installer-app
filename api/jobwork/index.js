@@ -167,12 +167,21 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     if (!(Number.isInteger(parts) && parts >= 1 && parts <= Math.ceil(MEDIA_MAX / (1024 * 1024))) || !(Number.isInteger(part) && part >= 0 && part < parts) || !RE_UPLOAD.test(upload))
       throw new ApiError(400, "Bad part, parts or upload id.");
     if (part === 0 && !sniffMedia(buf, kind)) throw new ApiError(400, "That is not a " + kind.toUpperCase() + " recording.");
-    /* Every part of one upload targets the same blob, named from the upload id. */
-    const name = (upload + "0000000000000000").slice(0, 16) + "." + kind;
+    /* Every part of one upload targets the same blob. Its name is derived on
+       the server from the job, the user and the upload id, so nobody can aim
+       an upload at an existing recording (QA 2026-10-27, M1); a name that
+       already exists is refused rather than replaced. */
+    const name = crypto.createHash("sha256").update(id + "\0" + user.username + "\0" + upload).digest("hex").slice(0, 16) + "." + kind;
+    if (part === 0 && await st.getBytes(J.paths.mediaFile(id, name))) throw new ApiError(409, "That upload is already finished. Start a new recording.");
     const bid = n => Buffer.from(upload.padEnd(16, "0") + "-" + String(n).padStart(6, "0")).toString("base64");
     await st.putBlock(J.paths.mediaFile(id, name), bid(part), buf);
     if (part < parts - 1) return send(202, { part, parts });
-    await st.commitBlocks(J.paths.mediaFile(id, name), Array.from({ length: parts }, (_, n) => bid(n)), MEDIA_TYPE[kind]);
+    if (await st.getBytes(J.paths.mediaFile(id, name))) throw new ApiError(409, "That upload is already finished. Start a new recording.");
+    try {
+      await st.commitBlocks(J.paths.mediaFile(id, name), Array.from({ length: parts }, (_, n) => bid(n)), MEDIA_TYPE[kind]);
+    } catch (e) {
+      throw new ApiError(400, "The upload is incomplete (a part is missing). Send the recording again.");
+    }
     const done = await st.getBytes(J.paths.mediaFile(id, name));
     if (!done || done.buf.length > MEDIA_MAX) {
       await st.del(J.paths.mediaFile(id, name)).catch(() => {});

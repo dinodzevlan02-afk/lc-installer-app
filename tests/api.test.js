@@ -300,6 +300,14 @@ async function main() {
   const md0 = await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.subarray(0, 1500).toString("base64"), kind: "webm", part: 0, parts: 2, upload: mUp });
   const md1 = await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.subarray(1500).toString("base64"), kind: "webm", part: 1, parts: 2, upload: mUp });
   check(md0.status === 202 && md1.status === 201 && /^[a-f0-9]{16}\.webm$/.test(md1.body.name), "a recording uploads in parts and comes back as one file");
+  /* QA 2026-10-27: an upload cannot be aimed at an existing recording, and a missing part is a clear 400. */
+  const evil = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.alloc(200, 9)]);
+  const ow = await inst("PUT", "jobs/TEST-SITE-01/media", { data: evil.toString("base64"), kind: "webm", part: 0, parts: 1, upload: md1.body.name.split(".")[0] });
+  check(ow.status === 201 && ow.body.name !== md1.body.name, "an upload id equal to a recording's name makes a new file, never that recording");
+  check((await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.subarray(0, 1500).toString("base64"), kind: "webm", part: 0, parts: 2, upload: mUp })).status === 409,
+        "a finished upload cannot be started again under the same id");
+  const gap = await inst("PUT", "jobs/TEST-SITE-01/media", { data: Buffer.alloc(100, 1).toString("base64"), kind: "webm", part: 1, parts: 2, upload: "0f0f0f0f0f0f0f0f" });
+  check(gap.status === 400 && /incomplete/.test(gap.body.error), "a last part sent with an earlier part missing is a clear 400");
   const mediaGet = async (headers) => fetch(BASE + "jobs/TEST-SITE-01/media/" + md1.body.name, { headers: Object.assign({ Cookie: md1.cookie() }, headers || {}) });
   const mg = await mediaGet();
   const mgb = Buffer.from(await mg.arrayBuffer());
@@ -568,9 +576,15 @@ async function main() {
   check((await o2("POST", "deleted/" + rs2.body.deleted.key, { action: "restore" })).status === 409, "once new work is saved, undoing the reset is refused (nothing is overwritten)");
 
   console.log("logout");
+  const o3 = browser();
+  await o3("POST", "login", { username: "office2", password: PW + "-o" });
+  const oldCookie = (await o2("GET", "me")).cookie();
   const lo = await o2("POST", "logout");
   check(/Max-Age=0/.test(lo.setCookie || ""), "logout clears the cookie");
   check((await o2("GET", "me")).status === 401, "signed out");
+  const replay = await fetch(BASE + "me", { headers: { Cookie: oldCookie } });
+  check(replay.status === 401, "a copy of the signed-out cookie no longer works (the session ended on the server)");
+  check((await o3("GET", "me")).status === 200, "the same login on another device stays signed in");
 }
 
 const srv = spawn(process.execPath, [path.join(__dirname, "..", "dev", "server.js")], {

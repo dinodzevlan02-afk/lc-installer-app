@@ -5,8 +5,8 @@
    a deploy is picked up on the next load with a signal, and nothing old is
    pinned. Never cached: /api/* (session-bound, may carry another person's
    data on a shared tablet), map tiles (Google's terms), anything cross-site. */
-const CACHE = "lci-shell-v2";
-const SHELL = ["./", "./index.html", "./home.html", "./job.html", "./lci.css", "./lci.js", "./lci-job.js", "./manual.html", "./lci-manual.js",
+const CACHE = "lci-shell-v3";
+const SHELL = ["./", "./index.html", "./home.html", "./job.html", "./lci.css", "./lci.js", "./lci-job.js", "./manual.html", "./lci-manual.js", "./vendor/leaflet/leaflet.js", "./vendor/leaflet/leaflet.css",
   "./manifest.webmanifest", "./lc-logo.png", "./icon-192.png", "./icon-512.png", "./icon-512-maskable.png",
   "./favicon-32.png", "./apple-touch-icon-180.png"];
 

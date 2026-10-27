@@ -151,4 +151,5 @@ button:disabled { opacity: .5; cursor: default; }
 /* ── Touch: every control reaches 44 px for gloved hands on site ────────── */
 @media (pointer: coarse) {
   button, .btn, input, select { min-height: 44px; }
+  button, .btn { min-width: 44px; }
 }
