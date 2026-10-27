@@ -76,6 +76,19 @@
   .chip.tag, .line .chip.tag { color: var(--cyan); border-color: rgba(34,211,238,.45); }
   .docbtn { flex: none; min-height: 44px; padding: 0 14px; border-color: rgba(243,112,33,.55); background: var(--orange-soft); color: var(--orange); font-size: 12px; font-weight: 800; }
   .docbtn:hover { color: #ff8a3d; border-color: var(--orange); }
+  .rptbtn { flex: none; min-height: 44px; padding: 0 14px; color: var(--red); border-color: rgba(248,113,113,.45); background: rgba(248,113,113,.08); font-size: 12px; font-weight: 800; }
+  .rptbtn:hover { border-color: var(--red); }
+  /* CHECKLIST n / N fills as products are counted (--done, 0-100%). */
+  #btnApprove.prog { background: linear-gradient(90deg, rgba(243,112,33,.38) var(--done), transparent var(--done)); color: var(--text-1); border-color: rgba(243,112,33,.6); }
+  .ck { list-style: none; margin: 8px 0 0; padding: 0; }
+  .ck li { display: flex; align-items: center; gap: 10px; padding: 9px 4px; border-bottom: 1px solid var(--border); font-size: 15px; }
+  .ck .mk { flex: none; width: 24px; height: 24px; border-radius: 50%; display: grid; place-items: center; font-weight: 800; font-size: 13px; border: 1px solid var(--border-2); color: var(--text-3); }
+  .ck .ok .mk { background: rgba(74,222,128,.15); border-color: rgba(74,222,128,.6); color: #4ade80; }
+  .ck .bad .mk { background: rgba(248,113,113,.15); border-color: rgba(248,113,113,.6); color: #fca5a5; }
+  .ck .nm { flex: 1; min-width: 0; }
+  .ck .rs { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--text-2); text-align: right; }
+  .ck .bad .rs { color: #fca5a5; } .ck .todo .rs { color: var(--orange); }
+  .ckfoot { font-size: 13px; color: var(--text-3); margin: 0; }
   .doclist { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
   .doclist .btn { justify-content: space-between; min-height: 48px; padding: 0 16px; font-size: 12px; white-space: normal; text-align: left; }
   .doclist .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--text-3); margin-top: 8px; }
@@ -123,6 +136,7 @@
   .bar .row { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
   .bar .sum { flex: 1; min-width: 200px; font-family: var(--mono); font-size: 12px; color: var(--text-2); }
   .bar button { min-height: 48px; padding: 0 18px; }
+  .bar button[hidden] { display: none; }
 
   /* ── Install (map) ──────────────────────────────────────────────── */
   #vInstall:not([hidden]) { display: flex; }
@@ -220,7 +234,7 @@
 
   <section class="view" id="vMaterial" hidden>
     <div class="mscroll" id="mScroll"><div class="wrap">
-      <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged, then sign off the quantities to start the install.</p>
+      <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged; REPORT on a product sends LED Connection a claim. When every product is counted, PROCEED TO INSTALLATION.</p>
       <div id="partsBox"></div>
       <div id="matSigned"></div>
       <div id="lines"></div>
@@ -229,8 +243,8 @@
     <div class="bar">
       <div class="row">
         <div class="sum" id="matSum"></div>
-        <button type="button" class="danger" id="btnClaim">Report a problem</button>
-        <button type="button" class="primary" id="btnApprove">Sign off quantities</button>
+        <button type="button" class="danger" id="btnClaim">Report other problem</button>
+        <button type="button" class="primary" id="btnApprove">Checklist</button>
       </div>
     </div>
   </section>
@@ -313,15 +327,15 @@
   </div>
 </div>
 
-<!-- Sign off quantities -->
+<!-- Checklist: sign off the counted quantities and proceed to installation -->
 <div class="ov" id="ovApprove" hidden>
   <div class="dlg" role="dialog" aria-labelledby="apTitle">
-    <h3 id="apTitle">Sign off quantities</h3>
+    <h3 id="apTitle">Checklist</h3>
     <div id="apBody"></div>
     <label class="confirm"><input type="checkbox" id="apConfirm"> I counted the material delivered for this job and the numbers above are what I received.</label>
     <div class="actions">
       <button type="button" id="apCancel">Back</button>
-      <button type="button" class="primary" id="apSend">Sign off and start install</button>
+      <button type="button" class="primary" id="apSend">Proceed to installation</button>
     </div>
   </div>
 </div>

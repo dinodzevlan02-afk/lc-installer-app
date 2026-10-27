@@ -153,6 +153,7 @@
             (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</span>' +
           '<span class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</span></div>' + partLine(b) + '</div>' +
         '<button type="button" class="docbtn" data-docs="' + esc(b.key) + '">Documents · ' + docList(b).length + '</button>' +
+        '<button type="button" class="rptbtn" data-report="' + esc(b.key) + '">Report</button>' +
         '<div class="counts"><div class="cbox"><div class="cl">Expected</div><div class="expected">' + b.qty + '</div></div>' +
           '<div class="cbox"><div class="cl">Received</div>' + stepper(b.key, 'received', c.received, locked) + '</div>' +
           '<div class="cbox"><div class="cl">Damaged</div>' + stepper(b.key, 'damaged', c.damaged || 0, locked) + '</div></div></div>';
@@ -162,7 +163,7 @@
     $('matSigned').innerHTML = !a ? '' :
       '<div class="signed' + (a.short || a.damaged ? ' warn' : '') + '"><b>Signed off</b> by ' + esc(a.byName) + ' on ' + esc(new Date(a.at).toLocaleString()) +
       (a.short || a.damaged ? ' · ' + (a.short ? a.short + ' short ' : '') + (a.damaged ? a.damaged + ' damaged' : '') +
-        (D.claims.length ? '' : ' · <b>no claim filed yet</b>: use REPORT A PROBLEM.') : ' · everything received.') + '</div>';
+        (D.claims.length ? '' : ' · <b>no claim filed yet</b>: use REPORT on the product.') : ' · everything received.') + '</div>';
     $('btnApprove').hidden = locked;
     $('matLead').hidden = locked;
     renderSummary();
@@ -178,6 +179,13 @@
     });
     $('matSum').innerHTML = done + ' of ' + n + ' products counted' + (short ? ' · <span style="color:#fca5a5">' + short + ' short</span>' : '') +
       (dmg ? ' · <span style="color:#fca5a5">' + dmg + ' damaged</span>' : '');
+    /* Billie Jo, 2026-10-27: "change 'sign off' to 'proceed to installation'".
+       The button counts up as products are counted, then names the next step. */
+    var all = n && done === n, btn = $('btnApprove');
+    btn.textContent = all ? 'Proceed to installation' : 'Checklist ' + done + ' / ' + n;
+    btn.classList.toggle('primary', !!all);
+    btn.classList.toggle('prog', !all);
+    btn.style.setProperty('--done', (n ? Math.round(done / n * 100) : 0) + '%');
   }
 
   function renderClaims() {
@@ -193,11 +201,13 @@
   }
 
   /* No phone number or email under the material check (Dino, 2026-10-23:
-     "remove here contact number and my emails"). REPORT A PROBLEM reaches
+     "remove here contact number and my emails"). REPORT reaches
      LED Connection's list. */
   $('lines').addEventListener('click', function (e) {
     var t = e.target.closest('[data-docs]');
     if (t) openDocs(t.getAttribute('data-docs'));
+    var r = e.target.closest('[data-report]');
+    if (r) openClaim(r.getAttribute('data-report'));
   });
   $('dcClose').addEventListener('click', function () { $('ovDocs').hidden = true; });
   $('ovDocs').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
@@ -247,15 +257,20 @@
 
   /* Sign off */
   $('btnApprove').addEventListener('click', function () {
-    var rows = D.site.bom.map(function (b) {
-      var c = counts[b.key] || {};
-      return '<tr><td>' + esc(b.name) + '</td><td>' + b.qty + '</td><td>' + (c.received == null ? '<b style="color:#fca5a5">?</b>' : c.received) +
-        '</td><td>' + (c.damaged || 0) + '</td></tr>';
-    }).join('');
-    var missing = D.site.bom.filter(function (b) { return !counts[b.key] || counts[b.key].received == null; }).length;
-    $('apBody').innerHTML = '<table class="sum"><tr><th>Product</th><th>Expected</th><th>Received</th><th>Damaged</th></tr>' + rows + '</table>' +
+    var missing = 0;
+    $('apBody').innerHTML = '<ul class="ck">' + D.site.bom.map(function (b) {
+      var c = counts[b.key] || {}, cls, mk, rs;
+      if (c.received == null || c.received === '') { missing++; cls = 'todo'; mk = ''; rs = 'TO COUNT'; }
+      else {
+        var short = Math.max(0, b.qty - c.received), dmg = c.damaged || 0;
+        cls = short || dmg ? 'bad' : 'ok'; mk = short || dmg ? '!' : '&#10003;';
+        rs = short || dmg ? [short ? 'SHORT ' + short : '', dmg ? 'DAMAGED ' + dmg : ''].filter(Boolean).join(' · ') : c.received + ' OK';
+      }
+      return '<li class="' + cls + '"><span class="mk">' + mk + '</span><span class="nm">' + esc(b.name) +
+        ' <span class="muted mono">(' + b.qty + ')</span></span><span class="rs">' + rs + '</span></li>';
+    }).join('') + '</ul>' +
       (missing ? '<p class="msg err">' + missing + ' product' + (missing === 1 ? ' is' : 's are') + ' not counted yet.</p>' : '') +
-      '<p class="muted">Anything short or damaged: sign off what you have, then REPORT A PROBLEM so LED Connection can send the rest.</p>';
+      '<p class="muted">Anything short or damaged: proceed with what you have, then REPORT it on the product so LED Connection can send the rest.</p>';
     $('apConfirm').checked = false;
     $('apSend').disabled = !!missing;
     $('ovApprove').hidden = false;
@@ -271,7 +286,7 @@
       renderMaterial();
       renderSteps();
       var a = r.material.approved, sent = r.notify && r.notify.sent ? ' LED Connection has been emailed.' : '';
-      if (a.short || a.damaged) toast('Signed off.' + sent + ' Report the ' + (a.short ? 'shortage' : 'damage') + ' with REPORT A PROBLEM.');
+      if (a.short || a.damaged) toast('Signed off.' + sent + ' Report the ' + (a.short ? 'shortage' : 'damage') + ' with REPORT on the product.');
       else { toast('Signed off.' + sent + ' On to the install.'); show('install'); }
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('apSend').disabled = false; });
   });
@@ -281,11 +296,21 @@
   function renderClaimShots() {
     $('clShots').innerHTML = claimShots.map(function (p) { return '<img src="' + photoUrl(p) + '" alt="">'; }).join('');
   }
-  $('btnClaim').addEventListener('click', function () {
+  /* key: REPORT on one product row opens with only that product ticked (and
+     listed first); REPORT OTHER PROBLEM ticks every line counted short or
+     damaged. */
+  function openClaim(key) {
     claimKind = null; claimShots = [];
-    Array.prototype.forEach.call($('clKinds').children, function (b) { b.classList.remove('on'); });
-    $('clLines').innerHTML = '<label>Products</label>' + D.site.bom.map(function (b) {
-      var c = counts[b.key] || {}, problem = (c.received != null && c.received < b.qty) || c.damaged;
+    var one = key && product(key), bom = D.site.bom.slice();
+    if (one) {
+      bom.sort(function (a, b) { return (b.key === key) - (a.key === key); });
+      var oc = counts[key] || {};
+      claimKind = oc.damaged ? 'damaged' : oc.received != null && oc.received !== '' && oc.received < one.qty ? 'shortage' : null;
+    }
+    $('clTitle').textContent = one ? 'Report a problem: ' + one.name : 'Report a material problem';
+    Array.prototype.forEach.call($('clKinds').children, function (b) { b.classList.toggle('on', b.getAttribute('data-k') === claimKind); });
+    $('clLines').innerHTML = '<label>Products</label>' + bom.map(function (b) {
+      var c = counts[b.key] || {}, problem = one ? b.key === key : (c.received != null && c.received < b.qty) || c.damaged;
       return '<div class="cl-line"><input type="checkbox" data-k="' + esc(b.key) + '"' + (problem ? ' checked' : '') + '>' +
         '<span>' + esc(b.name) + ' <span class="muted mono">(expected ' + b.qty + ')</span></span>' +
         '<input type="number" min="0" placeholder="rcvd" data-r="' + esc(b.key) + '" value="' + (c.received == null ? '' : c.received) + '">' +
@@ -294,7 +319,8 @@
     $('clNote').value = '';
     renderClaimShots();
     $('ovClaim').hidden = false;
-  });
+  }
+  $('btnClaim').addEventListener('click', function () { openClaim(); });
   $('clKinds').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-k]');
     if (!b) return;

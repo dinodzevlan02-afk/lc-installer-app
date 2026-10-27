@@ -55,7 +55,14 @@ the session; if they are not there, say so rather than guessing.
    number and my emails"). Next, waiting on Dino: a short "Set up" line in
    the row (full text in the pop-up), a desktop table layout, and RECORD A
    MESSAGE (voice / camera / screen to the project's LC list; needs an
-   upload + email endpoint; Safari on iPad cannot record the screen). The installer SIGNS
+   upload + email endpoint; Safari on iPad cannot record the screen).
+   Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
+   REPORT on every product row opens the claim with that product ticked
+   (and the kind preset from its count); the footer one is REPORT OTHER
+   PROBLEM. The main button reads CHECKLIST n / N, filling as products are
+   counted, then PROCEED TO INSTALLATION; it opens a checklist (per product
+   OK / SHORT / DAMAGED / TO COUNT) with the confirm box. Server and the
+   sign-off email are unchanged. The installer SIGNS
    OFF the counted quantities (confirm box); that unlocks the install even
    when something is short (judgment call: the claim covers it). Signed-off
    counts lock; an LC admin can reopen them (PATCH reopenMaterial).
