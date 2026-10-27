@@ -496,19 +496,21 @@
      damaged. */
   function openClaim(key) {
     claimKind = null; claimShots = [];
-    var one = key && product(key), bom = D.site.bom.slice();
+    /* Dino, 2026-10-27: "whatever I clicked to report, display only that one". */
+    var one = key && product(key), bom = one ? [one] : D.site.bom;
     if (one) {
-      bom.sort(function (a, b) { return (b.key === key) - (a.key === key); });
       var oc = counts[key] || {};
       claimKind = oc.damaged ? 'damaged' : oc.received != null && oc.received !== '' && oc.received < one.qty ? 'shortage' : null;
     }
     $('clTitle').textContent = one ? 'Report a problem: ' + one.name : 'Report a material problem';
     Array.prototype.forEach.call($('clKinds').children, function (b) { b.classList.toggle('on', b.getAttribute('data-k') === claimKind); });
-    $('clLines').innerHTML = '<label>Products</label>' + bom.map(function (b) {
+    $('clLines').classList.toggle('cl-one', !!one);
+    $('clLines').innerHTML = '<label>' + (one ? 'Product' : 'Products') + '</label>' +
+      '<div class="cl-line head"><span></span><span></span><span>Received</span><span>Damaged</span></div>' + bom.map(function (b) {
       var c = counts[b.key] || {}, problem = one ? b.key === key : (c.received != null && c.received < b.qty) || c.damaged;
       return '<div class="cl-line"><input type="checkbox" data-k="' + esc(b.key) + '"' + (problem ? ' checked' : '') + '>' +
         '<span>' + esc(b.name) + ' <span class="muted mono">(expected ' + b.qty + ')</span></span>' +
-        '<input type="number" min="0" placeholder="rcvd" data-r="' + esc(b.key) + '" value="' + (c.received == null ? '' : c.received) + '">' +
+        '<input type="number" min="0" placeholder="count" data-r="' + esc(b.key) + '" value="' + (c.received == null ? '' : c.received) + '">' +
         '<input type="number" min="0" placeholder="dmg" data-dm="' + esc(b.key) + '" value="' + (c.damaged || 0) + '"></div>';
     }).join('');
     $('clNote').value = '';
