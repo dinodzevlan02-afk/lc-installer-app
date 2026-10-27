@@ -24,6 +24,8 @@ installer-app/
   jobs/{projectId}/claims/{ref}.json    one material claim (ref MC-yymmdd-XXXX)
   jobs/{projectId}/pins/{pinId}.json    one installed head
   jobs/{projectId}/photos/{16 hex}.jpg  claim and install photos (JPEG, max 3 MB)
+  jobs/{projectId}/media/{16 hex}.{webm|mp4|mov}  recorded messages (max 60 MB, uploaded in <= 3 MB parts)
+  jobs/{projectId}/messages/{ref}.json  a recorded message to LED Connection
   system/relay.json                 the paired Outlook relay: SHA-256 of its key, who paired it, when
   system/relay-seen.json            when a relay last came for mail, and which (installer | portal | setting)
   companies/{id}.json               installer company { id, name, status active|suspended, phone, email, notes, created, createdBy }
@@ -175,6 +177,15 @@ reason, submitted, mail }]`, one per send-back; `notify.installs` ("each" |
 "off") switches the per-fixture emails. A pin record carries `partNo` and,
 for its first install, `mail`.
 
+## jobs/{projectId}/messages/{ref}.json
+
+A recorded message from site (RECORD A MESSAGE, ref MS-yymmdd-XXXX), emailed
+to the project's LED Connection list only:
+`{ ref, kind: voice|camera|screen|file, kindLabel, media: name, seconds, note, at, by, byName, mail }`.
+The recording is media/{name}; GET /api/jobs/{id}/media/{name} answers byte
+ranges (206) so Safari plays it. A reset clears messages/ and media/ with
+the rest of the work.
+
 ## jobs/{projectId}/pins/{pinId}.json
 
 `pinId` = first 20 hex of sha1(datasetId + NUL + fixture id).
@@ -190,7 +201,7 @@ original is removed. Manifest:
 `{ v, key, id, name, address, customer, source: installer|portal, installers, at, by, byName, reason, files: [path], counts: { claims, pins, photos, material, parts, site }, restored: [{ at, by, byName }] }`.
 A RESET (a clean start, the job stays) uses the same layout with
 `kind: "reset"`: files/ holds the job's work (material.json, claims/, pins/,
-photos/) plus a copy of jobs/{projectId}.json for its submitted state; the
+photos/, messages/, media/) plus a copy of jobs/{projectId}.json for its submitted state; the
 live job gets `reset: { at, by, archive }` and `submitted: null`. Keys made
 since 2026-10-21 carry milliseconds (`20261021T140512345Z-{id}`).
 `state: "archiving"` means the delete stopped half way; it can still be

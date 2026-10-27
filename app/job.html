@@ -89,6 +89,21 @@
   .ck .rs { font-family: var(--mono); font-size: 12px; letter-spacing: .06em; color: var(--text-2); text-align: right; }
   .ck .bad .rs { color: #fca5a5; } .ck .todo .rs { color: var(--orange); }
   .ckfoot { font-size: 13px; color: var(--text-3); margin: 0; }
+  /* RECORD A MESSAGE (voice, camera, screen, or an attached recording) */
+  .recbtn { color: var(--cyan); border-color: rgba(34,211,238,.45); background: rgba(34,211,238,.08); font-weight: 800; }
+  .recbtn:hover { border-color: var(--cyan); }
+  .rcstage { margin-top: 12px; }
+  .rcstage video, #rcPlay { display: block; width: 100%; max-height: 300px; background: #000; border-radius: 10px; }
+  .rcstage.voice video { display: none; }
+  #rcPlay.audio { height: 54px; background: none; }
+  .rcbar { display: flex; align-items: center; gap: 12px; margin-top: 10px; }
+  .rctime { font-family: var(--mono); font-size: 22px; font-weight: 800; min-width: 90px; }
+  .rctime.on { color: var(--red); }
+  .rctime.on::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; background: var(--red); margin-right: 8px; vertical-align: middle; }
+  #rcPlay { margin-top: 12px; }
+  #rcKinds button[hidden], #rcPlay[hidden] { display: none; }
+  .msgvid { display: block; width: 100%; max-width: 480px; max-height: 260px; margin-top: 8px; border-radius: 8px; background: #000; }
+  .msgvid.audio { height: 54px; background: none; }
   .doclist { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
   .doclist .btn { justify-content: space-between; min-height: 48px; padding: 0 16px; font-size: 12px; white-space: normal; text-align: left; }
   .doclist .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--text-3); margin-top: 8px; }
@@ -273,10 +288,12 @@
       <div id="matSigned"></div>
       <div id="lines"></div>
       <div class="claims" id="claims"></div>
+      <div class="claims msglist"></div>
     </div></div>
     <div class="bar">
       <div class="row">
         <div class="sum" id="matSum"></div>
+        <button type="button" class="recbtn" data-rec>Record a message</button>
         <button type="button" class="danger" id="btnClaim">Report other problem</button>
         <button type="button" class="primary" id="btnApprove">Checklist</button>
       </div>
@@ -290,10 +307,12 @@
         <div class="big" id="progBig">0 / 0 <small>INSTALLED</small></div>
         <div class="pbar"><i id="progBar"></i></div>
         <button type="button" class="primary bigbtn" id="btnSubmit" disabled>Submit job</button>
+        <button type="button" class="recbtn bigbtn" data-rec>Record a message</button>
       </div>
       <div class="filters" id="filters"></div>
       <div class="card" id="card"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
       <div class="claims" id="flags"></div>
+      <div class="claims msglist"></div>
     </aside>
   </section>
 </main>
@@ -332,6 +351,33 @@
     <div class="actions">
       <button type="button" id="clCancel">Cancel</button>
       <button type="button" class="primary" id="clSend">Send claim</button>
+    </div>
+  </div>
+</div>
+
+<!-- Record a message to LED Connection (voice, camera, screen, or attach one) -->
+<div class="ov" id="ovRec" hidden>
+  <div class="dlg" role="dialog" aria-labelledby="rcTitle">
+    <h3 id="rcTitle">Record a message</h3>
+    <p class="muted" style="margin:0">Goes to LED Connection only, with the recording. Up to 3 minutes.</p>
+    <div class="kinds" id="rcKinds">
+      <button type="button" data-k="voice">Voice</button>
+      <button type="button" data-k="camera">Camera</button>
+      <button type="button" data-k="screen" id="rcScreen">Screen</button>
+      <button type="button" data-k="file">Attach a recording</button>
+    </div>
+    <input type="file" accept="video/*,audio/mp4,audio/x-m4a,audio/webm,.m4a,.mov,.mp4,.webm" class="hidden-file" id="rcFile">
+    <div class="rcstage" id="rcStage" hidden>
+      <video id="rcLive" playsinline muted autoplay></video>
+      <div class="rcbar"><span class="rctime" id="rcTime">0:00</span><button type="button" class="danger" id="rcGo">Start recording</button></div>
+    </div>
+    <video id="rcPlay" controls playsinline hidden></video>
+    <p class="muted" id="rcInfo" style="margin:8px 0 0"></p>
+    <label for="rcNote">Note (optional)</label>
+    <textarea id="rcNote" rows="2" maxlength="2000"></textarea>
+    <div class="actions">
+      <button type="button" id="rcCancel">Cancel</button>
+      <button type="button" class="primary" id="rcSend" disabled>Send to LED Connection</button>
     </div>
   </div>
 </div>

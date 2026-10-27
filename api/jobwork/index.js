@@ -19,7 +19,13 @@
                                          The UL-listed part number for each design label;
                                          an Optimus one must follow the order logic (shared/parts.js).
    PUT  /api/jobs/{id}/photos            { dataUrl: "data:image/jpeg;base64,..." } -> { name, url }
-   GET  /api/jobs/{id}/photos/{name}     the JPEG */
+   GET  /api/jobs/{id}/photos/{name}     the JPEG
+   PUT  /api/jobs/{id}/media             { data: base64, kind: webm|mp4|mov [, part, parts, upload] } -> { name, url }
+                                         A recorded message (voice, camera, screen) or an attached
+                                         recording, in <= 3 MB parts; 60 MB in all.
+   GET  /api/jobs/{id}/media/{name}      the recording (byte ranges, so Safari plays it)
+   POST /api/jobs/{id}/messages          { kind: voice|camera|screen|file, media: name, note, seconds }
+                                         Emailed to the project's LED Connection list only. */
 const crypto = require("crypto");
 const P = require("../shared/app");
 const J = require("../shared/jobs");
@@ -31,6 +37,21 @@ const MAX_PHOTO = 3 * 1024 * 1024, MAX_PHOTOS = 6, MAX_QTY = 100000;
 const RE_PHOTO = /^[a-f0-9]{16}\.jpg$/;
 const RE_PIN = /^[a-f0-9]{20}$/;
 const CLAIM_KINDS = { shortage: "Short shipped", damaged: "Damaged", wrong: "Wrong product", other: "Other" };
+
+/* Recorded messages (Dino, 2026-10-23, on the Claude Design canvas: "make a
+   record ... record a screen ... submitted to LED Connection personnel only
+   that have been selected"). The browser records at a low bitrate and caps
+   the length; the server still caps the size and checks the bytes. */
+const PART_MAX = 3 * 1024 * 1024, MEDIA_MAX = 60 * 1024 * 1024;
+const RE_MEDIA = /^[a-f0-9]{16}\.(webm|mp4|mov)$/;
+const RE_UPLOAD = /^[a-f0-9]{8,16}$/;
+const MEDIA_TYPE = { webm: "video/webm", mp4: "video/mp4", mov: "video/quicktime" };
+const MESSAGE_KINDS = { voice: "Voice message", camera: "Camera video", screen: "Screen recording", file: "Recording attached" };
+/* A real WebM (EBML header) or MP4 / QuickTime (ftyp box), not something renamed. */
+function sniffMedia(buf, kind) {
+  if (kind === "webm") return buf.length > 4 && buf[0] === 0x1a && buf[1] === 0x45 && buf[2] === 0xdf && buf[3] === 0xa3;
+  return buf.length > 12 && buf.toString("latin1", 4, 8) === "ftyp";
+}
 
 function count(v, field) {
   if (v === "" || v == null) return null;
@@ -101,6 +122,84 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
     await P.store().putBytes(J.paths.photo(id, name), buf, "image/jpeg");
     await P.audit(req, user.username, "photo.upload", "job:" + id, { name, bytes: buf.length });
     return send(201, { name, url: "/api/jobs/" + encodeURIComponent(id) + "/photos/" + name });
+  }
+
+  /* ── Recordings for messages ────────────────────────────────────────── */
+  if (action === "media") {
+    const st = P.store();
+    if (method === "GET") {
+      if (!RE_MEDIA.test(key)) throw new ApiError(404, "Not found.");
+      const got = await st.getBytes(J.paths.mediaFile(id, key));
+      if (!got) throw new ApiError(404, "Not found.");
+      const buf = got.buf, size = buf.length;
+      const headers = { "Content-Type": MEDIA_TYPE[key.split(".").pop()], "Accept-Ranges": "bytes",
+                        "Cache-Control": "private, max-age=86400", "X-Content-Type-Options": "nosniff" };
+      const m = /^bytes=(\d*)-(\d*)$/.exec(String(req.headers && req.headers.range || ""));
+      if (m && (m[1] || m[2])) {
+        let start = m[1] ? +m[1] : Math.max(0, size - +m[2]), end = m[1] && m[2] ? Math.min(+m[2], size - 1) : size - 1;
+        if (start >= size || start > end) {
+          context.res = { status: 416, isRaw: true, body: Buffer.alloc(0), headers: Object.assign(headers, { "Content-Range": "bytes */" + size }) };
+          return;
+        }
+        context.res = { status: 206, isRaw: true, body: buf.subarray(start, end + 1),
+          headers: Object.assign(headers, { "Content-Range": "bytes " + start + "-" + end + "/" + size, "Content-Length": String(end - start + 1) }) };
+        return;
+      }
+      context.res = { status: 200, isRaw: true, body: buf, headers };
+      return;
+    }
+    if (method !== "PUT" || key) throw new ApiError(405, "Method not allowed.");
+    const kind = MEDIA_TYPE[body.kind] ? body.kind : null;
+    if (!kind) throw new ApiError(400, "Send a WebM, MP4 or MOV recording.");
+    if (typeof body.data !== "string" || !/^[A-Za-z0-9+/=]*$/.test(body.data)) throw new ApiError(400, "Send the recording as base64 in `data`.");
+    const buf = Buffer.from(body.data, "base64");
+    if (!buf.length) throw new ApiError(400, "The recording is empty.");
+    if (buf.length > PART_MAX) throw new ApiError(413, "Send at most 3 MB per request; split a bigger recording into parts.");
+    const urlOf = n => "/api/jobs/" + encodeURIComponent(id) + "/media/" + n;
+    if (body.parts == null) {
+      if (!sniffMedia(buf, kind)) throw new ApiError(400, "That is not a " + kind.toUpperCase() + " recording.");
+      const name = crypto.randomBytes(8).toString("hex") + "." + kind;
+      await st.putBytes(J.paths.mediaFile(id, name), buf, MEDIA_TYPE[kind]);
+      await P.audit(req, user.username, "media.upload", "job:" + id, { name, bytes: buf.length });
+      return send(201, { name, url: urlOf(name) });
+    }
+    const parts = +body.parts, part = +body.part, upload = String(body.upload || "");
+    if (!(Number.isInteger(parts) && parts >= 1 && parts <= Math.ceil(MEDIA_MAX / (1024 * 1024))) || !(Number.isInteger(part) && part >= 0 && part < parts) || !RE_UPLOAD.test(upload))
+      throw new ApiError(400, "Bad part, parts or upload id.");
+    if (part === 0 && !sniffMedia(buf, kind)) throw new ApiError(400, "That is not a " + kind.toUpperCase() + " recording.");
+    /* Every part of one upload targets the same blob, named from the upload id. */
+    const name = (upload + "0000000000000000").slice(0, 16) + "." + kind;
+    const bid = n => Buffer.from(upload.padEnd(16, "0") + "-" + String(n).padStart(6, "0")).toString("base64");
+    await st.putBlock(J.paths.mediaFile(id, name), bid(part), buf);
+    if (part < parts - 1) return send(202, { part, parts });
+    await st.commitBlocks(J.paths.mediaFile(id, name), Array.from({ length: parts }, (_, n) => bid(n)), MEDIA_TYPE[kind]);
+    const done = await st.getBytes(J.paths.mediaFile(id, name));
+    if (!done || done.buf.length > MEDIA_MAX) {
+      await st.del(J.paths.mediaFile(id, name)).catch(() => {});
+      throw new ApiError(413, "The recording is too large (max 60 MB); record a shorter one.");
+    }
+    await P.audit(req, user.username, "media.upload", "job:" + id, { name, bytes: done.buf.length, parts });
+    return send(201, { name, url: urlOf(name) });
+  }
+
+  /* ── A recorded message to LED Connection (any time, like a claim) ──── */
+  if (action === "messages") {
+    if (method !== "POST" || key) throw new ApiError(405, "Method not allowed.");
+    const kind = String(body.kind || "");
+    if (!MESSAGE_KINDS[kind]) throw new ApiError(400, "Pick voice, camera, screen or an attached recording.");
+    const media = String(body.media || "");
+    if (!RE_MEDIA.test(media) || !(await P.store().getBytes(J.paths.mediaFile(id, media)))) throw new ApiError(400, "Record or attach the message first.");
+    const note = P.text(body.note, 2000, "Note");
+    const seconds = Number.isFinite(+body.seconds) && +body.seconds > 0 ? Math.min(Math.round(+body.seconds), 3600) : null;
+    const now = new Date();
+    const ref = "MS-" + now.toISOString().slice(2, 10).replace(/-/g, "") + "-" + crypto.randomBytes(2).toString("hex").toUpperCase();
+    const msg = Object.assign({ v: J.SCHEMA, ref, kind, kindLabel: MESSAGE_KINDS[kind], media, seconds, note, at: now.toISOString() }, who(user));
+    await P.store().put(J.paths.message(id, ref), msg, { ifNoneMatch: "*" });
+    await P.audit(req, user.username, "message.create", "job:" + id, { ref, kind, media, seconds });
+    const notify = await CLAIMMAIL.notifyMessage(req, id, job, msg, user);
+    msg.mail = CLAIMMAIL.mailRecord(notify);
+    await P.store().put(J.paths.message(id, ref), msg).catch(() => null);
+    return send(201, { message: J.withMail(msg, user), notify: J.forViewer(notify, user) });
   }
 
   /* ── Part numbers (LED Connection only; allowed after submit too) ─── */

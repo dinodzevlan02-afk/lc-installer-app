@@ -292,6 +292,31 @@ async function main() {
         "the installer flags a problem on a fixture; it is saved with a reference");
   check(JSON.stringify(flm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Arm cracked at the weld/.test(flm.html) && new RegExp(pinA.tag).test(flm.html) && flm.attachments.length === 1,
         "the flag is emailed to the same list with the fixture, the note and the photo");
+  /* RECORD A MESSAGE: a recording uploaded in parts, then emailed to LED Connection's list only. */
+  const webm = Buffer.concat([Buffer.from([0x1a, 0x45, 0xdf, 0xa3]), Buffer.alloc(3000, 7)]);
+  check((await inst("PUT", "jobs/TEST-SITE-01/media", { data: Buffer.from("not a video at all").toString("base64"), kind: "webm" })).status === 400, "a recording that is not WebM / MP4 is refused");
+  check((await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.toString("base64"), kind: "exe" })).status === 400, "only WebM, MP4 or MOV recordings");
+  const mUp = "a1b2c3d4e5f60708";
+  const md0 = await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.subarray(0, 1500).toString("base64"), kind: "webm", part: 0, parts: 2, upload: mUp });
+  const md1 = await inst("PUT", "jobs/TEST-SITE-01/media", { data: webm.subarray(1500).toString("base64"), kind: "webm", part: 1, parts: 2, upload: mUp });
+  check(md0.status === 202 && md1.status === 201 && /^[a-f0-9]{16}\.webm$/.test(md1.body.name), "a recording uploads in parts and comes back as one file");
+  const mediaGet = async (headers) => fetch(BASE + "jobs/TEST-SITE-01/media/" + md1.body.name, { headers: Object.assign({ Cookie: md1.cookie() }, headers || {}) });
+  const mg = await mediaGet();
+  const mgb = Buffer.from(await mg.arrayBuffer());
+  check(mg.status === 200 && mgb.equals(webm) && mg.headers.get("content-type") === "video/webm" && mg.headers.get("accept-ranges") === "bytes", "the parts join into the same bytes");
+  const mr = await mediaGet({ Range: "bytes=0-3" });
+  check(mr.status === 206 && mr.headers.get("content-range") === "bytes 0-3/" + webm.length && Buffer.from(await mr.arrayBuffer()).equals(webm.subarray(0, 4)), "byte ranges work, so Safari can play it");
+  check((await fetch(BASE + "jobs/TEST-SITE-01/media/" + md1.body.name)).status === 401, "recordings need a session");
+  check((await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "voice", media: "0000000000000000.webm" })).status === 400, "a message needs a recording that was uploaded");
+  check((await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "sing", media: md1.body.name })).status === 400, "a message needs a known kind");
+  const ms = await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "screen", media: md1.body.name, note: "Pole G12 base, see the screen", seconds: 75 });
+  const msm = outbox().find(m => ms.body.message && (m.subject || "").startsWith("[" + ms.body.message.ref + "] Message from site: Screen recording")) || {};
+  check(ms.status === 201 && /^MS-\d{6}-[0-9A-F]{4}$/.test(ms.body.message.ref) && ms.body.notify.sent && ms.body.message.mail.to === undefined, "the message is saved with a reference; the installer sees it went, not to whom");
+  check(JSON.stringify(msm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && !(msm.cc || []).length &&
+        (msm.attachments || []).length === 1 && /Pole G12 base/.test(msm.html) && /1 min 15 s/.test(msm.html),
+        "the message goes to LED Connection's list only (no installers or client), with the recording and the note");
+  check(((await inst("GET", "jobs/TEST-SITE-01")).body.messages || []).some(m => m.ref === ms.body.message.ref), "the job lists the message");
+
   for (const p of jv.body.site.pins) if (!p.off && p.id !== pinA.id) await inst("PUT", "jobs/TEST-SITE-01/pins/" + p.id, { photos: [ph.body.name] });
   const js = await inst("GET", "jobs/TEST-SITE-01");
   check(Object.values(js.body.pins).filter(p => p.installed).length === 8 && js.body.claims.length === 1, "the job shows every saved pin and the claim");
@@ -528,6 +553,7 @@ async function main() {
   const aft = await o2("GET", "jobs/TEST-SITE-01");
   check(aft.status === 200 && Object.keys(aft.body.pins).length === 0 && aft.body.claims.length === 0 && !aft.body.material.approved && !aft.body.job.submitted,
         "clean start: no installed heads, claims, counts or submit");
+  check(b4.body.messages.length > 0 && aft.body.messages.length === 0, "a reset clears the recorded messages with the rest of the work");
   check(JSON.stringify(aft.body.job.installers) === JSON.stringify(b4.body.job.installers) && aft.body.site.pins.length === b4.body.site.pins.length, "the job, its installers and its site stay");
   check((await inst("GET", "jobs/TEST-SITE-01")).status === 200, "the installer still has the job");
   check(auditOf("job.reset").some(a => a.actor === "office2" && a.target === "job:TEST-SITE-01"), "the reset is in the activity log, with who");

@@ -62,9 +62,18 @@ the session; if they are not there, say so rather than guessing.
    line (parts.js SETUP_SHORT, one per SETUP, the canvas's wording); the
    full line stays in DOCUMENTS, the pin card and the job sheet. The main
    button keeps its count when done: "7 / 7 · PROCEED TO INSTALLATION".
-   Next: RECORD A
-   MESSAGE (voice / camera / screen to the project's LC list; needs an
-   upload + email endpoint; Safari on iPad cannot record the screen).
+   RECORD A MESSAGE (Dino, 2026-10-23 on the canvas, built 2026-10-27):
+   cyan button in the material footer and under SUBMIT JOB. VOICE, CAMERA
+   or SCREEN (screen + microphone; desktop only: Safari on iPad cannot
+   record the screen in a page) through MediaRecorder at ~1 Mbps, 3 min
+   max; or ATTACH A RECORDING (MP4 / MOV / M4A / WebM from the device, e.g.
+   an iPad screen recording from Photos). Uploaded in 2 MB parts (PUT
+   /api/jobs/{id}/media, 60 MB cap, bytes sniffed), then POST .../messages
+   saves MS-... and emails "[MS-...] Message from site: {kind} - {job}" to
+   the project's LED Connection list ONLY ("to LED Connection personnel
+   only that have been selected": no installers or client on CC), the
+   recording attached when it fits (20 MB), else played on the job page
+   (MESSAGES TO LED CONNECTION, byte ranges for Safari). Reset clears them.
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
    REPORT on every product row opens the claim with that product ticked
    (and the kind preset from its count); the footer one is REPORT OTHER

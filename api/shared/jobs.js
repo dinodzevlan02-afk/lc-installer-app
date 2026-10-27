@@ -39,7 +39,11 @@ const paths = {
   flags: id => "jobs/" + id + "/flags/",
   flag: (id, ref) => "jobs/" + id + "/flags/" + ref + ".json",
   photos: id => "jobs/" + id + "/photos/",
-  photo: (id, name) => "jobs/" + id + "/photos/" + name
+  photo: (id, name) => "jobs/" + id + "/photos/" + name,
+  messages: id => "jobs/" + id + "/messages/",
+  message: (id, ref) => "jobs/" + id + "/messages/" + ref + ".json",
+  media: id => "jobs/" + id + "/media/",
+  mediaFile: (id, name) => "jobs/" + id + "/media/" + name
 };
 
 const canSeeJob = (user, job) => A.isLc(user) || (Array.isArray(job.installers) && job.installers.includes(user.username));
