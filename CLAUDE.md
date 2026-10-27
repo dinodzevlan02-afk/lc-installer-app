@@ -75,9 +75,10 @@ the session; if they are not there, say so rather than guessing.
    recording attached when it fits (20 MB), else played on the job page
    (MESSAGES TO LED CONNECTION, byte ranges for Safari). Reset clears them.
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
-   REPORT on every product row opens the claim with that product ticked
-   (and the kind preset from its count); the footer one is REPORT OTHER
-   PROBLEM. The main button reads CHECKLIST n / N, filling as products are
+   REPORT on every product row opens the claim for that product ONLY (Dino,
+   2026-10-27: "whatever I clicked to report, display only that one"), the
+   kind preset from its count; the footer REPORT OTHER PROBLEM lists every
+   product with tick boxes. The main button reads CHECKLIST n / N, filling as products are
    counted, then PROCEED TO INSTALLATION; it opens a checklist (per product
    OK / SHORT / DAMAGED / TO COUNT) with the confirm box. Server and the
    sign-off email are unchanged. The installer SIGNS
