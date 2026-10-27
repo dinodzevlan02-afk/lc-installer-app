@@ -80,4 +80,7 @@ test("Kroger 345: every design label has a part number and a set-up line; the Op
   const s03 = PARTS.check(PARTS.DECIDED["LC-SLOT-L-L1-480-40-70-TY5SW"]);
   assert.equal(s03.parts.means, "230W \u00b7 200-480V \u00b7 4000K \u00b7 CRI 80 \u00b7 Type V square \u00b7 Straight square arm bracket \u00b7 Bronze \u00b7 No sensor");
   assert.match(PARTS.SETUP["LC-SLOT-L-S1-480-40-70-TY4W-HS"], /75W.*shield/);
+  /* Every set-up line has its short form for the material row, and no more. */
+  assert.deepStrictEqual(Object.keys(PARTS.SETUP_SHORT).sort(), Object.keys(PARTS.SETUP).sort());
+  Object.keys(PARTS.SETUP_SHORT).forEach(k => assert.ok(PARTS.SETUP_SHORT[k].length <= 50, k + " short set-up line stays short"));
 });
