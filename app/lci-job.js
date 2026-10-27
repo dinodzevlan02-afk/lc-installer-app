@@ -142,7 +142,11 @@
 
   function renderMaterial() {
     var locked = approved();
-    $('lines').innerHTML = D.site.bom.map(function (b) {
+    /* The header row only shows on the desktop table (job.html, wide screen
+       with a mouse); on a tablet each product is its own card. */
+    $('lines').innerHTML = (D.site.bom.length ? '<div class="thead" aria-hidden="true"><span>Product</span><span>Part no. · Set up</span>' +
+      '<span>Documents</span><span></span><span>Expected</span><span>Received</span><span>Damaged</span><span>Status</span></div>' : '') +
+      D.site.bom.map(function (b) {
       var c = counts[b.key] || {};
       return '<div class="line" data-line="' + esc(b.key) + '">' +
         '<div class="info"><div class="head"><span class="pname">' + esc(b.name) + '</span>' +
@@ -151,7 +155,7 @@
             return '<span class="chip tag">' + esc(t) + (n && b.tags.length > 1 ? ' &times; ' + n : '') + '</span>';
           }).join('') +
             (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</span>' +
-          '<span class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</span></div>' + partLine(b) + '</div>' +
+          '<span class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</span></div><div class="pl"' + (b.partNo && b.partNo.setup ? ' title="' + esc(b.partNo.setup) + '"' : '') + '>' + partLine(b) + '</div></div>' +
         '<button type="button" class="docbtn" data-docs="' + esc(b.key) + '">Documents · ' + docList(b).length + '</button>' +
         '<button type="button" class="rptbtn" data-report="' + esc(b.key) + '">Report</button>' +
         '<div class="counts"><div class="cbox"><div class="cl">Expected</div><div class="expected">' + b.qty + '</div></div>' +

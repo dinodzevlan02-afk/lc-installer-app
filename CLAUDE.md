@@ -52,8 +52,13 @@ the session; if they are not there, say so rather than guessing.
    product with bigger text, the documents behind one DOCUMENTS button (a
    pop-up with the set up in full, guide, spec sheet, job sheet, catalog
    PDFs), and NO phone / email strip under the list ("remove here contact
-   number and my emails"). Next, waiting on Dino: a short "Set up" line in
-   the row (full text in the pop-up), a desktop table layout, and RECORD A
+   number and my emails"). Desktop (Dino, 2026-10-27, "build on desktop app
+   also"; the canvas's desktop board): from 1280 px wide with a mouse the
+   same rows read as one table, PRODUCT | PART NO. · SET UP | DOCUMENTS |
+   REPORT | EXPECTED | RECEIVED | DAMAGED | STATUS, set up cut to two lines
+   (full text on hover and in DOCUMENTS); CSS only in job.html, an iPad
+   (coarse pointer) keeps its cards. Next, waiting on Dino: a short "Set up"
+   line in the row (full text in the pop-up), and RECORD A
    MESSAGE (voice / camera / screen to the project's LC list; needs an
    upload + email endpoint; Safari on iPad cannot record the screen).
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
