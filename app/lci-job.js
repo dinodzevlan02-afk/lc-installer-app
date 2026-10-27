@@ -172,6 +172,7 @@
     $('matLead').hidden = locked;
     renderSummary();
     renderClaims();
+    renderMessages();
   }
 
   function renderSummary() {
@@ -306,6 +307,184 @@
       else { toast('Signed off.' + sent + ' On to the install.'); show('install'); }
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('apSend').disabled = false; });
   });
+
+  /* ── Record a message (Dino, 2026-10-23, on the canvas: "make a record
+     ... record a screen ... to LED Connection personnel only") ─────────
+     Voice, camera or screen through MediaRecorder at a low bitrate, or a
+     recording attached from the device (an iPad cannot record its screen
+     in a page: it attaches a screen recording from Photos). Uploaded in
+     2 MB parts, then POST messages emails the project's LC list. */
+  var REC_MAX = 180, REC_BYTES = 60 * 1024 * 1024, rec = null, recTimer = null;
+  function mediaUrl(name) { return '/api/jobs/' + encodeURIComponent(JOB_ID) + '/media/' + encodeURIComponent(name); }
+  function clock(s) { s = Math.round(s || 0); return Math.floor(s / 60) + ':' + ('0' + (s % 60)).slice(-2); }
+  function canRecord() { return !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getUserMedia); }
+  function canScreen() { return !!(window.MediaRecorder && navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) && !window.matchMedia('(pointer: coarse)').matches; }
+  function pickMime(audioOnly) {
+    var list = audioOnly ? ['audio/webm;codecs=opus', 'audio/webm', 'audio/mp4'] : ['video/webm;codecs=vp9,opus', 'video/webm;codecs=vp8,opus', 'video/webm', 'video/mp4'];
+    for (var i = 0; i < list.length; i++) if (MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(list[i])) return list[i];
+    return '';
+  }
+  function extOf(type, name) {
+    var t = String(type || '') + ' ' + String(name || '').toLowerCase();
+    return /webm/.test(t) ? 'webm' : /quicktime|\.mov\b/.test(t) ? 'mov' : /mp4|m4a|aac|\.m4v\b/.test(t) ? 'mp4' : '';
+  }
+  function stopTracks() { if (rec && rec.stream) rec.stream.getTracks().forEach(function (t) { t.stop(); }); }
+  function clearRec() {
+    clearInterval(recTimer);
+    if (rec && rec.recorder && rec.recorder.state === 'recording') { rec.discard = true; rec.recorder.stop(); }
+    stopTracks();
+    if (rec && rec.url) URL.revokeObjectURL(rec.url);
+    rec = null;
+    $('rcStage').hidden = true; $('rcLive').srcObject = null;
+    $('rcPlay').hidden = true; $('rcPlay').removeAttribute('src'); $('rcPlay').load();
+    $('rcTime').textContent = '0:00'; $('rcTime').classList.remove('on');
+    $('rcSend').disabled = true; $('rcInfo').textContent = '';
+    Array.prototype.forEach.call($('rcKinds').children, function (b) { b.classList.remove('on'); });
+  }
+  function showTake(blob, ext, seconds, audio) {
+    rec.blob = blob; rec.ext = ext; rec.seconds = seconds;
+    rec.url = URL.createObjectURL(blob);
+    var v = $('rcPlay');
+    v.classList.toggle('audio', !!audio); v.src = rec.url; v.hidden = false;
+    $('rcStage').hidden = true;
+    var mb = (blob.size / 1048576).toFixed(1) + ' MB';
+    $('rcInfo').textContent = (seconds ? clock(seconds) + ' · ' : '') + mb + '. Play it back, then send.';
+    $('rcSend').disabled = false;
+  }
+  function getStream(kind) {
+    var md = navigator.mediaDevices;
+    if (kind === 'voice') return md.getUserMedia({ audio: true });
+    if (kind === 'camera') return md.getUserMedia({ video: { facingMode: 'environment', width: { ideal: 1280 }, height: { ideal: 720 } }, audio: true });
+    /* Screen, with the microphone so the installer can talk it through. */
+    return md.getDisplayMedia({ video: true, audio: false }).then(function (scr) {
+      return md.getUserMedia({ audio: true }).then(function (mic) {
+        return new MediaStream(scr.getVideoTracks().concat(mic.getAudioTracks()));
+      }, function () { return scr; });
+    });
+  }
+  Array.prototype.forEach.call(document.querySelectorAll('[data-rec]'), function (b) {
+    b.addEventListener('click', function () {
+      clearRec();
+      $('rcNote').value = '';
+      $('rcScreen').hidden = !canScreen();
+      Array.prototype.forEach.call($('rcKinds').querySelectorAll('[data-k=voice],[data-k=camera]'), function (x) { x.hidden = !canRecord(); });
+      $('rcInfo').textContent = canRecord() ? 'Pick how to record.' : 'This browser cannot record here: attach a recording instead.';
+      $('ovRec').hidden = false;
+    });
+  });
+  $('rcKinds').addEventListener('click', function (e) {
+    var b = e.target.closest('button[data-k]');
+    if (!b) return;
+    var kind = b.getAttribute('data-k'), note = $('rcNote').value;
+    clearRec(); $('rcNote').value = note;
+    b.classList.add('on');
+    if (kind === 'file') { rec = { kind: 'file' }; $('rcFile').click(); return; }
+    rec = { kind: kind };
+    var mine = rec;
+    $('rcInfo').textContent = kind === 'screen' ? 'Pick the window or screen to share.' : 'Allow the ' + (kind === 'voice' ? 'microphone' : 'camera and microphone') + ' when asked.';
+    getStream(kind).then(function (stream) {
+      if (rec !== mine) { stream.getTracks().forEach(function (t) { t.stop(); }); return; }
+      rec.stream = stream;
+      $('rcStage').classList.toggle('voice', kind === 'voice');
+      if (kind !== 'voice') $('rcLive').srcObject = stream;
+      $('rcStage').hidden = false;
+      $('rcGo').textContent = 'Start recording';
+      $('rcInfo').textContent = kind === 'screen' ? 'Sharing. Start recording, talk it through, then stop.' : 'Ready. Start recording, then stop when done.';
+      /* Sharing ended from the browser's own bar: stop the recording too. */
+      stream.getVideoTracks().forEach(function (t) { t.addEventListener('ended', function () { if (rec === mine && rec.recorder && rec.recorder.state === 'recording') rec.recorder.stop(); }); });
+    }).catch(function (err) {
+      if (rec === mine) { clearRec(); }
+      toast('Could not start the ' + (kind === 'screen' ? 'screen sharing' : kind === 'voice' ? 'microphone' : 'camera') + ': ' + (err && err.message || 'not allowed') + '.', true);
+    });
+  });
+  $('rcGo').addEventListener('click', function () {
+    if (!rec || !rec.stream) return;
+    if (rec.recorder && rec.recorder.state === 'recording') { rec.recorder.stop(); return; }
+    var mine = rec, audio = rec.kind === 'voice', mime = pickMime(audio), chunks = [];
+    var opt = { audioBitsPerSecond: 64000 };
+    if (!audio) opt.videoBitsPerSecond = 1000000;
+    if (mime) opt.mimeType = mime;
+    var r;
+    try { r = new MediaRecorder(rec.stream, opt); } catch (e) { toast('Recording is not available here: ' + e.message, true); return; }
+    rec.recorder = r;
+    r.ondataavailable = function (ev) { if (ev.data && ev.data.size) chunks.push(ev.data); };
+    r.onstop = function () {
+      clearInterval(recTimer);
+      $('rcTime').classList.remove('on');
+      var secs = (Date.now() - mine.t0) / 1000;
+      if (rec !== mine || mine.discard) return;
+      stopTracks();
+      var type = r.mimeType || mime || (audio ? 'audio/webm' : 'video/webm'), blob = new Blob(chunks, { type: type });
+      if (!blob.size) { toast('Nothing was recorded. Try again.', true); clearRec(); return; }
+      showTake(blob, extOf(type) || 'webm', secs, audio);
+    };
+    rec.t0 = Date.now();
+    r.start(1000);
+    $('rcGo').textContent = 'Stop';
+    $('rcTime').classList.add('on');
+    recTimer = setInterval(function () {
+      var s = (Date.now() - mine.t0) / 1000;
+      $('rcTime').textContent = clock(s);
+      if (s >= REC_MAX && r.state === 'recording') r.stop();
+    }, 250);
+  });
+  $('rcFile').addEventListener('change', function () {
+    var f = this.files && this.files[0];
+    this.value = '';
+    if (!f || !rec || rec.kind !== 'file') return;
+    var ext = extOf(f.type, f.name);
+    if (!ext) { toast('Attach a video or a voice memo (MP4, MOV, M4A or WebM).', true); return; }
+    if (f.size > REC_BYTES) { toast('That recording is ' + Math.round(f.size / 1048576) + ' MB; the limit is 60 MB. Trim it or record a shorter one.', true); return; }
+    showTake(f, ext, 0, /^audio\//.test(f.type));
+    $('rcPlay').onloadedmetadata = function () { if (rec && rec.kind === 'file' && isFinite(this.duration)) { rec.seconds = this.duration; $('rcInfo').textContent = clock(this.duration) + ' · ' + (f.size / 1048576).toFixed(1) + ' MB. Play it back, then send.'; } };
+  });
+  function b64(bytes) {
+    var s = '', step = 0x8000;
+    for (var i = 0; i < bytes.length; i += step) s += String.fromCharCode.apply(null, bytes.subarray(i, i + step));
+    return btoa(s);
+  }
+  function uploadMedia(blob, ext, progress) {
+    return blob.arrayBuffer().then(function (ab) {
+      var bytes = new Uint8Array(ab), PART = 2 * 1024 * 1024, parts = Math.max(1, Math.ceil(bytes.length / PART));
+      var upload = Array.prototype.map.call(crypto.getRandomValues(new Uint8Array(8)), function (x) { return ('0' + x.toString(16)).slice(-2); }).join('');
+      var p = Promise.resolve(), out = null;
+      for (var i = 0; i < parts; i++) (function (i) {
+        p = p.then(function () {
+          progress(i + 1, parts);
+          return api('PUT', 'media', { data: b64(bytes.subarray(i * PART, (i + 1) * PART)), kind: ext, part: i, parts: parts, upload: upload });
+        }).then(function (r) { if (r && r.name) out = r; });
+      })(i);
+      return p.then(function () { if (!out) throw new Error('The upload did not finish.'); return out; });
+    });
+  }
+  $('rcSend').addEventListener('click', function () {
+    if (!rec || !rec.blob) return;
+    var take = rec;
+    $('rcSend').disabled = true;
+    uploadMedia(take.blob, take.ext, function (i, n) { $('rcInfo').textContent = 'Uploading' + (n > 1 ? ' ' + i + ' / ' + n : '') + '…'; })
+      .then(function (m) { $('rcInfo').textContent = 'Sending…'; return api('POST', 'messages', { kind: take.kind, media: m.name, note: $('rcNote').value, seconds: take.seconds || null }); })
+      .then(function (r) {
+        (D.messages = D.messages || []).unshift(r.message);
+        renderMessages();
+        clearRec(); $('ovRec').hidden = true;
+        var n = r.notify || {};
+        toast('Message ' + r.message.ref + (n.sent ? ' sent to LED Connection.' : ' saved. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here.'), !n.sent);
+      })
+      .catch(function (e) { toast(e.message, true); $('rcInfo').textContent = 'Not sent. Try again.'; $('rcSend').disabled = false; });
+  });
+  $('rcCancel').addEventListener('click', function () { clearRec(); $('ovRec').hidden = true; });
+  function renderMessages() {
+    var list = D.messages || [];
+    var h = !list.length ? '' : '<h3>Messages to LED Connection</h3>' + list.map(function (m) {
+      var audio = m.kind === 'voice';
+      return '<div class="claim"><span class="ref">' + esc(m.ref) + '</span> · ' + esc(m.kindLabel) + (m.seconds ? ' · ' + clock(m.seconds) : '') +
+        ' · ' + esc(new Date(m.at).toLocaleString()) + ' · ' + esc(m.byName) +
+        (m.mail ? ' · <span class="muted">' + (m.mail.sent ? 'emailed' : 'not emailed') + '</span>' : '') +
+        (m.note ? '<div>' + esc(m.note) + '</div>' : '') +
+        '<video class="msgvid' + (audio ? ' audio' : '') + '" controls preload="metadata" playsinline src="' + mediaUrl(m.media) + '"></video></div>';
+    }).join('');
+    Array.prototype.forEach.call(document.querySelectorAll('.msglist'), function (el) { el.innerHTML = h; });
+  }
 
   /* ── Report a problem ───────────────────────────────────────────── */
   var claimKind = null, claimShots = [];

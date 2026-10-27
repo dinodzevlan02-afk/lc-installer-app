@@ -215,10 +215,11 @@ function page(title, color, rows, table, note, link, linkText, button) {
     '<tr><td style="padding:16px 0 0"><a href="' + esc(link) + '" style="color:#f37021;font-weight:700">' + esc(linkText) + '</a></td></tr></table>';
 }
 const byLine = u => (u.name || u.username) + (u.company ? " (" + u.company + ")" : "") + (u.phone ? ", " + u.phone : "");
-async function deliver(req, id, job, user, msg, action, detail) {
+async function deliver(req, id, job, user, msg, action, detail, lcOnly) {
   let to = defaultList(), cc = [];
   try {
     ({ to, cc } = await recipients(job));
+    if (lcOnly) cc = [];   /* LED Connection's list for this project, no installers or client */
     const r = await MAIL.sendMail(Object.assign({ to, cc }, msg));
     const out = r.sent ? { sent: true, queued: !!r.queued, local: !!r.local, to, cc, attached: (msg.attachments || []).length }
                        : { sent: false, reason: r.reason, to, cc, attached: 0 };
@@ -268,6 +269,27 @@ async function notifyFlag(req, id, job, site, flag, user) {
     ["Reported by", byLine(user) + ", " + new Date(flag.at).toUTCString()]
   ], "", flag.note, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id) + "#install", "Open the job in the Installer App");
   return deliver(req, id, job, user, { subject, html, attachments }, "flag.notify", { ref: flag.ref, attached: attachments.length });
+}
+
+/* A recorded message (voice, camera or screen) from site: LED Connection's
+   list for this project only (Dino, 2026-10-23: "these emails will be
+   submitted to LED Connection personnel only that have been selected").
+   The recording rides along when it fits; it always plays on the job page. */
+async function notifyMessage(req, id, job, msg, user) {
+  const jobName = job.name || id;
+  const got = await P.store().getBytes(J.paths.mediaFile(id, msg.media)).catch(() => null);
+  const ext = msg.media.split(".").pop();
+  const attachments = got && got.buf.length <= MAIL.ATTACH_BUDGET
+    ? [{ name: msg.ref + "-" + msg.kind + "." + ext, contentType: { webm: "video/webm", mp4: "video/mp4", mov: "video/quicktime" }[ext], bytes: got.buf }] : [];
+  const len = msg.seconds ? (msg.seconds >= 60 ? Math.floor(msg.seconds / 60) + " min " : "") + (msg.seconds % 60) + " s" : "";
+  const subject = "[" + msg.ref + "] Message from site: " + msg.kindLabel + " - " + jobName;
+  const html = page("Message from site " + msg.ref, "#0e7490", [
+    ["Job", jobName + (job.address ? ", " + job.address : "")],
+    ["Message", msg.kindLabel + (len ? ", " + len : "")],
+    ["Recording", attachments.length ? "attached (" + (got.buf.length / 1048576).toFixed(1) + " MB)" : "too large to attach: play it on the job page"],
+    ["From", byLine(user) + ", " + new Date(msg.at).toUTCString()]
+  ], "", msg.note, INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id), "Play it on the job page", { noteLabel: "Note" });
+  return deliver(req, id, job, user, { subject, html, attachments }, "message.notify", { ref: msg.ref, attached: attachments.length }, true);
 }
 
 /* One fixture saved as installed, its photo as the proof (Dino, 2026-10-21:
@@ -363,4 +385,4 @@ async function notifyAssigned(req, id, job, usernames, actor) {
 }
 
 module.exports = { notifyAssigned, notifyClaim, claimEmail, lcList, cleanLcList, cleanJobNotify, lcTo, recipients, NOTIFY_PATH,
-                   notifySignoff, notifyFlag, notifySubmit, notifyInstalled, notifyAccepted, notifySentBack, FLAG_KINDS, mailRecord };
+                   notifySignoff, notifyFlag, notifyMessage, notifySubmit, notifyInstalled, notifyAccepted, notifySentBack, FLAG_KINDS, mailRecord };
