@@ -80,7 +80,8 @@ module.exports = P.handler(async ({ req, method, body, params, send }) => {
       const c = PARTS.check(pn);
       if (!c.ok) return null;
       const setup = PARTS.SETUP[label] && !(saved[label] && saved[label].pn !== PARTS.DECIDED[label]) ? PARTS.SETUP[label] : null;
-      return { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c), setup };
+      return { pn: c.pn, checked: c.checked, parts: c.parts || null, short: c.short || null, guide: GUIDES.forPart(c), setup,
+               setupShort: setup ? PARTS.SETUP_SHORT[label] || null : null };
     };
     /* Once a checked part number is saved, the product's name follows it
        ("Optimus 300W · T5S"), so name, box and part number agree; the

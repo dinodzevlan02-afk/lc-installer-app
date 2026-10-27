@@ -119,9 +119,10 @@
      set up cut to two lines (the full text is in DOCUMENTS and on hover).
      Wide screen with a mouse only, so an iPad keeps its cards. */
   @media (min-width: 1280px) and (hover: hover) and (pointer: fine) {
-    .steps .step { min-height: 40px; }
+    .nav .steps { padding: 0; border: 0; background: none; margin-left: 12px; }
+    .nav .step { flex: none; min-height: 40px; padding: 0 16px; }
     #lines { border: 1px solid var(--border); border-radius: 12px; background: var(--panel); overflow-x: auto; margin-bottom: 8px; }
-    #lines .thead, #lines .line { display: grid; grid-template-columns: minmax(190px, 1.1fr) minmax(240px, 1.9fr) 140px 90px 72px 136px 136px 150px;
+    #lines .thead, #lines .line { display: grid; grid-template-columns: minmax(190px, 1.35fr) minmax(240px, 1.65fr) 140px 90px 72px 136px 136px 150px;
       grid-template-rows: auto auto; column-gap: 14px; align-items: center; padding: 10px 18px; }
     #lines .thead { padding-top: 12px; padding-bottom: 10px; border-bottom: 1px solid var(--border); font-family: var(--mono); font-size: 11px; font-weight: 700;
       letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); grid-template-rows: auto; }

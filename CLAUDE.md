@@ -57,8 +57,12 @@ the session; if they are not there, say so rather than guessing.
    same rows read as one table, PRODUCT | PART NO. · SET UP | DOCUMENTS |
    REPORT | EXPECTED | RECEIVED | DAMAGED | STATUS, set up cut to two lines
    (full text on hover and in DOCUMENTS); CSS only in job.html, an iPad
-   (coarse pointer) keeps its cards. Next, waiting on Dino: a short "Set up"
-   line in the row (full text in the pop-up), and RECORD A
+   (coarse pointer) keeps its cards. On the same desktop the two steps move
+   into the top bar (lci-job.js placeSteps). Rows show the SHORT set-up
+   line (parts.js SETUP_SHORT, one per SETUP, the canvas's wording); the
+   full line stays in DOCUMENTS, the pin card and the job sheet. The main
+   button keeps its count when done: "7 / 7 · PROCEED TO INSTALLATION".
+   Next: RECORD A
    MESSAGE (voice / camera / screen to the project's LC list; needs an
    upload + email endpoint; Safari on iPad cannot record the screen).
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red

@@ -102,7 +102,7 @@
 
   function partLine(b) {
     if (b.partNo) return '<div class="pn">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' +
-      (b.partNo.setup ? '<div class="psku setup"><b>Set up</b> ' + esc(b.partNo.setup) + '</div>' : '');
+      (b.partNo.setup ? '<div class="psku setup"><b>Set up</b> ' + esc(b.partNo.setupShort || b.partNo.setup) + '</div>' : '');
     return '<div class="psku">' + esc(b.sku) + '</div><div class="psku warn-pn">No part number set yet: check the box label against the design.</div>';
   }
 
@@ -186,7 +186,7 @@
     /* Billie Jo, 2026-10-27: "change 'sign off' to 'proceed to installation'".
        The button counts up as products are counted, then names the next step. */
     var all = n && done === n, btn = $('btnApprove');
-    btn.textContent = all ? 'Proceed to installation' : 'Checklist ' + done + ' / ' + n;
+    btn.textContent = all ? n + ' / ' + n + ' · Proceed to installation' : 'Checklist ' + done + ' / ' + n;
     btn.classList.toggle('primary', !!all);
     btn.classList.toggle('prog', !all);
     btn.style.setProperty('--done', (n ? Math.round(done / n * 100) : 0) + '%');
@@ -207,6 +207,18 @@
   /* No phone number or email under the material check (Dino, 2026-10-23:
      "remove here contact number and my emails"). REPORT reaches
      LED Connection's list. */
+  /* Desktop (wide screen, mouse): the two steps sit in the top bar, as on the
+     canvas's desktop board, so the material table starts higher. Same query
+     as the desktop table in job.html. */
+  var deskMq = window.matchMedia('(min-width: 1280px) and (hover: hover) and (pointer: fine)');
+  function placeSteps() {
+    var st = document.querySelector('.steps'), nav = document.querySelector('.nav');
+    if (deskMq.matches) nav.insertBefore(st, nav.querySelector('.nav-right'));
+    else nav.parentNode.insertBefore(st, nav.nextSibling);
+  }
+  placeSteps();
+  if (deskMq.addEventListener) deskMq.addEventListener('change', placeSteps); else deskMq.addListener(placeSteps);
+
   $('lines').addEventListener('click', function (e) {
     var t = e.target.closest('[data-docs]');
     if (t) openDocs(t.getAttribute('data-docs'));

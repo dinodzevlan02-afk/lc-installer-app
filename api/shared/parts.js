@@ -141,4 +141,18 @@ const SETUP = {
   "LC-UDL-10-16W-277-40-GR": "Selectable 8\" downlight: set to 16W and 4000K. Fit the goof ring (LC-UDL-8-GR) to cover the old 10\" opening."
 };
 
-module.exports = { check, DECIDED, SETUP, OPTIMUS, LABELS, WALLPACK };
+/* The same in a few words, for the material check row (Dino, 2026-10-27,
+   from the Claude Design canvas: "less text first"); the full line stays in
+   DOCUMENTS, on the pin card and on the job sheet. One per SETUP entry
+   (tests/parts.test.js). */
+const SETUP_SHORT = {
+  "LC-SLOT-L-L1-480-40-70-TY5SW": "Driver in its own box · runs at 181W",
+  "LC-SLOT-L-S1-480-40-70-TY4W": "Dip switch to 75W",
+  "LC-SLOT-L-S1-480-40-70-TY4W-HS": "Dip switch to 75W · fit the house-side shield",
+  "FCW-20-740-277-CT": "Set to 20W · 4000K",
+  "FCW-45-740-277-CT": "Set to 45W · 4000K",
+  "LC-FL32A-40-480-40": "Set to 40W · 4000K · through the 480V step-down",
+  "LC-UDL-10-16W-277-40-GR": "Set to 16W · 4000K · fit the goof ring"
+};
+
+module.exports = { check, DECIDED, SETUP, SETUP_SHORT, OPTIMUS, LABELS, WALLPACK };
