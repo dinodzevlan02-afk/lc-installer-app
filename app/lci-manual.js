@@ -106,7 +106,7 @@
 
       '<h2>1 · Before you lift</h2><ol>' +
         '<li>Check the box label against this job: ' + (b.partNo ? 'part number <b>' + esc(b.partNo.pn) + '</b>' : 'design label <b>' + esc(b.sku) + '</b> (no part number set yet)') +
-          (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different part number, CCT or optic: stop and report it (Material check &rarr; Report a problem).</li>' +
+          (b.cct ? ', <b>' + esc(b.cct) + '</b>' : '') + '. A different part number, CCT or optic: stop and report it (Material check &rarr; REPORT on the product).</li>' +
         (b.partNo && b.partNo.parts ? '<li>This part number means: <b>' + esc(b.partNo.parts.means) + '</b>.</li>' : '') +
         (b.partNo && b.partNo.setup ? '<li>Set it up for this job: <b>' + esc(b.partNo.setup) + '</b></li>' : '') +
         voltageNote(b, pins) +
