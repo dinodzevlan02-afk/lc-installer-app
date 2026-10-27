@@ -91,9 +91,11 @@
   }
 
   function stepper(key, field, val, locked) {
-    return '<div class="stepper"><button type="button" data-k="' + esc(key) + '" data-f="' + field + '" data-d="-1"' + (locked ? ' disabled' : '') + ' aria-label="Less">&minus;</button>' +
-      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-f="' + field + '" value="' + (val == null ? '' : val) + '"' + (locked ? ' disabled' : '') + '>' +
-      '<button type="button" data-k="' + esc(key) + '" data-f="' + field + '" data-d="1"' + (locked ? ' disabled' : '') + ' aria-label="More">+</button></div>';
+    /* Named for screen readers: "Received, Downlight 16W" (QA 2026-10-27, L4). */
+    var b = product(key), what = (field === 'received' ? 'Received' : 'Damaged') + (b ? ', ' + b.name : '');
+    return '<div class="stepper"><button type="button" data-k="' + esc(key) + '" data-f="' + field + '" data-d="-1"' + (locked ? ' disabled' : '') + ' aria-label="' + esc('One less: ' + what) + '">&minus;</button>' +
+      '<input type="number" inputmode="numeric" min="0" step="1" data-k="' + esc(key) + '" data-f="' + field + '" value="' + (val == null ? '' : val) + '"' + (locked ? ' disabled' : '') + ' aria-label="' + esc(what) + '">' +
+      '<button type="button" data-k="' + esc(key) + '" data-f="' + field + '" data-d="1"' + (locked ? ' disabled' : '') + ' aria-label="' + esc('One more: ' + what) + '">+</button></div>';
   }
 
   /* The UL-listed part number is what the installer checks on the box; the
@@ -166,7 +168,7 @@
     var a = D.material.approved;
     $('matSigned').innerHTML = !a ? '' :
       '<div class="signed' + (a.short || a.damaged ? ' warn' : '') + '"><b>Signed off</b> by ' + esc(a.byName) + ' on ' + esc(new Date(a.at).toLocaleString()) +
-      (a.short || a.damaged ? ' · ' + (a.short ? a.short + ' short ' : '') + (a.damaged ? a.damaged + ' damaged' : '') +
+      (a.short || a.damaged ? ' · ' + [a.short ? a.short + ' short' : '', a.damaged ? a.damaged + ' damaged' : ''].filter(Boolean).join(', ') +
         (D.claims.length ? '' : ' · <b>no claim filed yet</b>: use REPORT on the product.') : ' · everything received.') + '</div>';
     $('btnApprove').hidden = locked;
     $('matLead').hidden = locked;
@@ -230,16 +232,28 @@
   $('ovDocs').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
 
   /* Counts save themselves a moment after the last change. */
-  var saveTimer = null, saving = Promise.resolve();
+  /* Counts save on their own; one that could not be saved (no signal) is
+     kept and saved again when the signal is back (QA 2026-10-27, L1). */
+  var saveTimer = null, saving = Promise.resolve(), unsaved = false;
   function queueSave() {
     clearTimeout(saveTimer);
     saveTimer = setTimeout(function () {
       saving = saving.then(function () {
-        return api('PUT', 'material', { lines: counts }).then(function (r) { D.material = r.material; },
-          function (e) { toast(e.message, true); });
+        return api('PUT', 'material', { lines: counts }).then(function (r) {
+          D.material = r.material;
+          if (unsaved) toast('Back online: your counts are saved.');
+          unsaved = false;
+        }, function (e) {
+          if (e.offline) {
+            if (!unsaved) toast('No signal: these counts are not saved yet. They save by themselves when the signal is back.', true);
+            unsaved = true;
+          } else toast(e.message, true);
+        });
       });
     }, 600);
   }
+  window.addEventListener('online', function () { if (unsaved) queueSave(); });
+  setInterval(function () { if (unsaved) queueSave(); }, 20000);
 
   function setCount(key, field, v) {
     var b = product(key);
@@ -584,7 +598,7 @@
     $('map').style.setProperty('--pin', v / 100);
     /* One redraw per 60 ms while dragging; a timer, not a frame callback. */
     if (pinTimer) return;
-    pinTimer = setTimeout(function () { pinTimer = 0; restyle(); }, 60);
+    pinTimer = setTimeout(function () { pinTimer = 0; restyle(); declutter(); }, 60);
   }
   function setMapOpacity(v) {
     v = Math.max(10, Math.min(100, parseInt(v, 10) || 100));
@@ -640,6 +654,7 @@
     });
     if (pts.length) map.fitBounds(pts, { padding: [50, 50], maxZoom: 19 }); else map.setView([39.5, -98.35], 4);
     map.on('zoomend', renderLabels);
+    map.on('moveend', declutter);
     renderLabels();
   }
 
@@ -653,6 +668,22 @@
         labels[p.id] = L.marker([p.lat, p.lng], { interactive: false, keyboard: false,
           icon: L.divIcon({ className: 'lbl-wrap', html: '<span class="lbl">' + esc(p.tag) + '</span>', iconSize: [0, 0] }) }).addTo(map);
       } else if (!want && labels[p.id]) { map.removeLayer(labels[p.id]); delete labels[p.id]; }
+    });
+    declutter();
+  }
+
+  /* A tag that would cover another tag is hidden until zooming in shows
+     room for it; the selected head's tag goes first (QA 2026-10-27, L6). */
+  function declutter() {
+    if (!map) return;
+    var placed = [];
+    Object.keys(labels).sort(function (a, b) { return (b === selected) - (a === selected); }).forEach(function (id) {
+      var el = labels[id].getElement(), span = el && el.querySelector('.lbl');
+      if (!span) return;
+      var r = span.getBoundingClientRect();
+      var hit = placed.some(function (q) { return r.left < q.right - 1 && r.right > q.left + 1 && r.top < q.bottom - 1 && r.bottom > q.top + 1; });
+      el.style.visibility = hit ? 'hidden' : '';
+      if (!hit) placed.push(r);
     });
   }
 
@@ -704,6 +735,17 @@
     var p = D.site.pins.filter(function (x) { return x.id === id; })[0];
     if (pan && p && map) map.setView([p.lat, p.lng], Math.max(map.getZoom(), 20));
     renderCard();
+    declutter();
+    /* Phone / portrait (QA 2026-10-27, M3: tapping a pin seemed to do
+       nothing, the card had a sliver under the progress and filters): a
+       picked head gets the panel; BACK TO ALL FIXTURES gives it back. */
+    showPicked(true);
+  }
+  function showPicked(on) {
+    var v = $('vInstall');
+    if (v.classList.contains('picked') === on) return;
+    v.classList.toggle('picked', on);
+    if (map) setTimeout(function () { map.invalidateSize(); }, 60);
   }
 
   function renderCard() {
@@ -711,7 +753,8 @@
     if (!p) { $('card').innerHTML = '<p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p>'; return; }
     var b = p.productKey ? product(p.productKey) : null, rec = D.pins[p.id], sol = p.product || {};
     var pole = p.poleId ? D.site.pins.filter(function (x) { return x.poleId === p.poleId && !x.off && x.product; }) : [];
-    var h = '<h2>' + esc(p.tag) + '</h2><div class="sub">' + (p.poleId ? 'Pole ' + esc(p.poleId) + ' · ' : '') + 'Fixture ' + esc(p.fid) + '</div>';
+    var h = '<button type="button" class="small tomap" data-tomap>&larr; Back to all fixtures</button>' +
+      '<h2>' + esc(p.tag) + '</h2><div class="sub">' + (p.poleId ? 'Pole ' + esc(p.poleId) + ' · ' : '') + 'Fixture ' + esc(p.fid) + '</div>';
     if (pole.length > 1) {
       h += '<div class="pole">' + pole.map(function (x, i) {
         return '<button type="button" class="small' + (x.id === p.id ? ' cur' : '') + (isDone(x) ? ' done' : '') + '" data-pick="' + esc(x.id) + '">Head ' + (i + 1) + (isDone(x) ? ' ✓' : '') + '</button>';
@@ -778,7 +821,8 @@
   $('card').addEventListener('click', function (e) {
     var t = e.target.closest('button');
     if (!t) return;
-    if (t.hasAttribute('data-pick')) pick(t.getAttribute('data-pick'), true);
+    if (t.hasAttribute('data-tomap')) { selected = null; restyle(); renderCard(); showPicked(false); declutter(); }
+    else if (t.hasAttribute('data-pick')) pick(t.getAttribute('data-pick'), true);
     else if (t.hasAttribute('data-shot')) $('pinPhoto').click();
     else if (t.hasAttribute('data-save')) { t.disabled = true; savePin(true).then(function () { if (t.isConnected) t.disabled = false; }); }
     else if (t.hasAttribute('data-undo')) savePin(false);

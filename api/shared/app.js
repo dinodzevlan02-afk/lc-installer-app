@@ -98,6 +98,7 @@ async function requireSession(req) {
   if (!rec) throw new ApiError(401, "Not signed in.");
   const user = rec.data;
   if (user.disabled || (user.sessionVersion || 0) !== claims.sv) throw new ApiError(401, "Session ended. Sign in again.");
+  if (claims.sid && (user.endedSessions || []).some(e => e.sid === claims.sid)) throw new ApiError(401, "Signed out. Sign in again.");
   /* An installer company switched off by LED Connection signs all its
      people out on their next request. */
   if (user.companyId) {

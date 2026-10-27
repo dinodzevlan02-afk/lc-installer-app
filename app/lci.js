@@ -21,10 +21,22 @@
         if (!r.ok) {
           var err = new Error((j && j.error) || ('Request failed (' + r.status + ').'));
           err.status = r.status;
+          /* The session ran out mid-work (QA 2026-10-27, L2): back to sign-in,
+             which returns here. Not for the calls that ask who is signed in. */
+          if (r.status === 401 && !/^(me|login|logout|setup|invite|password)\b/.test(path) && !/\/(index\.html)?$/.test(location.pathname)) {
+            err.message = 'Your session ended. Sign in again to carry on.';
+            setTimeout(function () { location.replace('./index.html?next=' + encodeURIComponent('.' + location.pathname + location.search)); }, 1800);
+          }
           throw err;
         }
         return j;
       });
+    }, function () {
+      /* fetch only rejects when the request never reached the server (QA
+         2026-10-27, L1: the browser's own "Failed to fetch" said nothing). */
+      var err = new Error('No signal: could not reach LED Connection. Check the connection and try again.');
+      err.offline = true;
+      throw err;
     });
   }
 

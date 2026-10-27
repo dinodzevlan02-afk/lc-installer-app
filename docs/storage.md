@@ -83,6 +83,7 @@ files; saved work stays because pin ids come from the dataset id and the audit r
   "password": { "alg": "scrypt", "N": 16384, "r": 8, "p": 1, "salt": "<b64>", "hash": "<b64>" },  // null until the invite is used
   "invite": { "hash": "<sha256 hex>", "expires": "...", "kind": "invite", "sentAt": "..." },  // only while a link is live
   "sessionVersion": 3,           // bumped to sign the user out everywhere
+  "endedSessions": [{ "sid": "9f…", "exp": 1793160000 }],  // signed-out sessions (SIGN OUT), kept until they would expire
   "disabled": false,
   "mustChangePassword": false,   // true after an admin sets a temporary password
   "failedLogins": 0, "lockedUntil": "...",   // lockout after 5 wrong passwords, 15 min
