@@ -1,4 +1,4 @@
-"""Charter 6: Sergei's iPad notes (2026-10-29), each checked in the browser."""
+"""Charter 6: the iPad field-test update (2026-10-29), each note checked in the browser."""
 import os
 import base64, json, sys
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -18,8 +18,8 @@ lc.call("POST", "relay/pair", {})
 with sync_playwright() as p:
     br = open_browser(p); ctx = context(br, "ipad"); pg = ctx.new_page()
     login_ui(pg, BASE, "alice", PW)
-    # The live catalog lists every bracket's manual on the Optimus (what Sergei
-    # saw); this bench cannot reach it, so the job reply gets six of them.
+    # The live catalog lists every bracket's manual on the Optimus (what the iPad
+    # test saw); this bench cannot reach it, so the job reply gets six of them.
     def with_manuals(route):
         r = route.fetch(); j = r.json()
         for b in j.get("site", {}).get("bom", []):
