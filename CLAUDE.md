@@ -593,6 +593,28 @@ and upload tests, axe-core. Scripts in tools/qa/ (README there), re-runnable.
 - L7 "1 short, 1 damaged"; job-page toasts sit above the footer bar.
 Not tested: the live Azure site, real iPad / iPhone Safari, real tiles / GPS.
 
+## Sergei's iPad notes (2026-10-29; Dino: "fix them all and push it live")
+Checked by tools/qa/c6_sergei.py.
+- Photos: no `capture` on the photo inputs, so iPad offers Photo Library as
+  well as the camera (claim, flag, pin photo).
+- REPORT with counts: before sign-off, the received / damaged typed in a
+  claim are written into the row's counts and autosaved, so the main screen
+  shows them.
+- "Submitted, received nothing": every send toast now says what the email
+  did (mailNote): sent, QUEUED for the office relay, or not sent and why.
+  Queued means the Outlook relay on Dino's PC has not polled: check the
+  home page EMAIL panel (SEND TEST EMAIL, the pull + restart command).
+- Pin card documents: this fixture's guide, spec sheet and job sheet; the
+  catalog's PDFs (on the Optimus, every bracket's manual) go behind MORE
+  DOCUMENTS.
+- Fixture IDs: big "ID 20224" in the card heading, FIND FIXTURE box (exact
+  or prefix match, Enter opens the pin), map tags read "S01 · 20224" from
+  zoom 20.
+- Flags: a fixture with an open flag is a red pin; a PROBLEMS chip (count)
+  filters to them and only then lists the job's flags. A pin card shows its
+  own flags only.
+- RECORD A MESSAGE kept as is (Sergei questioned it): Dino's call.
+
 ## Installable app (Dino, 2026-10-21: "a standalone app, like the customer portal")
 - Icon: the LED Connection logo (app/lc-logo.png, the portal's file) on the
   dark tile with the orange frame, and a cyan open-end wrench under it, so it

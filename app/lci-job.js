@@ -44,6 +44,16 @@
   function upload(file) { return shrink(file).then(function (d) { return api('PUT', 'photos', { dataUrl: d }); }); }
   function photoUrl(name) { return '/api/jobs/' + encodeURIComponent(JOB_ID) + '/photos/' + encodeURIComponent(name); }
 
+  /* What the toast says about the email (Sergei, 2026-10-29: "not sure if
+     they went to you"): a message waiting for the office's Outlook relay
+     says so instead of "emailed". */
+  function mailNote(n, what) {
+    n = n || {};
+    if (n.sent && n.queued) return ' Its email to LED Connection is queued and goes out the next time the office mail relay runs.';
+    if (n.sent) return ' Emailed to LED Connection' + (n.others ? ' (+' + n.others + ' on this project)' : '') + (what || '') + '.';
+    return ' The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here.';
+  }
+
   function product(key) { return D.site.bom.filter(function (b) { return b.key === key; })[0] || null; }
 
   /* A product's documents: installation guide, spec sheet, job sheet, then
@@ -62,8 +72,13 @@
     return '<a class="btn' + (d.primary ? ' primary' : '') + '"' + (d.tab ? ' target="_blank" rel="noopener"' : '') + ' href="' + esc(d.url) + '">' +
       (full ? '<span>' + esc(d.label) + '</span>' + (d.note ? '<span style="font-weight:600;letter-spacing:.04em;text-transform:none">' + esc(d.note) + '</span>' : '') : esc(d.label)) + '</a>';
   }
+  /* Pin card (Sergei, 2026-10-29: "a lot of installation guides"): this
+     fixture's own documents, other brackets' guides behind MORE DOCUMENTS. */
   function docButtons(b) {
-    return docList(b).map(function (d) { return docLink(d, false); }).join('');
+    var list = docList(b), main = list.filter(function (d) { return !d.more; }), more = list.filter(function (d) { return d.more; });
+    return main.map(function (d) { return docLink(d, false); }).join('') +
+      (more.length ? '<button type="button" class="small" data-moredocs>More documents · ' + more.length + '</button>' +
+        '<div class="moredocs" hidden>' + more.map(function (d) { return docLink(d, false); }).join('') + '</div>' : '');
   }
   function openDocs(key) {
     var b = product(key);
@@ -316,7 +331,7 @@
       $('ovApprove').hidden = true;
       renderMaterial();
       renderSteps();
-      var a = r.material.approved, sent = r.notify && r.notify.sent ? ' LED Connection has been emailed.' : '';
+      var a = r.material.approved, sent = mailNote(r.notify);
       if (a.short || a.damaged) toast('Signed off.' + sent + ' Report the ' + (a.short ? 'shortage' : 'damage') + ' with REPORT on the product.');
       else { toast('Signed off.' + sent + ' On to the install.'); show('install'); }
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('apSend').disabled = false; });
@@ -482,7 +497,7 @@
         renderMessages();
         clearRec(); $('ovRec').hidden = true;
         var n = r.notify || {};
-        toast('Message ' + r.message.ref + (n.sent ? ' sent to LED Connection.' : ' saved. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here.'), !n.sent);
+        toast('Message ' + r.message.ref + ' saved.' + mailNote(n, n.attached ? ' with the recording' : ''), !n.sent);
       })
       .catch(function (e) { toast(e.message, true); $('rcInfo').textContent = 'Not sent. Try again.'; $('rcSend').disabled = false; });
   });
@@ -559,20 +574,35 @@
     api('POST', 'claims', { kind: claimKind, lines: lines, note: $('clNote').value, photos: claimShots }).then(function (r) {
       D.claims.unshift(r.claim);
       $('ovClaim').hidden = true;
+      /* Sergei, 2026-10-29: the damaged count typed in REPORT did not reach
+         the row. A claim's received / damaged now update the counts too,
+         until they are signed off. */
+      if (!approved()) {
+        var moved = false;
+        lines.forEach(function (l) {
+          var c = counts[l.key] = counts[l.key] || {};
+          if (l.received !== '' && l.received != null) { c.received = Number(l.received); moved = true; }
+          if (l.damaged !== '' && l.damaged != null) { c.damaged = Number(l.damaged); moved = true; }
+        });
+        if (moved) queueSave();
+      }
       renderMaterial();
       var n = r.notify || {};
-      toast('Claim ' + r.claim.ref + ' saved' + (n.sent ? ' and emailed to LED Connection' + (n.others ? ' (+' + n.others + ' on this project)' : '') + (n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : '') + '.'
-        : '. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here. Call if the install is held up.'), !n.sent);
+      toast('Claim ' + r.claim.ref + ' saved.' + mailNote(n, n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : ''), !n.sent);
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('clSend').disabled = false; });
   });
 
   /* ══ 2. Install ═════════════════════════════════════════════════════ */
   function todoPins() { return D.site.pins.filter(function (p) { return !p.off && p.product; }); }
+  /* A head with a flagged problem not yet closed (Sergei, 2026-10-29). */
+  var PROBLEMS = '!problems';
+  function hasProblem(p) { return (D.flags || []).some(function (f) { return f.pinId === p.id && f.status !== 'closed'; }); }
+  function inFilter(p) { return !filterTag || (filterTag === PROBLEMS ? hasProblem(p) : p.tag === filterTag); }
   function isDone(p) { return !!(D.pins[p.id] && D.pins[p.id].installed); }
 
   function pinStyle(p) {
-    var dim = filterTag && p.tag !== filterTag, k = pinScale();
-    var col = p.off || !p.product ? '#6b7280' : isDone(p) ? '#22c55e' : '#f37021';
+    var dim = !inFilter(p), k = pinScale();
+    var col = p.off || !p.product ? '#6b7280' : hasProblem(p) ? '#ef4444' : isDone(p) ? '#22c55e' : '#f37021';
     return { radius: (selected === p.id ? 12 : 9) * k, color: selected === p.id ? '#22d3ee' : '#0a0e1a', weight: selected === p.id ? 4 : 2,
              fillColor: col, fillOpacity: dim ? 0.15 : 0.95, opacity: dim ? 0.25 : 1 };
   }
@@ -663,10 +693,14 @@
     if (!map) return;
     var show = map.getZoom() >= 19;
     D.site.pins.forEach(function (p) {
-      var want = markers[p.id] && (show || (filterTag && p.tag === filterTag)) && (!filterTag || p.tag === filterTag);
+      var want = markers[p.id] && (show || !!filterTag) && inFilter(p);
+      /* Close in, the tag carries the fixture ID too (Sergei, 2026-10-29). */
+      var text = map.getZoom() >= 20 ? p.tag + ' · ' + p.fid : p.tag;
+      if (want && labels[p.id] && labels[p.id]._lciText !== text) { map.removeLayer(labels[p.id]); delete labels[p.id]; }
       if (want && !labels[p.id]) {
         labels[p.id] = L.marker([p.lat, p.lng], { interactive: false, keyboard: false,
-          icon: L.divIcon({ className: 'lbl-wrap', html: '<span class="lbl">' + esc(p.tag) + '</span>', iconSize: [0, 0] }) }).addTo(map);
+          icon: L.divIcon({ className: 'lbl-wrap', html: '<span class="lbl">' + esc(text) + '</span>', iconSize: [0, 0] }) }).addTo(map);
+        labels[p.id]._lciText = text;
       } else if (!want && labels[p.id]) { map.removeLayer(labels[p.id]); delete labels[p.id]; }
     });
     declutter();
@@ -705,17 +739,35 @@
       h += '<button type="button" class="flt' + (filterTag === t.tag ? ' on' : '') + '" data-t="' + esc(t.tag) + '">' + esc(t.tag) +
         ' <span class="c">' + ps.filter(isDone).length + '/' + ps.length + '</span></button>';
     });
+    var probs = D.site.pins.filter(hasProblem).length;
+    if (probs) h += '<button type="button" class="flt prob' + (filterTag === PROBLEMS ? ' on' : '') + '" data-t="' + PROBLEMS + '">Problems <span class="c">' + probs + '</span></button>';
     $('filters').innerHTML = h;
   }
+
+  /* FIND FIXTURE: an exact fixture ID, else the first that starts with it. */
+  $('findFid').addEventListener('keydown', function (e) {
+    if (e.key !== 'Enter') return;
+    e.preventDefault();
+    var q = this.value.trim().toLowerCase();
+    if (!q) return;
+    var ps = D.site.pins.filter(function (p) { return markers[p.id]; });
+    var hit = ps.filter(function (p) { return String(p.fid).toLowerCase() === q; })[0] ||
+              ps.filter(function (p) { return String(p.fid).toLowerCase().indexOf(q) === 0; })[0];
+    if (!hit) { toast('No fixture with ID ' + this.value.trim() + ' on this job.', true); return; }
+    if (filterTag && !inFilter(hit)) { filterTag = null; renderFilters(); renderFlags(); }
+    this.blur();
+    pick(hit.id, true);
+  });
 
   $('filters').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-t]');
     if (!b) return;
     filterTag = b.getAttribute('data-t') || null;
     renderFilters(); restyle(); renderLabels();
-    var ps = D.site.pins.filter(function (p) { return markers[p.id] && (!filterTag || p.tag === filterTag); });
+    var ps = D.site.pins.filter(function (p) { return markers[p.id] && inFilter(p); });
     if (ps.length) map.fitBounds(ps.map(function (p) { return [p.lat, p.lng]; }), { padding: [60, 60], maxZoom: 20 });
-    if (filterTag && !selected) renderTagCard();
+    renderFlags();
+    if (filterTag && filterTag !== PROBLEMS && !selected) renderTagCard();
   });
 
   /* Picking a tag with no pin chosen: what that tag is and how many. */
@@ -754,7 +806,7 @@
     var b = p.productKey ? product(p.productKey) : null, rec = D.pins[p.id], sol = p.product || {};
     var pole = p.poleId ? D.site.pins.filter(function (x) { return x.poleId === p.poleId && !x.off && x.product; }) : [];
     var h = '<button type="button" class="small tomap" data-tomap>&larr; Back to all fixtures</button>' +
-      '<h2>' + esc(p.tag) + '</h2><div class="sub">' + (p.poleId ? 'Pole ' + esc(p.poleId) + ' · ' : '') + 'Fixture ' + esc(p.fid) + '</div>';
+      '<h2>' + esc(p.tag) + '<span class="fidbig">ID ' + esc(p.fid) + '</span></h2><div class="sub">' + (p.poleId ? 'Pole ' + esc(p.poleId) + ' · ' : '') + 'Fixture ID ' + esc(p.fid) + '</div>';
     if (pole.length > 1) {
       h += '<div class="pole">' + pole.map(function (x, i) {
         return '<button type="button" class="small' + (x.id === p.id ? ' cur' : '') + (isDone(x) ? ' done' : '') + '" data-pick="' + esc(x.id) + '">Head ' + (i + 1) + (isDone(x) ? ' ✓' : '') + '</button>';
@@ -786,7 +838,7 @@
       '<label for="pinNote">Note (optional)</label><textarea id="pinNote" rows="2" maxlength="1000">' + esc(rec && rec.note || '') + '</textarea>' +
       '<button type="button" class="primary bigbtn" data-save' + (pinShots.length ? '' : ' disabled') + '>' + (rec && rec.installed ? 'Update' : 'Save as installed') + '</button>' +
       (rec && rec.installed ? '<button type="button" class="bigbtn" data-undo>Mark not installed</button>' : '')) +
-      '<button type="button" class="bigbtn" data-next>Next to install' + (filterTag ? ' (' + esc(filterTag) + ')' : '') + '</button>' +
+      '<button type="button" class="bigbtn" data-next>Next to install' + (filterTag && filterTag !== PROBLEMS ? ' (' + esc(filterTag) + ')' : '') + '</button>' +
       '<button type="button" class="bigbtn danger" data-flag>Flag a problem</button>';
     var mine = (D.flags || []).filter(function (f) { return f.pinId === p.id; });
     if (mine.length) h += '<div style="margin-top:10px">' + mine.map(flagHtml).join('') + '</div>';
@@ -795,8 +847,8 @@
 
   function nextPin() {
     var cur = D.site.pins.filter(function (x) { return x.id === selected; })[0];
-    var left = todoPins().filter(function (p) { return !isDone(p) && (!filterTag || p.tag === filterTag) && p.id !== selected && markers[p.id]; });
-    if (!left.length) { toast(filterTag ? 'Every ' + filterTag + ' is installed.' : 'Every fixture is installed.'); return; }
+    var left = todoPins().filter(function (p) { return !isDone(p) && inFilter(p) && p.id !== selected && markers[p.id]; });
+    if (!left.length) { toast(filterTag === PROBLEMS ? 'No problem fixture left to install.' : filterTag ? 'Every ' + filterTag + ' is installed.' : 'Every fixture is installed.'); return; }
     /* The same pole first, then the nearest. */
     if (cur && cur.poleId) {
       var same = left.filter(function (p) { return p.poleId === cur.poleId; });
@@ -821,6 +873,7 @@
   $('card').addEventListener('click', function (e) {
     var t = e.target.closest('button');
     if (!t) return;
+    if (t.hasAttribute('data-moredocs')) { var md = t.nextElementSibling; if (md) md.hidden = !md.hidden; return; }
     if (t.hasAttribute('data-tomap')) { selected = null; restyle(); renderCard(); showPicked(false); declutter(); }
     else if (t.hasAttribute('data-pick')) pick(t.getAttribute('data-pick'), true);
     else if (t.hasAttribute('data-shot')) $('pinPhoto').click();
@@ -841,8 +894,11 @@
       (f.photos.length ? '<div class="shots">' + f.photos.map(function (n) { return '<img src="' + photoUrl(n) + '" alt="">'; }).join('') + '</div>' : '') + '</div>';
   }
   function renderFlags() {
+    /* Every flag on the job only with the PROBLEMS chip on (Sergei,
+       2026-10-29: it "is not going away" on other pins); each pin card lists
+       its own. */
     var fl = D.flags || [];
-    $('flags').innerHTML = !fl.length ? '' : '<h3>Problems flagged</h3>' + fl.map(flagHtml).join('');
+    $('flags').innerHTML = !fl.length || filterTag !== PROBLEMS ? '' : '<h3>Problems flagged</h3>' + fl.map(flagHtml).join('');
   }
   function renderFlagShots() { $('flShots').innerHTML = flagShots.map(function (n) { return '<img src="' + photoUrl(n) + '" alt="">'; }).join(''); }
   function openFlag(pinId) {
@@ -876,10 +932,9 @@
     api('POST', 'flags', { pinId: flagPin, kind: flagKind, note: $('flNote').value, photos: flagShots }).then(function (r) {
       D.flags = [r.flag].concat(D.flags || []);
       $('ovFlag').hidden = true;
-      renderFlags(); renderCard();
+      renderFlags(); renderFilters(); restyle(); renderCard();
       var n = r.notify || {};
-      toast('Problem ' + r.flag.ref + ' saved' + (n.sent ? ' and emailed to LED Connection' + (n.others ? ' (+' + n.others + ' on this project)' : '') + '.'
-        : '. The email did not go out (' + (n.reason || 'not set up') + '); LED Connection still sees it here.'), !n.sent);
+      toast('Problem ' + r.flag.ref + ' saved.' + mailNote(n), !n.sent);
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('flSend').disabled = false; });
   });
   $('pinPhoto').addEventListener('change', function () {
