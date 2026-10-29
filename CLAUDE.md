@@ -593,8 +593,8 @@ and upload tests, axe-core. Scripts in tools/qa/ (README there), re-runnable.
 - L7 "1 short, 1 damaged"; job-page toasts sit above the footer bar.
 Not tested: the live Azure site, real iPad / iPhone Safari, real tiles / GPS.
 
-## Sergei's iPad notes (2026-10-29; Dino: "fix them all and push it live")
-Checked by tools/qa/c6_sergei.py.
+## iPad field-test update (2026-10-29; Dino: "fix them all and push it live")
+Checked by tools/qa/c6_update.py.
 - Photos: no `capture` on the photo inputs, so iPad offers Photo Library as
   well as the camera (claim, flag, pin photo).
 - REPORT with counts: before sign-off, the received / damaged typed in a
