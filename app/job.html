@@ -204,6 +204,14 @@
   .map-pop .val { width: 44px; text-align: right; font-family: var(--mono); font-size: 12px; font-weight: 800; color: var(--orange); }
   .side { width: 380px; flex: none; display: flex; flex-direction: column; border-left: 1px solid var(--border); background: rgba(8,11,21,.97); min-height: 0; }
   .prog { padding: 14px 16px 12px; border-bottom: 1px solid var(--border); }
+  /* Sergei, 2026-10-29: IDs to talk about the same pin; problems easy to find. */
+  .find { padding: 10px 16px 0; }
+  .find input { width: 100%; }
+  .fidbig { font-family: var(--mono); font-size: .62em; color: var(--cyan); letter-spacing: .04em; margin-left: 10px; white-space: nowrap; }
+  .flt.prob { color: #fca5a5; border-color: rgba(248,113,113,.5); }
+  .flt.prob.on { color: #0a0e1a; background: #f87171; border-color: #f87171; }
+  .moredocs { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; width: 100%; }
+  .moredocs[hidden] { display: none; }
   .prog .big { font-family: var(--display); font-weight: 900; font-size: 22px; }
   .prog .big small { font-size: 12px; color: var(--text-3); font-family: var(--mono); font-weight: 600; letter-spacing: .08em; }
   .pbar { height: 8px; border-radius: 4px; background: rgba(255,255,255,.07); margin-top: 8px; overflow: hidden; }
@@ -242,7 +250,7 @@
     /* A picked head takes the panel: no progress or filters above it. */
     #vInstall.picked #map { flex: 1 1 36%; }
     #vInstall.picked .side { flex: 1 1 64%; }
-    #vInstall.picked .prog, #vInstall.picked .filters { display: none; }
+    #vInstall.picked .prog, #vInstall.picked .filters, #vInstall.picked .find { display: none; }
   }
   /* Gloves (QA 2026-10-27, M4): every control in the install view reaches
      44 px on a touch screen, the map's own zoom buttons too. */
@@ -326,6 +334,7 @@
         <button type="button" class="primary bigbtn" id="btnSubmit" disabled>Submit job</button>
         <button type="button" class="recbtn bigbtn" data-rec>Record a message</button>
       </div>
+      <div class="find"><input type="search" id="findFid" placeholder="Find fixture ID, e.g. 20207" inputmode="search" autocomplete="off" aria-label="Find a fixture by its ID"></div>
       <div class="filters" id="filters"></div>
       <div class="card" id="card" tabindex="0" aria-label="Selected fixture"><p class="empty">Tap a pin on the map, or pick a tag to see where it goes.</p></div>
       <div class="claims" id="flags"></div>
@@ -364,7 +373,7 @@
     <label>Photos (up to 6)</label>
     <div class="shots" id="clShots"></div>
     <button type="button" id="clPhotoBtn">Take / add photo</button>
-    <input type="file" accept="image/*" capture="environment" class="hidden-file" id="clPhoto" multiple>
+    <input type="file" accept="image/*" class="hidden-file" id="clPhoto" multiple>
     <div class="actions">
       <button type="button" id="clCancel">Cancel</button>
       <button type="button" class="primary" id="clSend">Send claim</button>
@@ -416,7 +425,7 @@
     <label>Photos (up to 6)</label>
     <div class="shots" id="flShots"></div>
     <button type="button" id="flPhotoBtn">Take / add photo</button>
-    <input type="file" accept="image/*" capture="environment" class="hidden-file" id="flPhoto" multiple>
+    <input type="file" accept="image/*" class="hidden-file" id="flPhoto" multiple>
     <div class="actions">
       <button type="button" id="flCancel">Cancel</button>
       <button type="button" class="primary" id="flSend">Send to LED Connection</button>
@@ -437,7 +446,7 @@
   </div>
 </div>
 
-<input type="file" accept="image/*" capture="environment" class="hidden-file" id="pinPhoto">
+<input type="file" accept="image/*" class="hidden-file" id="pinPhoto">
 <script src="vendor/leaflet/leaflet.js"></script>
 <script src="lci.js"></script>
 <script src="lci-job.js"></script>
