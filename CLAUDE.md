@@ -74,6 +74,10 @@ the session; if they are not there, say so rather than guessing.
    only that have been selected": no installers or client on CC), the
    recording attached when it fits (20 MB), else played on the job page
    (MESSAGES TO LED CONNECTION, byte ranges for Safari). Reset clears them.
+   It is for a PROBLEM WITH THE APP (Dino, 2026-11-02: "for issue on the
+   app, not ... for the project"): "For a problem with the app" beside both
+   buttons, the dialog says so and points material to REPORT and fixtures
+   to FLAG A PROBLEM; the email reads "[MS-...] App problem from site".
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
    REPORT on every product row opens the claim for that product ONLY (Dino,
    2026-10-27: "whatever I clicked to report, display only that one"), the
@@ -286,6 +290,12 @@ LC-SLOT-{W}W-{volt}-L5-{sensor}-{CCT}-{CRI}-{optic}-{bracket}-{color}).
   design label. Typed in the panel, they are accepted as "not checked".
 - Every checked number carries parts.means, the one line the pin card and
   job sheet print under PART NO. MEANS.
+- Only THIS bracket's guide is shown (Dino, 2026-11-02: "I don't want to
+  have them all open all the time"): guides.forPart carries `others` (the
+  other READY brackets); the pin card, the DOCUMENTS pop-up and the job
+  sheet keep them behind DIFFERENT BRACKET ON SITE? and the catalog's PDFs
+  (the supplier's manual for every bracket) behind CATALOG DOCUMENTS, both
+  closed. DOCUMENTS · n counts what is shown.
 - Installation guide PDF per product (Dino, 2026-10-20: "installation guide
   here as pdf ... what is relevant for the product"): an Optimus head
   installs the way its BRACKET mounts, so the guide is picked from the

@@ -56,39 +56,55 @@
 
   function product(key) { return D.site.bom.filter(function (b) { return b.key === key; })[0] || null; }
 
-  /* A product's documents: installation guide, spec sheet, job sheet, then
-     the catalog's own PDFs. The pin card shows them as buttons; the material
-     check puts them behind one DOCUMENTS button (openDocs). */
+  /* A product's documents. Shown: the installation guide for THIS product's
+     bracket, its spec sheet and the job sheet. Kept behind a button (Dino,
+     2026-11-03: "I don't want to have them all open all the time"): the
+     guides for the other brackets, for a head that arrives on a different
+     bracket than its part number says, and the catalog's own PDFs (on the
+     Optimus, the supplier's manual for every bracket). The pin card shows
+     them as buttons; the material check puts them behind one DOCUMENTS
+     button (openDocs). */
+  var DOC_GROUPS = [
+    { id: 'brackets', label: 'Different bracket on site?' },
+    { id: 'catalog', label: 'Catalog documents' }
+  ];
   function docList(b) {
     var out = [], g = b && b.partNo && b.partNo.guide;
     if (!b) return out;
-    if (g && g.ready) out.push({ label: 'Installation guide (PDF)', note: g.bracketName || '', url: g.url, primary: true, tab: true });
+    if (g && g.ready) out.push({ label: 'Installation guide (PDF)', note: g.bracketName ? g.bracketName + ' bracket' : '', url: g.url, primary: true, tab: true });
     if (b.specSheetUrl) out.push({ label: 'Spec sheet', url: b.specSheetUrl, tab: true });
     out.push({ label: 'Job sheet', url: './manual.html?job=' + encodeURIComponent(JOB_ID) + '&p=' + encodeURIComponent(b.key) });
-    ((b.catalog && b.catalog.docs) || []).forEach(function (d) { out.push({ label: d.label, url: d.url, tab: true, more: true }); });
+    ((g && g.ready && g.others) || []).forEach(function (o) { out.push({ label: o.bracketName + ' bracket guide', url: o.url, tab: true, group: 'brackets' }); });
+    ((b.catalog && b.catalog.docs) || []).forEach(function (d) { out.push({ label: d.label, url: d.url, tab: true, group: 'catalog' }); });
     return out;
   }
   function docLink(d, full) {
     return '<a class="btn' + (d.primary ? ' primary' : '') + '"' + (d.tab ? ' target="_blank" rel="noopener"' : '') + ' href="' + esc(d.url) + '">' +
-      (full ? '<span>' + esc(d.label) + '</span>' + (d.note ? '<span style="font-weight:600;letter-spacing:.04em;text-transform:none">' + esc(d.note) + '</span>' : '') : esc(d.label)) + '</a>';
+      (full ? '<span>' + esc(d.label) + '</span>' + (d.note ? '<span style="font-weight:600;letter-spacing:.04em;text-transform:none">' + esc(d.note) + '</span>' : '') :
+        esc(d.label) + (d.primary && d.note ? ' · ' + esc(d.note) : '')) + '</a>';
   }
-  /* Pin card (Sergei, 2026-10-29: "a lot of installation guides"): this
-     fixture's own documents, other brackets' guides behind MORE DOCUMENTS. */
+  function mainDocs(list) { return list.filter(function (d) { return !d.group; }); }
+  /* Each kept group: a button that opens it, closed until tapped. */
+  function docGroups(list, full) {
+    return DOC_GROUPS.map(function (gr) {
+      var ds = list.filter(function (d) { return d.group === gr.id; });
+      return !ds.length ? '' : '<button type="button" class="small" data-moredocs="' + gr.id + '">' + esc(gr.label) + ' · ' + ds.length + '</button>' +
+        '<div class="moredocs" data-group="' + gr.id + '" hidden>' + ds.map(function (d) { return docLink(d, full); }).join('') + '</div>';
+    }).join('');
+  }
+  /* Pin card (Sergei, 2026-10-29: "a lot of installation guides"). */
   function docButtons(b) {
-    var list = docList(b), main = list.filter(function (d) { return !d.more; }), more = list.filter(function (d) { return d.more; });
-    return main.map(function (d) { return docLink(d, false); }).join('') +
-      (more.length ? '<button type="button" class="small" data-moredocs>More documents · ' + more.length + '</button>' +
-        '<div class="moredocs" hidden>' + more.map(function (d) { return docLink(d, false); }).join('') + '</div>' : '');
+    var list = docList(b);
+    return mainDocs(list).map(function (d) { return docLink(d, false); }).join('') + docGroups(list, false);
   }
   function openDocs(key) {
     var b = product(key);
     if (!b) return;
-    var list = docList(b), main = list.filter(function (d) { return !d.more; }), more = list.filter(function (d) { return d.more; });
+    var list = docList(b);
     $('dcTitle').textContent = b.name;
     $('dcPn').textContent = b.partNo ? b.partNo.pn : b.sku;
     $('dcBody').innerHTML = (b.partNo && b.partNo.setup ? '<div class="docsetup"><div class="k">SET UP</div>' + esc(b.partNo.setup) + '</div>' : '') +
-      '<div class="doclist">' + main.map(function (d) { return docLink(d, true); }).join('') +
-      (more.length ? '<div class="k">MORE DOCUMENTS</div>' + more.map(function (d) { return docLink(d, true); }).join('') : '') + '</div>';
+      '<div class="doclist">' + mainDocs(list).map(function (d) { return docLink(d, true); }).join('') + docGroups(list, true) + '</div>';
     $('ovDocs').hidden = false;
   }
 
@@ -173,7 +189,7 @@
           }).join('') +
             (b.cct ? '<span class="chip">' + esc(b.cct) + '</span>' : '') + (b.volt ? '<span class="chip">' + esc(b.volt) + '</span>' : '') + '</span>' +
           '<span class="state" data-state="' + esc(b.key) + '">' + lineState(b) + '</span></div><div class="pl"' + (b.partNo && b.partNo.setup ? ' title="' + esc(b.partNo.setup) + '"' : '') + '>' + partLine(b) + '</div></div>' +
-        '<button type="button" class="docbtn" data-docs="' + esc(b.key) + '">Documents · ' + docList(b).length + '</button>' +
+        '<button type="button" class="docbtn" data-docs="' + esc(b.key) + '">Documents · ' + mainDocs(docList(b)).length + '</button>' +
         '<button type="button" class="rptbtn" data-report="' + esc(b.key) + '">Report</button>' +
         '<div class="counts"><div class="cbox"><div class="cl">Expected</div><div class="expected">' + b.qty + '</div></div>' +
           '<div class="cbox"><div class="cl">Received</div>' + stepper(b.key, 'received', c.received, locked) + '</div>' +
@@ -244,6 +260,10 @@
     if (r) openClaim(r.getAttribute('data-report'));
   });
   $('dcClose').addEventListener('click', function () { $('ovDocs').hidden = true; });
+  $('dcBody').addEventListener('click', function (e) {
+    var t = e.target.closest('[data-moredocs]');
+    if (t) { var md = t.nextElementSibling; if (md) md.hidden = !md.hidden; }
+  });
   $('ovDocs').addEventListener('click', function (e) { if (e.target === this) this.hidden = true; });
 
   /* Counts save themselves a moment after the last change. */

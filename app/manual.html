@@ -31,6 +31,11 @@
   @media print { .guide-pdf { display: none; } }
   .docs { display: flex; flex-wrap: wrap; gap: 8px; }
   .docs .btn { min-height: 44px; }
+  details.more { width: 100%; }
+  details.more summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-family: var(--mono); font-size: 12px; letter-spacing: .08em; text-transform: uppercase; color: var(--text-2); }
+  details.more summary::before { content: "+"; width: 18px; color: var(--orange); }
+  details.more[open] summary::before { content: "\2212"; }
+  details.more .docs { margin-top: 6px; }
   table { width: 100%; border-collapse: collapse; font-size: 14px; }
   th, td { text-align: left; padding: 8px; border-bottom: 1px solid var(--border); }
   th { font-family: var(--mono); font-size: 10px; letter-spacing: .12em; text-transform: uppercase; color: var(--text-3); }

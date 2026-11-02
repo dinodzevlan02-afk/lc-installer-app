@@ -15,6 +15,9 @@ test("an Optimus part number gets the guide for its bracket", () => {
   assert.strictEqual(ss.bracketName, "Straight square arm");
   assert.strictEqual(ss.url, "/guides/optimus/LC-Optimus-Installation-Guide-SS.pdf");
   assert.strictEqual(G.forPart(PARTS.check("LC-SLOT-75W-NV-L5-XX-40-70-T4-U-BK")).bracket, "U");
+  /* The other brackets' guides travel separately, never with this one. */
+  assert.deepStrictEqual(ss.others.map(o => o.bracket).sort(), G.READY.filter(c => c !== "SS").sort());
+  assert.ok(ss.others.every(o => o.url === "/guides/optimus/" + G.file(o.bracket) && o.bracketName));
   for (const code of PARTS.OPTIMUS.bracket) assert.ok(G.BRACKET_NAMES[code], "every order-logic bracket has a guide name: " + code);
 });
 

@@ -318,7 +318,7 @@ async function main() {
   check((await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "voice", media: "0000000000000000.webm" })).status === 400, "a message needs a recording that was uploaded");
   check((await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "sing", media: md1.body.name })).status === 400, "a message needs a known kind");
   const ms = await inst("POST", "jobs/TEST-SITE-01/messages", { kind: "screen", media: md1.body.name, note: "Pole G12 base, see the screen", seconds: 75 });
-  const msm = outbox().find(m => ms.body.message && (m.subject || "").startsWith("[" + ms.body.message.ref + "] Message from site: Screen recording")) || {};
+  const msm = outbox().find(m => ms.body.message && (m.subject || "").startsWith("[" + ms.body.message.ref + "] App problem from site: Screen recording")) || {};
   check(ms.status === 201 && /^MS-\d{6}-[0-9A-F]{4}$/.test(ms.body.message.ref) && ms.body.notify.sent && ms.body.message.mail.to === undefined, "the message is saved with a reference; the installer sees it went, not to whom");
   check(JSON.stringify(msm.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && !(msm.cc || []).length &&
         (msm.attachments || []).length === 1 && /Pole G12 base/.test(msm.html) && /1 min 15 s/.test(msm.html),
