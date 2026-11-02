@@ -633,6 +633,11 @@ Checked by tools/qa/c6_update.py.
   application/manifest+json (staticwebapp.config mimeTypes), as in the portal.
 - sw.js stays NETWORK FIRST and never touches /api/; CACHE lci-shell-v2 after
   the icon change. Removing the BETA banner removes INSTALL APP with it.
+- Updates reach the desktop app (Dino, 2026-11-02: "push this on the desktop
+  app, on the Edge"): sw.js fetches with cache "no-cache", so every open
+  revalidates against the server (304 when unchanged) instead of taking
+  Edge's heuristic cache; CACHE lci-shell-v4. An open window still needs a
+  reload (F5 / Ctrl+R) or a close and reopen.
 
 ## Conventions
 
