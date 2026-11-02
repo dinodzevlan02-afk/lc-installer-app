@@ -92,6 +92,11 @@
   /* RECORD A MESSAGE (voice, camera, screen, or an attached recording) */
   .recbtn { color: var(--cyan); border-color: rgba(34,211,238,.45); background: rgba(34,211,238,.08); font-weight: 800; }
   .recbtn:hover { border-color: var(--cyan); }
+  /* Dino, 2026-11-02: RECORD A MESSAGE is for a problem with the app, not for
+     project messages; the note beside it says so. */
+  .rechint { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--text-2); }
+  .prog .rechint { display: block; margin-top: 14px; }
+  .prog .rechint + .bigbtn { margin-top: 6px; }
   .rcstage { margin-top: 12px; }
   .rcstage video, #rcPlay { display: block; width: 100%; max-height: 300px; background: #000; border-radius: 10px; }
   .rcstage.voice video { display: none; }
@@ -106,6 +111,8 @@
   .msgvid.audio { height: 54px; background: none; }
   .doclist { display: flex; flex-direction: column; gap: 8px; margin-top: 14px; }
   .doclist .btn { justify-content: space-between; min-height: 48px; padding: 0 16px; font-size: 12px; white-space: normal; text-align: left; }
+  .doclist .moredocs { flex-direction: column; margin-top: 0; }
+  .doclist > button[data-moredocs] { min-height: 44px; justify-content: space-between; }
   .doclist .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--text-3); margin-top: 8px; }
   .docsetup { margin-top: 12px; padding: 12px 14px; border-radius: 10px; border: 1px solid var(--border-2); background: var(--orange-soft); font-size: 16px; line-height: 1.45; }
   .docsetup .k { font-family: var(--mono); font-size: 11px; letter-spacing: .14em; color: var(--orange); font-weight: 800; }
@@ -319,6 +326,7 @@
     <div class="bar">
       <div class="row">
         <div class="sum" id="matSum"></div>
+        <span class="rechint">For a problem with the app</span>
         <button type="button" class="recbtn" data-rec>Record a message</button>
         <button type="button" class="primary" id="btnApprove">Checklist</button>
       </div>
@@ -332,6 +340,7 @@
         <div class="big" id="progBig">0 / 0 <small>INSTALLED</small></div>
         <div class="pbar"><i id="progBar"></i></div>
         <button type="button" class="primary bigbtn" id="btnSubmit" disabled>Submit job</button>
+        <span class="rechint">For a problem with the app</span>
         <button type="button" class="recbtn bigbtn" data-rec>Record a message</button>
       </div>
       <div class="find"><input type="search" id="findFid" placeholder="Find fixture ID, e.g. 20207" inputmode="search" autocomplete="off" aria-label="Find a fixture by its ID"></div>
@@ -385,7 +394,7 @@
 <div class="ov" id="ovRec" hidden>
   <div class="dlg" role="dialog" aria-labelledby="rcTitle">
     <h3 id="rcTitle">Record a message</h3>
-    <p class="muted" style="margin:0">Goes to LED Connection only, with the recording. Up to 3 minutes.</p>
+    <p class="muted" style="margin:0">For a problem with the app itself: something not working, or a screen you are stuck on. Show it or say it; it goes to LED Connection only, up to 3 minutes. Missing or damaged material: REPORT on the product. A problem at a fixture: FLAG A PROBLEM on its pin.</p>
     <div class="kinds" id="rcKinds">
       <button type="button" data-k="voice">Voice</button>
       <button type="button" data-k="camera">Camera</button>

@@ -45,7 +45,11 @@ function byPart(pn) {
   };
 }
 
-/* -> { family, bracket, bracketName, title, url, ready } or null */
+/* -> { family, bracket, bracketName, title, url, ready, others } or null.
+   others: the guides for the OTHER brackets (Dino, 2026-11-03: "I don't
+   want to have them all open all the time"), so the page shows this
+   bracket's guide and keeps the rest behind one button, for a head that
+   arrives on a different bracket than the part number says. */
 function forPart(check) {
   if (check && check.ok && check.family !== "Optimus") return byPart(check.pn);
   if (!check || !check.ok || check.family !== "Optimus" || !check.codes) return null;
@@ -55,7 +59,8 @@ function forPart(check) {
     family: "Optimus", bracket: code, bracketName: BRACKET_NAMES[code],
     title: "Optimus installation guide · " + BRACKET_NAMES[code] + " bracket",
     url: "/guides/optimus/" + file(code),
-    ready: READY.includes(code)
+    ready: READY.includes(code),
+    others: READY.filter(c => c !== code && BRACKET_NAMES[c]).map(c => ({ bracket: c, bracketName: BRACKET_NAMES[c], url: "/guides/optimus/" + file(c) }))
   };
 }
 

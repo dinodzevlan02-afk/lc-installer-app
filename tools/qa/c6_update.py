@@ -49,6 +49,16 @@ with sync_playwright() as p:
     pg.reload(); pg.wait_for_load_state("networkidle")
     check(pg.locator("[data-line]").nth(2).locator("input[data-f=damaged]").input_value() == "2", "the row's new counts are saved")
 
+    # RECORD A MESSAGE says it is for a problem with the app
+    hint = pg.locator("#vMaterial .rechint").inner_text()
+    check("problem with the app" in hint.lower(), "a note by RECORD A MESSAGE says it is for a problem with the app", hint)
+    # The DOCUMENTS pop-up: this bracket's guide shown, the rest closed
+    pg.locator("[data-docs]").nth(1).click(); pg.wait_for_timeout(300)
+    vis = pg.locator("#dcBody a:visible").all_inner_texts()
+    check(sum("INSTALLATION GUIDE" in v.upper() for v in vis) == 1 and not any("manual" in v.lower() or "BRACKET GUIDE" in v.upper() for v in vis),
+          "DOCUMENTS shows one installation guide; the others wait behind DIFFERENT BRACKET", vis)
+    pg.click("#dcClose"); pg.wait_for_timeout(200)
+
     # One way to report (2026-11-02): no footer report button; ADD ANOTHER PRODUCT in the row's form
     check(pg.locator(".bar button", has_text="Report").count() == 0, "the footer has no second report button")
     pg.locator("[data-report]").nth(0).click(); pg.wait_for_timeout(300)
@@ -78,14 +88,19 @@ with sync_playwright() as p:
     labels = pg.evaluate("Array.from(document.querySelectorAll('.lbl')).filter(l => getComputedStyle(l.parentElement).visibility !== 'hidden').map(l => l.textContent)")
     check(any((" · " + str(s01["fid"])) in l for l in labels), "close in, map tags carry the fixture ID", labels[:6])
 
-    # Install 1: only this fixture's documents, the rest behind MORE DOCUMENTS
+    # Install 1: only this bracket's guide; other brackets and the catalog's PDFs behind their own buttons
     shown = pg.locator("#card .docs a:visible").all_inner_texts()
-    more = pg.locator("#card [data-moredocs]")
-    check(more.count() == 1 and pg.locator("#card .moredocs").is_hidden() and not any("manual" in s.lower() for s in shown),
-          "only this fixture's guide, spec sheet and job sheet show; the other manuals wait behind MORE DOCUMENTS", (shown, more.count()))
+    groups = pg.locator("#card [data-moredocs]")
+    labels = groups.all_inner_texts()
+    check(any("STRAIGHT SQUARE ARM" in s.upper() for s in shown) and sum("GUIDE" in s.upper() for s in shown) == 1 and not any("manual" in s.lower() for s in shown),
+          "the pin card shows one installation guide, for this bracket (straight square arm)", shown)
+    check(len(labels) == 2 and "DIFFERENT BRACKET" in labels[0].upper() and "5" in labels[0] and "CATALOG" in labels[1].upper()
+          and all(x.is_hidden() for x in pg.locator("#card .moredocs").all()), "other brackets (5) and catalog PDFs wait behind their own buttons, closed", labels)
     pg.screenshot(path=SHOTS + "/c6-s01-card.png")
-    more.click(); pg.wait_for_timeout(200)
-    check(pg.locator("#card .moredocs").is_visible(), "MORE DOCUMENTS opens them")
+    groups.first.click(); pg.wait_for_timeout(200)
+    opened = pg.locator("#card .moredocs[data-group=brackets] a").all_inner_texts()
+    check(pg.locator("#card .moredocs[data-group=brackets]").is_visible() and len(opened) == 5 and not any("STRAIGHT SQUARE" in o.upper() for o in opened),
+          "DIFFERENT BRACKET opens the other five bracket guides", opened)
 
     # Install 3: flag -> red pin, Problems chip; the list stays on its own pin
     pg.click("#card [data-flag]"); pg.wait_for_timeout(300)

@@ -282,8 +282,8 @@ async function notifyMessage(req, id, job, msg, user) {
   const attachments = got && got.buf.length <= MAIL.ATTACH_BUDGET
     ? [{ name: msg.ref + "-" + msg.kind + "." + ext, contentType: { webm: "video/webm", mp4: "video/mp4", mov: "video/quicktime" }[ext], bytes: got.buf }] : [];
   const len = msg.seconds ? (msg.seconds >= 60 ? Math.floor(msg.seconds / 60) + " min " : "") + (msg.seconds % 60) + " s" : "";
-  const subject = "[" + msg.ref + "] Message from site: " + msg.kindLabel + " - " + jobName;
-  const html = page("Message from site " + msg.ref, "#0e7490", [
+  const subject = "[" + msg.ref + "] App problem from site: " + msg.kindLabel + " - " + jobName;
+  const html = page("App problem from site " + msg.ref, "#0e7490", [
     ["Job", jobName + (job.address ? ", " + job.address : "")],
     ["Message", msg.kindLabel + (len ? ", " + len : "")],
     ["Recording", attachments.length ? "attached (" + (got.buf.length / 1048576).toFixed(1) + " MB)" : "too large to attach: play it on the job page"],

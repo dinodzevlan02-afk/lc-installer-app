@@ -84,8 +84,17 @@
     else if (g) guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + esc(g.title) + '</b><span class="muted">Being prepared by LED Connection. Until then, follow the instructions packed with the fixture.</span></div>';
     else guide = '<div class="guide-pdf off"><span class="k">Installation guide · PDF</span><b>' + (b.partNo ? 'No LED Connection guide for this product yet' : 'Shown once LED Connection sets this product\'s part number') + '</b><span class="muted">Follow the instructions packed with the fixture.</span></div>';
 
-    var docs = (b.specSheetUrl ? '<a class="btn" target="_blank" rel="noopener" href="' + esc(b.specSheetUrl) + '">Spec sheet</a>' : '') +
-      (cat.docs || []).map(function (x) { return '<a class="btn" target="_blank" rel="noopener" href="' + esc(x.url) + '">' + esc(x.label) + '</a>'; }).join('');
+    /* Only this bracket's guide is open (above); the other brackets' guides
+       and the catalog's own PDFs (on the Optimus, the supplier's manual for
+       every bracket) fold away (Dino, 2026-11-03: "I don't want to have them
+       all open all the time"). */
+    var link = function (u, t) { return '<a class="btn" target="_blank" rel="noopener" href="' + esc(u) + '">' + esc(t) + '</a>'; };
+    var others = (g && g.ready && g.others) || [];
+    var docs = (b.specSheetUrl ? link(b.specSheetUrl, 'Spec sheet') : '') +
+      (others.length ? '<details class="more"><summary>Different bracket on site? · ' + others.length + '</summary><div class="docs">' +
+        others.map(function (o) { return link(o.url, o.bracketName + ' bracket guide'); }).join('') + '</div></details>' : '') +
+      ((cat.docs || []).length ? '<details class="more"><summary>Catalog documents · ' + cat.docs.length + '</summary><div class="docs">' +
+        cat.docs.map(function (x) { return link(x.url, x.label); }).join('') + '</div></details>' : '');
 
     var h = '<div class="hdr">' + (cat.imageUrl ? '<img class="prod" src="' + esc(cat.imageUrl) + '" alt="" onerror="this.remove()">' : '') +
       '<div><h1>' + esc(b.name) + '</h1>' + (b.partNo ? '<div class="mono">Part no. <b>' + esc(b.partNo.pn) + '</b></div>' : '') +
@@ -102,7 +111,7 @@
       (b.volt ? '<dt>Input</dt><dd>' + esc(b.volt) + '</dd>' : '') +
       (cat.mounts && cat.mounts.length ? '<dt>Mounts made</dt><dd>' + esc(cat.mounts.join(', ')) + '</dd>' : '') +
       '<dt>Replaces</dt><dd>' + (Object.keys(existing).map(function (k) { return esc(k) + ' &times; ' + existing[k]; }).join('<br>') || '-') + '</dd></dl>' +
-      (docs ? '<h2>Manufacturer documents</h2><div class="docs">' + docs + '</div>' : '') +
+      (docs ? '<h2>Documents</h2><div class="docs">' + docs + '</div>' : '') +
 
       '<h2>1 · Before you lift</h2><ol>' +
         '<li>Check the box label against this job: ' + (b.partNo ? 'part number <b>' + esc(b.partNo.pn) + '</b>' : 'design label <b>' + esc(b.sku) + '</b> (no part number set yet)') +
