@@ -520,33 +520,51 @@
   function renderClaimShots() {
     $('clShots').innerHTML = claimShots.map(function (p) { return '<img src="' + photoUrl(p) + '" alt="">'; }).join('');
   }
-  /* key: REPORT on one product row opens with only that product ticked (and
-     listed first); REPORT OTHER PROBLEM ticks every line counted short or
-     damaged. */
+  /* One way to report (Dino, 2026-11-02: two report buttons read as the same
+     thing): REPORT on a product row opens the claim for that product only
+     (Dino, 2026-10-27: "whatever I clicked to report, display only that
+     one"); ADD ANOTHER PRODUCT in the form puts every product in the same
+     claim, the reported one ticked and first, its typed counts kept. */
+  function claimLine(b, on, r, dm) {
+    return '<div class="cl-line"><input type="checkbox" data-k="' + esc(b.key) + '"' + (on ? ' checked' : '') + '>' +
+      '<span>' + esc(b.name) + ' <span class="muted mono">(expected ' + b.qty + ')</span></span>' +
+      '<input type="number" min="0" placeholder="count" data-r="' + esc(b.key) + '" value="' + esc(r == null ? '' : r) + '">' +
+      '<input type="number" min="0" placeholder="dmg" data-dm="' + esc(b.key) + '" value="' + esc(dm || 0) + '"></div>';
+  }
+  function renderClaimLines(key, all) {
+    var one = product(key), lines = $('clLines'), keep = {};
+    Array.prototype.forEach.call(lines.querySelectorAll('[data-r]'), function (i) {
+      var k = i.getAttribute('data-r'), cb = lines.querySelector('input[type=checkbox][data-k="' + k + '"]');
+      keep[k] = { r: i.value, dm: lines.querySelector('[data-dm="' + k + '"]').value, on: cb && cb.checked };
+    });
+    var bom = all ? [one].concat(D.site.bom.filter(function (b) { return b.key !== key; })) : [one];
+    lines.classList.toggle('cl-one', !all);
+    lines.innerHTML = '<label>' + (all ? 'Products' : 'Product') + '</label>' +
+      '<div class="cl-line head"><span></span><span></span><span>Received</span><span>Damaged</span></div>' +
+      bom.map(function (b) {
+        var c = counts[b.key] || {}, k = keep[b.key];
+        return k ? claimLine(b, b.key === key || k.on, k.r, k.dm) : claimLine(b, b.key === key, c.received, c.damaged);
+      }).join('') +
+      (all || D.site.bom.length < 2 ? '' : '<button type="button" class="small" id="clMore">+ Add another product</button>');
+  }
   function openClaim(key) {
-    claimKind = null; claimShots = [];
-    /* Dino, 2026-10-27: "whatever I clicked to report, display only that one". */
-    var one = key && product(key), bom = one ? [one] : D.site.bom;
-    if (one) {
-      var oc = counts[key] || {};
-      claimKind = oc.damaged ? 'damaged' : oc.received != null && oc.received !== '' && oc.received < one.qty ? 'shortage' : null;
-    }
-    $('clTitle').textContent = one ? 'Report a problem: ' + one.name : 'Report a material problem';
+    var one = product(key);
+    if (!one) return;
+    var oc = counts[key] || {};
+    claimShots = [];
+    claimKind = oc.damaged ? 'damaged' : oc.received != null && oc.received !== '' && oc.received < one.qty ? 'shortage' : null;
+    $('clTitle').textContent = 'Report a problem: ' + one.name;
     Array.prototype.forEach.call($('clKinds').children, function (b) { b.classList.toggle('on', b.getAttribute('data-k') === claimKind); });
-    $('clLines').classList.toggle('cl-one', !!one);
-    $('clLines').innerHTML = '<label>' + (one ? 'Product' : 'Products') + '</label>' +
-      '<div class="cl-line head"><span></span><span></span><span>Received</span><span>Damaged</span></div>' + bom.map(function (b) {
-      var c = counts[b.key] || {}, problem = one ? b.key === key : (c.received != null && c.received < b.qty) || c.damaged;
-      return '<div class="cl-line"><input type="checkbox" data-k="' + esc(b.key) + '"' + (problem ? ' checked' : '') + '>' +
-        '<span>' + esc(b.name) + ' <span class="muted mono">(expected ' + b.qty + ')</span></span>' +
-        '<input type="number" min="0" placeholder="count" data-r="' + esc(b.key) + '" value="' + (c.received == null ? '' : c.received) + '">' +
-        '<input type="number" min="0" placeholder="dmg" data-dm="' + esc(b.key) + '" value="' + (c.damaged || 0) + '"></div>';
-    }).join('');
+    $('clLines').innerHTML = '';
+    $('clLines').setAttribute('data-key', key);
+    renderClaimLines(key, false);
     $('clNote').value = '';
     renderClaimShots();
     $('ovClaim').hidden = false;
   }
-  $('btnClaim').addEventListener('click', function () { openClaim(); });
+  $('clLines').addEventListener('click', function (e) {
+    if (e.target.id === 'clMore') renderClaimLines($('clLines').getAttribute('data-key'), true);
+  });
   $('clKinds').addEventListener('click', function (e) {
     var b = e.target.closest('button[data-k]');
     if (!b) return;

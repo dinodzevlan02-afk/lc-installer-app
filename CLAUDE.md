@@ -77,8 +77,11 @@ the session; if they are not there, say so rather than guessing.
    Billie Jo's feedback (2026-10-27, Dino: "do your recommendation"): a red
    REPORT on every product row opens the claim for that product ONLY (Dino,
    2026-10-27: "whatever I clicked to report, display only that one"), the
-   kind preset from its count; the footer REPORT OTHER PROBLEM lists every
-   product with tick boxes. The main button reads CHECKLIST n / N, filling as products are
+   kind preset from its count. One way to report (Dino, 2026-11-02, two
+   report buttons read as the same thing: "I don't understand what's the
+   catch"): the footer REPORT OTHER PROBLEM is gone; the row's form has
+   + ADD ANOTHER PRODUCT, which lists every product in the same claim (the
+   reported one ticked first, typed counts kept). The main button reads CHECKLIST n / N, filling as products are
    counted, then PROCEED TO INSTALLATION; it opens a checklist (per product
    OK / SHORT / DAMAGED / TO COUNT) with the confirm box. Server and the
    sign-off email are unchanged. The installer SIGNS
