@@ -97,6 +97,8 @@
   .rechint { font-family: var(--mono); font-size: 11px; letter-spacing: .06em; color: var(--text-2); }
   .prog .rechint { display: block; margin-top: 14px; }
   .prog .rechint + .bigbtn { margin-top: 6px; }
+  .ck .rs .ckrep { min-height: 36px; padding: 0 12px; margin-left: 8px; }
+  .ck .rs .ckdone { color: var(--green, #4ade80); font-family: var(--mono); font-size: 11px; margin-left: 8px; }
   .rcstage { margin-top: 12px; }
   .rcstage video, #rcPlay { display: block; width: 100%; max-height: 300px; background: #000; border-radius: 10px; }
   .rcstage.voice video { display: none; }
@@ -316,7 +318,7 @@
 
   <section class="view" id="vMaterial" hidden>
     <div class="mscroll" id="mScroll"><div class="wrap">
-      <p class="lead" id="matLead">Count what was delivered for each product. Enter what you received and anything damaged; REPORT on a product sends LED Connection a claim. When every product is counted, PROCEED TO INSTALLATION.</p>
+      <p class="lead" id="matLead">Count what was delivered for each product: what you received and anything damaged. When every product is counted, SUBMIT MATERIAL CHECK. All good: submit. Something short or damaged: REPORT it on that product, then submit.</p>
       <div id="partsBox"></div>
       <div id="matSigned"></div>
       <div id="lines"></div>
@@ -445,12 +447,12 @@
 <!-- Checklist: sign off the counted quantities and proceed to installation -->
 <div class="ov" id="ovApprove" hidden>
   <div class="dlg" role="dialog" aria-labelledby="apTitle">
-    <h3 id="apTitle">Checklist</h3>
+    <h3 id="apTitle">Submit material check</h3>
     <div id="apBody"></div>
     <label class="confirm"><input type="checkbox" id="apConfirm"> I counted the material delivered for this job and the numbers above are what I received.</label>
     <div class="actions">
       <button type="button" id="apCancel">Back</button>
-      <button type="button" class="primary" id="apSend">Proceed to installation</button>
+      <button type="button" class="primary" id="apSend">Submit material check</button>
     </div>
   </div>
 </div>
