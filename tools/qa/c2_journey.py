@@ -24,7 +24,7 @@ with sync_playwright() as p:
     check(pg.locator("text=TEST-SITE-01").count() == 0 and pg.locator("text=Test Site").count() == 0, "installer does not see the other crew's job")
     pg.goto(BASE + "/job.html?id=KR-00345-NV"); pg.wait_for_load_state("networkidle")
     shot(pg, "02-material")
-    check(pg.locator("#btnApprove").inner_text().strip().upper().startswith("CHECKLIST 0 / 7"), "main button starts at CHECKLIST 0 / 7", pg.locator("#btnApprove").inner_text())
+    check(pg.locator("#btnApprove").inner_text().strip().upper().startswith("SUBMIT · 0 / 7"), "main button starts at SUBMIT · 0 / 7 COUNTED", pg.locator("#btnApprove").inner_text())
     check(pg.locator("#stInstall").is_disabled(), "INSTALL step is locked before sign-off")
     check(pg.locator("text=Downlight 16W").count() > 0 and pg.locator("text=Set to 16W").count() > 0, "rows show product and short set-up line")
 
@@ -38,7 +38,7 @@ with sync_playwright() as p:
     pg.locator('button[data-f="damaged"][data-d="1"]').nth(2).click()
     pg.wait_for_timeout(1500)
     txt = pg.locator("#btnApprove").inner_text().upper()
-    check("7 / 7" in txt and "PROCEED" in txt, "button reads 7 / 7 · PROCEED TO INSTALLATION when all counted", txt)
+    check("7 / 7" in txt and "SUBMIT MATERIAL CHECK" in txt, "button reads SUBMIT MATERIAL CHECK · 7 / 7 when all counted", txt)
     check("1 short" in pg.locator("#matSum").inner_text() and "1 damaged" in pg.locator("#matSum").inner_text(), "summary shows 1 short, 1 damaged", pg.locator("#matSum").inner_text())
 
     # autosave survives a reload
@@ -74,9 +74,9 @@ with sync_playwright() as p:
     pg.click("#btnApprove"); pg.wait_for_timeout(300)
     shot(pg, "04-checklist")
     check(pg.locator(".ck li").count() == 7, "checklist lists 7 products")
-    check(pg.locator("#apSend").is_enabled(), "PROCEED enabled when all counted")
+    check(pg.locator("#apSend").is_enabled(), "SUBMIT enabled when all counted and the problems reported")
     pg.click("#apSend"); pg.wait_for_timeout(800)
-    check("tick" in pg.locator(".toast").inner_text().lower(), "PROCEED without the confirm box asks for it", pg.locator(".toast").inner_text())
+    check("tick" in pg.locator(".toast").inner_text().lower(), "SUBMIT without the confirm box asks for it", pg.locator(".toast").inner_text())
     pg.check("#apConfirm"); pg.click("#apSend"); pg.wait_for_timeout(2000)
     check(pg.locator("#btnApprove").is_hidden(), "main button gone after sign-off")
     check(pg.locator("input[data-f=received]").first.is_disabled(), "counts locked after sign-off")

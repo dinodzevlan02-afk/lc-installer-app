@@ -85,10 +85,17 @@ the session; if they are not there, say so rather than guessing.
    report buttons read as the same thing: "I don't understand what's the
    catch"): the footer REPORT OTHER PROBLEM is gone; the row's form has
    + ADD ANOTHER PRODUCT, which lists every product in the same claim (the
-   reported one ticked first, typed counts kept). The main button reads CHECKLIST n / N, filling as products are
-   counted, then PROCEED TO INSTALLATION; it opens a checklist (per product
-   OK / SHORT / DAMAGED / TO COUNT) with the confirm box. Server and the
-   sign-off email are unchanged. The installer SIGNS
+   reported one ticked first, typed counts kept). SUBMIT MATERIAL CHECK
+   (Dino, 2026-11-02: "if everything is good ... submit ... if it's wrong, I
+   still want to submit ... they will report individually ... after they
+   report, they can send"): the main button reads "Submit · n / N counted",
+   then "Submit material check · N / N"; its list shows each product OK /
+   SHORT / DAMAGED / TO COUNT, a problem product with REPORT (its claim,
+   then back to the list marked REPORTED MC-...). Submit opens once every
+   product is counted and every problem is reported; the server refuses it
+   too (409, api/jobwork approve: each short or damaged product needs a
+   claim line naming it). Email "[job] Material check submitted: ...";
+   the install opens. tools/qa/c7_submit.py. The installer SIGNS
    OFF the counted quantities (confirm box); that unlocks the install even
    when something is short (judgment call: the claim covers it). Signed-off
    counts lock; an LC admin can reopen them (PATCH reopenMaterial).

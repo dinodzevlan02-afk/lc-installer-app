@@ -232,7 +232,7 @@ async function deliver(req, id, job, user, msg, action, detail, lcOnly) {
 }
 const mailRecord = n => ({ sent: n.sent, queued: !!n.queued, to: n.to, cc: n.cc || [], attached: n.attached || 0, at: new Date().toISOString(), reason: n.reason || null });
 
-/* Material signed off: what arrived against the design, line by line. */
+/* Material check submitted: what arrived against the design, line by line. */
 async function notifySignoff(req, id, job, site, approved, user, partOf) {
   const jobName = job.name || id, tagsOf = Object.fromEntries(site.bom.map(b => [b.key, b.tags]));
   const bad = v => v ? ' bgcolor="#fde8e8"' : "";
@@ -242,13 +242,13 @@ async function notifySignoff(req, id, job, site, approved, user, partOf) {
       '</td><td ' + CELL + '>' + l.expected + '</td><td ' + CELL + '>' + l.received + '</td><td ' + CELL + bad(l.short) + '><b>' + l.short + '</b></td><td ' + CELL + '>' + l.over +
       '</td><td ' + CELL + bad(l.damaged) + '><b>' + l.damaged + '</b></td></tr>').join("") + '</table>';
   const clean = !approved.short && !approved.damaged;
-  const subject = "[" + jobName + "] Material signed off: " + (clean ? "everything received" : [approved.short ? approved.short + " short" : "", approved.damaged ? approved.damaged + " damaged" : ""].filter(Boolean).join(", "));
-  const html = page("Material signed off", clean ? "#15803d" : "#b45309", [
+  const subject = "[" + jobName + "] Material check submitted: " + (clean ? "everything received" : [approved.short ? approved.short + " short" : "", approved.damaged ? approved.damaged + " damaged" : ""].filter(Boolean).join(", "));
+  const html = page("Material check submitted", clean ? "#15803d" : "#b45309", [
     ["Job", jobName + (job.address ? ", " + job.address : "")],
     ["Result", clean ? "Every product received as designed" : (approved.short ? approved.short + " short" : "") + (approved.short && approved.damaged ? ", " : "") + (approved.damaged ? approved.damaged + " damaged" : "")],
     approved.over ? ["Over", approved.over + " more than the design"] : null,
-    ["Signed off by", byLine(user) + ", " + new Date(approved.at).toUTCString()],
-    ["Next", clean ? "The install is unlocked." : "The install is unlocked; the shortage or damage needs a claim (REPORT A PROBLEM) if one was not filed."]
+    ["Submitted by", byLine(user) + ", " + new Date(approved.at).toUTCString()],
+    ["Next", clean ? "The install is unlocked." : "The install is unlocked. The shortage or damage was reported in the claim(s) on this job."]
   ], table, "", INV.baseUrl(req) + "/job.html?id=" + encodeURIComponent(id), "Open the job in the Installer App");
   return deliver(req, id, job, user, { subject, html }, "material.notify", { short: approved.short, damaged: approved.damaged });
 }
