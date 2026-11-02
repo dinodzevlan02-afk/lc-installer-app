@@ -49,6 +49,20 @@ with sync_playwright() as p:
     pg.reload(); pg.wait_for_load_state("networkidle")
     check(pg.locator("[data-line]").nth(2).locator("input[data-f=damaged]").input_value() == "2", "the row's new counts are saved")
 
+    # One way to report (2026-11-02): no footer report button; ADD ANOTHER PRODUCT in the row's form
+    check(pg.locator(".bar button", has_text="Report").count() == 0, "the footer has no second report button")
+    pg.locator("[data-report]").nth(0).click(); pg.wait_for_timeout(300)
+    check(pg.locator("#clLines .cl-line:not(.head)").count() == 1, "REPORT on a row opens that product only")
+    pg.fill("#clLines [data-r]", "30")
+    pg.click("#clMore"); pg.wait_for_timeout(200)
+    n = pg.locator("#clLines .cl-line:not(.head)").count()
+    first_on = pg.locator("#clLines input[type=checkbox]").first.is_checked()
+    kept = pg.locator("#clLines [data-r]").first.input_value()
+    others_on = pg.locator("#clLines input[type=checkbox]:checked").count()
+    check(n == len(U["alice"].call("GET", "jobs/KR-00345-NV")[1]["site"]["bom"]) and first_on and kept == "30" and others_on == 1,
+          "ADD ANOTHER PRODUCT lists every product, the reported one ticked first with its typed count", (n, first_on, kept, others_on))
+    pg.click("#clCancel"); pg.wait_for_timeout(200)
+
     # sign off so the install opens
     s, job = U["alice"].call("GET", "jobs/KR-00345-NV")
     lines = {b["key"]: {"received": b["qty"], "damaged": 0} for b in job["site"]["bom"]}
