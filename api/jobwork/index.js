@@ -284,6 +284,14 @@ module.exports = P.handler(async ({ req, method, body, params, send, context }) 
         return { key: b.key, name: b.name, sku: b.sku, expected: b.qty, received: l.received, damaged: l.damaged || 0,
                  short: Math.max(0, b.qty - l.received), over: Math.max(0, l.received - b.qty) };
       });
+      /* Report first, then submit (Dino, 2026-11-02): every product counted
+         short or damaged needs a claim that names it before the material
+         check is submitted. */
+      const claimed = new Set();
+      (await Promise.all((await P.store().list(J.paths.claims(id))).map(n => P.store().get(n)))).filter(Boolean)
+        .forEach(r => (r.data.lines || []).forEach(l => claimed.add(l.key)));
+      const unreported = summary.filter(x => (x.short || x.damaged) && !claimed.has(x.key));
+      if (unreported.length) throw new ApiError(409, "Report " + unreported.map(x => x.name).join(", ") + " first (REPORT on the product), then submit.");
       mat.approved = Object.assign({ at: new Date().toISOString(),
         short: summary.reduce((s, x) => s + x.short, 0), damaged: summary.reduce((s, x) => s + x.damaged, 0),
         over: summary.reduce((s, x) => s + x.over, 0), summary }, who(user));

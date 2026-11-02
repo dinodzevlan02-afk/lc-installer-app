@@ -10,6 +10,8 @@ crews with one installer each (`alice` on KR-00345-NV, `bob` on TEST-SITE-01).
     python3 tools/qa/c3_platform.py    # phone / iPad / laptop / desktop: sideways scroll, 44 px, axe-core
     python3 tools/qa/c4_operations.py  # no signal, two tablets, expired session, bad links, upload retry
     python3 tools/qa/c5_phonecard.py   # phone: a picked head gets the panel
+    python3 tools/qa/c6_update.py      # iPad field-test update: photos, report counts, IDs, problem pins, bracket guides
+    python3 tools/qa/c7_submit.py      # SUBMIT MATERIAL CHECK: report each problem, then submit
 
 Needs Python Playwright with Chromium (`/opt/pw-browsers/chromium` in the
 cloud sessions; change `executable_path` in harness.py elsewhere) and Pillow.

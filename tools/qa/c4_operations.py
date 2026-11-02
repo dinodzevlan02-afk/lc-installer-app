@@ -58,7 +58,7 @@ with sync_playwright() as p:
     a = U["alice"].call("POST", "jobs/KR-00345-NV/approve", {"lines": full, "confirm": True})[0]
     b = U["alice"].call("POST", "jobs/KR-00345-NV/approve", {"lines": full, "confirm": True})[0]
     import glob
-    mails = [m for m in (json.load(open(f)) for f in glob.glob(QA + "/store/outbox/*.json")) if "Material signed off" in (m.get("subject") or "")]
+    mails = [m for m in (json.load(open(f)) for f in glob.glob(QA + "/store/outbox/*.json")) if "Material check submitted" in (m.get("subject") or "")]
     check(a == 200 and b in (409, 400) and len(mails) == 1, "a second sign-off is refused and sends no second email", (a, b, len(mails)))
 
     # 5. bad links

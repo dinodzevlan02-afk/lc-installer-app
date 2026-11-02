@@ -249,16 +249,10 @@ async function main() {
   const asm = outbox().find(m => /New install job for you$/.test(m.subject || "")) || {};
   check(asg.status === 200 && asg.body.assigned.emailed === 1 && JSON.stringify(asm.to) === '["dave.test@crew-b.example"]' && !asm.cc, "putting an installer on a job emails them the job, to them alone");
   await lc("PATCH", "jobs/TEST-SITE-01", { installers: onJob });
-  const ap = await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true });
-  check(ap.status === 200 && ap.body.material.approved.short === 1 && ap.body.material.approved.damaged === 1, "installer signs off; one short and one damaged recorded against the site's own quantities");
-  const som = outbox().find(m => /\] Material signed off: 1 short, 1 damaged$/.test(m.subject || "")) || {};
-  check(ap.body.notify.sent && JSON.stringify(som.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Expected/.test(som.html) && /Short/.test(som.html) && /Mike Crew/.test(som.html),
-        "the sign-off is emailed to the same list: expected, received, short, damaged, who signed");
-  check(ap.body.notify.to === undefined && ap.body.material.approved.mail.to === undefined, "the installer does not see the addresses");
-  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 6 } } })).status === 409, "signed-off counts are locked");
-
+  check((await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true })).status === 409,
+        "a product short or damaged must be reported before the material check is submitted");
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }] })).status === 400, "a damage claim needs a photo");
-  const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }], note: "Lens cracked", photos: [ph.body.name] });
+  const cl = await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "damaged", lines: [{ key: k1, received: 5, damaged: 1 }, { key: k2, received: 2 }], note: "Lens cracked", photos: [ph.body.name] });
   check(cl.status === 201 && /^MC-\d{6}-[0-9A-F]{4}$/.test(cl.body.claim.ref) && cl.body.claim.lines[0].expected === 6, "claim filed with a reference and the expected quantity from the site");
   const mail = outbox().find(m => (m.subject || "").includes(cl.body.claim.ref)) || {};
   check(cl.body.notify && cl.body.notify.sent && cl.body.notify.local && cl.body.notify.attached === 1 &&
@@ -270,6 +264,14 @@ async function main() {
         "the email carries the note, the expected / received / missing quantities and the photo");
   check(!/SECRET|costPrice/.test(mail.html || ""), "no pricing or supplier in the email");
   check((await inst("POST", "jobs/TEST-SITE-01/claims", { kind: "shortage", photos: ["0000000000000000.jpg"], note: "x" })).status === 400, "a photo that was never uploaded is refused");
+
+  const ap = await inst("POST", "jobs/TEST-SITE-01/approve", { lines: { [k2]: { received: 2 } }, confirm: true });
+  check(ap.status === 200 && ap.body.material.approved.short === 1 && ap.body.material.approved.damaged === 1, "installer signs off; one short and one damaged recorded against the site's own quantities");
+  const som = outbox().find(m => /\] Material check submitted: 1 short, 1 damaged$/.test(m.subject || "")) || {};
+  check(ap.body.notify.sent && JSON.stringify(som.to) === '["cassieh@ledconnection.com","dinod@ledconnection.com","davidw@ledconnection.com","sergeiv@ledconnection.com"]' && /Expected/.test(som.html) && /Short/.test(som.html) && /Mike Crew/.test(som.html),
+        "the sign-off is emailed to the same list: expected, received, short, damaged, who signed");
+  check(ap.body.notify.to === undefined && ap.body.material.approved.mail.to === undefined, "the installer does not see the addresses");
+  check((await inst("PUT", "jobs/TEST-SITE-01/material", { lines: { [k1]: { received: 6 } } })).status === 409, "signed-off counts are locked");
 
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinA.id, { photos: [] })).status === 400, "a pin is not saved as installed without a photo");
   check((await inst("PUT", "jobs/TEST-SITE-01/pins/" + pinOff.id, { photos: [ph.body.name] })).status === 404, "an excluded head cannot be installed");

@@ -198,7 +198,7 @@
 
     var a = D.material.approved;
     $('matSigned').innerHTML = !a ? '' :
-      '<div class="signed' + (a.short || a.damaged ? ' warn' : '') + '"><b>Signed off</b> by ' + esc(a.byName) + ' on ' + esc(new Date(a.at).toLocaleString()) +
+      '<div class="signed' + (a.short || a.damaged ? ' warn' : '') + '"><b>Material check submitted</b> by ' + esc(a.byName) + ' on ' + esc(new Date(a.at).toLocaleString()) +
       (a.short || a.damaged ? ' · ' + [a.short ? a.short + ' short' : '', a.damaged ? a.damaged + ' damaged' : ''].filter(Boolean).join(', ') +
         (D.claims.length ? '' : ' · <b>no claim filed yet</b>: use REPORT on the product.') : ' · everything received.') + '</div>';
     $('btnApprove').hidden = locked;
@@ -217,10 +217,11 @@
     });
     $('matSum').innerHTML = done + ' of ' + n + ' products counted' + (short ? ' · <span style="color:#fca5a5">' + short + ' short</span>' : '') +
       (dmg ? ' · <span style="color:#fca5a5">' + dmg + ' damaged</span>' : '');
-    /* Billie Jo, 2026-10-27: "change 'sign off' to 'proceed to installation'".
-       The button counts up as products are counted, then names the next step. */
+    /* Billie Jo, 2026-10-27: the button counts up as products are counted.
+       Dino, 2026-11-03: it is the SUBMIT of the material check, all good or
+       not ("if it's wrong, I still want to submit"). */
     var all = n && done === n, btn = $('btnApprove');
-    btn.textContent = all ? n + ' / ' + n + ' · Proceed to installation' : 'Checklist ' + done + ' / ' + n;
+    btn.textContent = all ? 'Submit material check · ' + n + ' / ' + n : 'Submit · ' + done + ' / ' + n + ' counted';
     btn.classList.toggle('primary', !!all);
     btn.classList.toggle('prog', !all);
     btn.style.setProperty('--done', (n ? Math.round(done / n * 100) : 0) + '%');
@@ -321,9 +322,15 @@
     if (i) setCount(i.getAttribute('data-k'), i.getAttribute('data-f'), i.value);
   });
 
-  /* Sign off */
-  $('btnApprove').addEventListener('click', function () {
-    var missing = 0;
+  /* Submit the material check (Dino, 2026-11-03): all good, submit; a
+     product short or damaged is REPORTED from this list first (one claim per
+     product, as on its row), then the check is submitted. */
+  function reportedClaim(key) {
+    return D.claims.filter(function (c) { return (c.lines || []).some(function (l) { return l.key === key; }); })[0] || null;
+  }
+  var checklistOpen = false;
+  function renderChecklist() {
+    var missing = 0, unreported = 0, problems = 0;
     $('apBody').innerHTML = '<ul class="ck">' + D.site.bom.map(function (b) {
       var c = counts[b.key] || {}, cls, mk, rs;
       if (c.received == null || c.received === '') { missing++; cls = 'todo'; mk = ''; rs = 'TO COUNT'; }
@@ -331,17 +338,41 @@
         var short = Math.max(0, b.qty - c.received), dmg = c.damaged || 0;
         cls = short || dmg ? 'bad' : 'ok'; mk = short || dmg ? '!' : '&#10003;';
         rs = short || dmg ? [short ? 'SHORT ' + short : '', dmg ? 'DAMAGED ' + dmg : ''].filter(Boolean).join(' · ') : c.received + ' OK';
+        if (short || dmg) {
+          problems++;
+          var rc = reportedClaim(b.key);
+          if (rc) rs += '<span class="ckdone">REPORTED ' + esc(rc.ref) + '</span>';
+          else { unreported++; rs += '<button type="button" class="danger ckrep" data-ckreport="' + esc(b.key) + '">Report</button>'; }
+        }
       }
       return '<li class="' + cls + '"><span class="mk">' + mk + '</span><span class="nm">' + esc(b.name) +
         ' <span class="muted mono">(' + b.qty + ')</span></span><span class="rs">' + rs + '</span></li>';
     }).join('') + '</ul>' +
-      (missing ? '<p class="msg err">' + missing + ' product' + (missing === 1 ? ' is' : 's are') + ' not counted yet.</p>' : '') +
-      '<p class="muted">Anything short or damaged: proceed with what you have, then REPORT it on the product so LED Connection can send the rest.</p>';
+      (missing ? '<p class="msg err">' + missing + ' product' + (missing === 1 ? ' is' : 's are') + ' not counted yet.</p>' :
+       unreported ? '<p class="msg err">Report ' + (unreported === 1 ? 'the product' : 'each of the ' + unreported + ' products') + ' marked REPORT, then submit.</p>' :
+       problems ? '<p class="muted">Everything short or damaged is reported. Submit to tell LED Connection what you have and start the install.</p>' :
+       '<p class="muted">Everything matches. Submit to tell LED Connection all the material is here.</p>');
+    $('apSend').disabled = !!(missing || unreported);
+  }
+  $('btnApprove').addEventListener('click', function () {
     $('apConfirm').checked = false;
-    $('apSend').disabled = !!missing;
+    renderChecklist();
+    checklistOpen = true;
     $('ovApprove').hidden = false;
   });
-  $('apCancel').addEventListener('click', function () { $('ovApprove').hidden = true; });
+  $('apBody').addEventListener('click', function (e) {
+    var r = e.target.closest('[data-ckreport]');
+    if (!r) return;
+    $('ovApprove').hidden = true;
+    openClaim(r.getAttribute('data-ckreport'));
+  });
+  /* Back to the checklist once the claim is sent or cancelled. */
+  function backToChecklist() {
+    if (!checklistOpen || approved()) return;
+    renderChecklist();
+    $('ovApprove').hidden = false;
+  }
+  $('apCancel').addEventListener('click', function () { checklistOpen = false; $('ovApprove').hidden = true; });
   $('apSend').addEventListener('click', function () {
     if (!$('apConfirm').checked) { toast('Tick the box to confirm you counted the material.', true); return; }
     $('apSend').disabled = true;
@@ -352,8 +383,9 @@
       renderMaterial();
       renderSteps();
       var a = r.material.approved, sent = mailNote(r.notify);
-      if (a.short || a.damaged) toast('Signed off.' + sent + ' Report the ' + (a.short ? 'shortage' : 'damage') + ' with REPORT on the product.');
-      else { toast('Signed off.' + sent + ' On to the install.'); show('install'); }
+      checklistOpen = false;
+      toast('Material check submitted' + (a.short || a.damaged ? ' with what is reported.' : ': everything received.') + sent + ' On to the install.');
+      show('install');
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('apSend').disabled = false; });
   });
 
@@ -599,7 +631,7 @@
       return p.then(function () { return upload(f).then(function (r) { claimShots.push(r.name); renderClaimShots(); }); });
     }, Promise.resolve()).catch(function (e) { toast(e.message, true); });
   });
-  $('clCancel').addEventListener('click', function () { $('ovClaim').hidden = true; });
+  $('clCancel').addEventListener('click', function () { $('ovClaim').hidden = true; backToChecklist(); });
   $('clSend').addEventListener('click', function () {
     if (!claimKind) { toast('Pick what is wrong first.', true); return; }
     var lines = [];
@@ -625,6 +657,7 @@
         if (moved) queueSave();
       }
       renderMaterial();
+      backToChecklist();
       var n = r.notify || {};
       toast('Claim ' + r.claim.ref + ' saved.' + mailNote(n, n.attached ? ' with ' + n.attached + ' photo' + (n.attached > 1 ? 's' : '') : ''), !n.sent);
     }).catch(function (e) { toast(e.message, true); }).then(function () { $('clSend').disabled = false; });
